@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --bg-dark: #0f172a;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-blue: #38bdf8;
+  --accent-green: #4ade80;
+  --accent-purple: #c084fc;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl p-6 shadow-2xl;
+    backdrop-filter: blur(16px);
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all cursor-pointer border-none flex items-center justify-center gap-2;
+    background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  }
+
+  .btn-primary:hover {
+    @apply transform -translate-y-1;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+  }
+}

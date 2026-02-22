@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loconet | Intranet Dashboard</title>
+    <meta name="description" content="Loconet Intranet - Premium internal management system for Seva and Inventory.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo-container">
+            <div class="logo-text">LOCONET</div>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <i data-lucide="layout-dashboard"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i data-lucide="package"></i>
+                        Inventory
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i data-lucide="users"></i>
+                        Seva Management
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        Reports
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="header animate-fade">
+            <div>
+                <h1>Welcome Back, Loconet Team</h1>
+                <p style="color: var(--text-secondary)">Explore the latest updates in services and inventory.</p>
+            </div>
+            <div class="user-profile">
+                <div class="search-box" style="position: relative;">
+                    <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); width: 18px;"></i>
+                    <input type="text" placeholder="Search data..." style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 0.5rem 1rem 0.5rem 2.5rem; border-radius: 12px; color: white; width: 300px;">
+                </div>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User Avatar" class="avatar">
+            </div>
+        </header>
+
+        <section class="stats-grid animate-fade" style="animation-delay: 0.1s">
+            <div class="stat-card">
+                <div class="stat-title">Active Services (Seva)</div>
+                <div class="stat-value">1,284</div>
+                <div style="color: #48bb78; font-size: 0.85rem; margin-top: 5px;">+12% this month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Inventory Items</div>
+                <div class="stat-value">8,432</div>
+                <div style="color: #48bb78; font-size: 0.85rem; margin-top: 5px;">32 items low stock</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Pending Receipts</div>
+                <div class="stat-value">452</div>
+                <div style="color: #f56565; font-size: 0.85rem; margin-top: 5px;">Requires attention</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">System Status</div>
+                <div class="stat-value">Online</div>
+                <div style="color: #48bb78; font-size: 0.85rem; margin-top: 5px;">Latency: 14ms</div>
+            </div>
+        </section>
+
+        <div class="chart-section animate-fade" style="animation-delay: 0.2s">
+            <div class="card">
+                <div class="card-title">
+                    Service Trends
+                    <button style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer;">Download Report</button>
+                </div>
+                <div id="chart-container" style="height: 300px; width: 100%; display: flex; align-items: flex-end; gap: 10px; padding-top: 20px;">
+                    <!-- Simple CSS Flex Chart Mockup -->
+                    <div style="flex: 1; height: 60%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 80%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 45%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 90%; background: linear-gradient(to top, var(--accent-purple), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 65%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 75%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                    <div style="flex: 1; height: 40%; background: linear-gradient(to top, var(--accent-blue), transparent); border-radius: 8px 8px 0 0;"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Recent Activity</div>
+                <div class="activity-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                        <div style="font-weight: 600; font-size: 0.9rem;">Receipt #4028 Generated</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">2 minutes ago</div>
+                    </div>
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                        <div style="font-weight: 600; font-size: 0.9rem;">Inventory Updated</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">15 minutes ago</div>
+                    </div>
+                    <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border);">
+                        <div style="font-weight: 600; font-size: 0.9rem;">New User Registered</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">1 hour ago</div>
+                    </div>
+                    <div style="padding: 0.5rem 0;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">Database Backup Sync</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">3 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="main.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
