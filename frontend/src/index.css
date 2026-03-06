@@ -3,16 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --bg-dark: #0f172a;
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  /* Light Saffron theme */
+  --primary: #e67e22;
+  --primary-hover: #d35400;
+  --bg-dark: #fdf6ee;
+  --glass-bg: rgba(180, 120, 50, 0.06);
+  --glass-border: rgba(180, 120, 50, 0.15);
+  --text-primary: #2c1810;
+  --text-secondary: #7a5c3e;
+  --accent-blue: #e67e22;
+  --accent-green: #d35400;
+  --accent-purple: #c0392b;
+  --accent-saffron: #ff8c00;
+  --glass-card-bg: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme='dark'] {
+  --primary: #d35400;
+  --primary-hover: #e67e22;
+  --bg-dark: #2c1810;
+  --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-blue: #38bdf8;
-  --accent-green: #4ade80;
-  --accent-purple: #c084fc;
+  --text-primary: #fdf6ee;
+  --text-secondary: #e67e22;
+  --accent-blue: #d35400;
+  --accent-green: #e67e22;
+  --accent-purple: #c0392b;
+  --accent-saffron: #ff8c00;
+  --glass-card-bg: rgba(44, 24, 16, 0.7);
 }
 
 * {
@@ -20,6 +38,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
@@ -31,17 +50,31 @@ body {
 
 @layer components {
   .glass-card {
-    @apply bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl p-6 shadow-2xl;
+    background-color: var(--glass-card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 24px -4px rgba(180, 120, 50, 0.08);
     backdrop-filter: blur(16px);
   }
 
   .btn-primary {
-    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all cursor-pointer border-none flex items-center justify-center gap-2;
-    background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent-saffron));
   }
 
   .btn-primary:hover {
-    @apply transform -translate-y-1;
-    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+    transform: translateY(-0.25rem);
+    box-shadow: 0 10px 25px -5px rgba(230, 126, 34, 0.3);
   }
 }

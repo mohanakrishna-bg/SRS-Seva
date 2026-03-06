@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from .database import Base
+from app.database import Base
 import datetime
 
 class User(Base):
@@ -34,16 +34,19 @@ class Item(Base):
 
 class InvoiceHdr(Base):
     __tablename__ = "Invoice_Hdr"
-    Id = Column(Integer, primary_key=True, index=True)
+    Id = Column("rowid", Integer, primary_key=True)
     Date = Column(DateTime)
     VoucherNo = Column(String)
     CustomerCode = Column(String)
     TotalAmount = Column(Float)
     Payment_Mode = Column(String, default="Cash")
+    Payment_Reference = Column(String, nullable=True)
+    Family_Members = Column(Integer, default=0)
+    Opt_Theertha_Prasada = Column(Boolean, default=False)
 
 class InvoiceDtl(Base):
     __tablename__ = "Invoice_Dtl"
-    Id = Column(Integer, primary_key=True, index=True)
+    Id = Column("rowid", Integer, primary_key=True)
     ParentId = Column(Integer)
     ItemCode = Column(String)
     Qty = Column(Float)

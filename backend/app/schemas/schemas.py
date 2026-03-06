@@ -42,9 +42,10 @@ class Customer(CustomerBase):
         from_attributes = True
 
 class ItemBase(BaseModel):
-    Description: str
-    Basic: float
-    ItemCode: str
+    Description: Optional[str] = None
+    Basic: Optional[float] = None
+    ItemCode: Optional[str] = None
+    TPQty: Optional[float] = None
     Prasada_Addon_Limit: Optional[int] = 0
 
 class Item(ItemBase):
@@ -57,6 +58,12 @@ class InvoiceHdrBase(BaseModel):
     CustomerCode: str
     TotalAmount: float
     Payment_Mode: str
+    Payment_Reference: Optional[str] = None
+    Family_Members: Optional[int] = 0
+    Opt_Theertha_Prasada: Optional[bool] = False
+
+class InvoiceHdrCreate(InvoiceHdrBase):
+    pass
 
 class InvoiceHdr(InvoiceHdrBase):
     Id: int
