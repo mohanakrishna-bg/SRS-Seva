@@ -47,7 +47,7 @@ export default function SearchBar({ placeholder = 'Search...', onSearch, debounc
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={placeholder}
-                className="w-full pl-11 pr-20 py-3 rounded-xl bg-white border border-black/10 text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20 transition-all text-sm"
+                className="w-full pl-11 pr-20 py-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20 transition-all text-sm"
             />
             <div className="absolute right-2 flex items-center gap-1">
                 {query && (

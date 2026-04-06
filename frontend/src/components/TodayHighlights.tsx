@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Sparkles, Check, Pencil } from 'lucide-react';
 import TransliteratedInput from './TransliteratedInput';
+import GlobalInputToolbar from './GlobalInputToolbar';
 
 interface Highlight {
     id: number;
@@ -78,7 +79,6 @@ export default function TodayHighlights({ editable = false, date }: { editable?:
 
     const cancelEdit = () => { setEditingId(null); setEditText(''); setEditTime(''); };
 
-    const inputClass = "flex-1 px-3 py-2 rounded-lg bg-white border border-black/10 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20";
 
     return (
         <div className="glass-card">
@@ -87,12 +87,15 @@ export default function TodayHighlights({ editable = false, date }: { editable?:
                     <Sparkles size={20} className="text-[var(--primary)]" />
                     <h3 className="font-bold text-lg">ಇಂದಿನ ವಿಶೇಷಗಳು</h3>
                 </div>
-                {editable && (
-                    <button onClick={() => setIsAdding(!isAdding)}
-                        className="p-1.5 rounded-lg hover:bg-black/5 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors">
-                        <Plus size={16} />
-                    </button>
-                )}
+                <div className="flex items-center gap-3">
+                    {editable && <GlobalInputToolbar />}
+                    {editable && (
+                        <button onClick={() => setIsAdding(!isAdding)}
+                            className="p-1.5 rounded-lg hover:bg-black/5 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors">
+                            <Plus size={16} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="space-y-2.5">
@@ -101,15 +104,15 @@ export default function TodayHighlights({ editable = false, date }: { editable?:
                         <span className="w-2 h-2 rounded-full bg-[var(--primary)] shrink-0" />
 
                         {editingId === h.id ? (
-                            <div className="flex-1 flex items-center gap-2">
-                                <input type="text" value={editText} onChange={(e) => setEditText(e.target.value)}
-                                    className={inputClass} autoFocus onKeyDown={(e) => e.key === 'Enter' && saveEdit()} />
-                                <input type="text" value={editTime} onChange={(e) => setEditTime(e.target.value)}
-                                    placeholder="ಸಮಯ" className={`w-24 ${inputClass}`} onKeyDown={(e) => e.key === 'Enter' && saveEdit()} />
-                                <button onClick={saveEdit} className="p-1 rounded text-emerald-600 hover:bg-emerald-50 transition-all">
-                                    <Check size={14} />
-                                </button>
-                                <button onClick={cancelEdit} className="p-1 rounded text-[var(--text-secondary)] hover:bg-black/5 transition-all text-xs">✕</button>
+                            <div className="flex-1 flex flex-col gap-2">
+                                <TransliteratedInput value={editText} onChange={setEditText} placeholder="ಸೇವಾ ಹೆಸರು" />
+                                <TransliteratedInput value={editTime} onChange={setEditTime} placeholder="ಸಮಯ" />
+                                <div className="flex justify-end gap-2">
+                                    <button onClick={saveEdit} className="p-1.5 rounded bg-emerald-500 text-white hover:bg-emerald-600 transition-all">
+                                        <Check size={14} />
+                                    </button>
+                                    <button onClick={cancelEdit} className="p-1.5 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold">✕</button>
+                                </div>
                             </div>
                         ) : (
                             <>

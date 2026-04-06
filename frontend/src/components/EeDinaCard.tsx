@@ -1,6 +1,7 @@
-import { useState, useEffect, type ReactNode } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, Sun, Moon, Star, Loader2, Clock } from 'lucide-react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Sun, Moon, Star, Loader2, Clock, CalendarDays } from 'lucide-react';
+import CalendarWidget from './CalendarWidget';
 
 interface PanchangaData {
     tithi: string;
@@ -17,20 +18,25 @@ interface ScheduleItem {
     period: 'AM' | 'PM';
 }
 
-
-
 interface EeDinaCardProps {
-    date?: Date;
+    date: Date;
+    onDateChange: (date: Date) => void;
 }
 
 const SETTINGS_KEY = 'seva_org_settings';
 
-export default function EeDinaCard({ date }: EeDinaCardProps) {
+export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
     const [panchanga, setPanchanga] = useState<PanchangaData | null>(null);
     const [loading, setLoading] = useState(true);
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [showCalendar, setShowCalendar] = useState(false);
+    const calendarRef = useRef<HTMLDivElement>(null);
 
-    const activeDate = date || new Date();
+    const activeDate = date;
+    const today = new Date();
+    const isToday = activeDate.toDateString() === today.toDateString();
+
     const formattedDate = activeDate.toLocaleDateString('kn-IN', {
         weekday: 'long',
         year: 'numeric',
@@ -39,41 +45,51 @@ export default function EeDinaCard({ date }: EeDinaCardProps) {
     });
 
     useEffect(() => {
-        // Load Standard Schedule from Settings
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
+                setShowCalendar(false);
+            }
+        };
+        if (showCalendar) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showCalendar]);
+
+    const formatTime = (d: Date) => {
+        let hours = d.getHours();
+        const minutes = d.getMinutes();
+        const seconds = d.getSeconds();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const strMin = minutes < 10 ? '0' + minutes : String(minutes);
+        const strSec = seconds < 10 ? '0' + seconds : String(seconds);
+        return { hours, strMin, strSec, ampm };
+    };
+
+    useEffect(() => {
         try {
             const storedSettings = localStorage.getItem(SETTINGS_KEY);
             if (storedSettings) {
                 const parsed = JSON.parse(storedSettings);
                 if (parsed.standardSchedule && Array.isArray(parsed.standardSchedule)) {
-                    // Sort schedule by time (simplified sorting for display)
-                    const sorted = [...parsed.standardSchedule].sort((a, b) => {
-                        const timeA = parseTime(a.time, a.period);
-                        const timeB = parseTime(b.time, b.period);
-                        return timeA - timeB;
-                    });
+                    const sorted = [...parsed.standardSchedule].sort((a, b) => parseTime(a.time, a.period) - parseTime(b.time, b.period));
                     setSchedule(sorted);
                 }
             }
         } catch { /* ignore */ }
 
-        // Special Events logic moved to SpecialEventsCard.tsx
-
-        // Fetch Panchanga
         const fetchPanchanga = async () => {
             setLoading(true);
             try {
                 const dateStr = activeDate.toDateString();
-                const cacheKey = `seva_panchanga_kn_${dateStr}`;
+                const cacheKey = `seva_panchanga_v2_kn_${dateStr}`;
                 const cached = localStorage.getItem(cacheKey);
-                if (cached) {
-                    setPanchanga(JSON.parse(cached));
-                    setLoading(false);
-                    return;
-                }
-
-                // Approximate sunrise time for South India (~6:15 AM)
+                if (cached) { setPanchanga(JSON.parse(cached)); setLoading(false); return; }
                 const sunriseDate = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 6, 15, 0);
-
                 const staticData: PanchangaData = {
                     tithi: getTithiAtSunrise(sunriseDate),
                     nakshatra: getApproxNakshatra(activeDate),
@@ -81,34 +97,32 @@ export default function EeDinaCard({ date }: EeDinaCardProps) {
                     sunset: '06:42 PM',
                     indianDate: getSakaSamvatDate(activeDate),
                 };
-
                 setPanchanga(staticData);
                 localStorage.setItem(cacheKey, JSON.stringify(staticData));
-            } catch {
-                setPanchanga(null);
-            } finally {
-                setLoading(false);
-            }
+            } catch { setPanchanga(null); }
+            finally { setLoading(false); }
         };
-
         fetchPanchanga();
     }, [activeDate.toDateString()]);
 
-    // Helper to sort times
     const parseTime = (time: string, period: string) => {
         try {
-            const [hoursStr, minutesStr] = time.split(':');
-            let hours = parseInt(hoursStr, 10);
-            const minutes = parseInt(minutesStr || '0', 10);
+            const [h, m] = time.split(':');
+            let hours = parseInt(h, 10);
+            const minutes = parseInt(m || '0', 10);
             if (period === 'PM' && hours !== 12) hours += 12;
             if (period === 'AM' && hours === 12) hours = 0;
             return hours * 60 + minutes;
         } catch { return 0; }
     };
 
+    const handleCalendarSelect = (newDate: Date) => { onDateChange(newDate); setShowCalendar(false); };
+    const handleResetToToday = () => onDateChange(new Date());
+    const { hours, strMin, strSec, ampm } = formatTime(currentTime);
+
     if (loading) {
         return (
-            <div className="glass-card flex items-center justify-center py-12 lg:col-span-2">
+            <div className="glass-card flex items-center justify-center p-8">
                 <Loader2 size={32} className="animate-spin text-[var(--accent-saffron)]" />
             </div>
         );
@@ -118,81 +132,122 @@ export default function EeDinaCard({ date }: EeDinaCardProps) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card relative overflow-hidden lg:col-span-2 flex flex-col md:flex-row gap-6"
+            className="glass-card relative flex flex-col gap-4 p-5"
+            style={{ overflow: 'visible', minWidth: '260px' }}
         >
             {/* Background Accent */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-400/10 dark:bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Left Column: Date & Panchanga */}
-            <div className="flex-1 space-y-5 relative z-10">
-                <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-saffron)]/10 text-[var(--accent-saffron)] mb-3 border border-[var(--accent-saffron)]/20">
-                        <Calendar size={14} />
-                        <span className="text-xs font-bold uppercase tracking-wider">ಈ ದಿನ (Today)</span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-[var(--primary)] leading-tight mb-1">
-                        {formattedDate}
-                    </h2>
-                    {panchanga && (
-                        <p className="text-sm md:text-base text-[var(--text-secondary)] font-medium">
-                            {panchanga.indianDate}
-                        </p>
-                    )}
-                </div>
-
-                {panchanga ? (
-                    <div className="grid grid-cols-2 gap-3">
-                        <InfoPill icon={<Moon size={16} />} label="ತಿಥಿ (Tithi)" value={panchanga.tithi} color="text-indigo-400" />
-                        <InfoPill icon={<Star size={16} />} label="ನಕ್ಷತ್ರ (Nakshatra)" value={panchanga.nakshatra} color="text-amber-500" />
-                        <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯೋದಯ (Sunrise)" value={panchanga.sunrise} color="text-orange-500" />
-                        <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯಾಸ್ತ (Sunset)" value={panchanga.sunset} color="text-rose-400" />
-                    </div>
-                ) : (
-                    <p className="text-sm text-slate-500 py-4">ಪಂಚಾಂಗ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.</p>
-                )}
+            <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-400/10 dark:bg-orange-500/5 rounded-full blur-3xl" />
             </div>
 
-            {/* Divider */}
-            <div className="hidden md:block w-px bg-gradient-to-b from-transparent via-[var(--glass-border)] to-transparent" />
-            <div className="block md:hidden h-px bg-gradient-to-r from-transparent via-[var(--glass-border)] to-transparent w-full my-4" />
+            {/* ═══ Live Clock ═══ */}
+            <div className="relative z-10 flex items-end gap-2">
+                <span className="text-4xl font-black tracking-tight text-[var(--primary)] font-mono leading-none">
+                    {hours}:{strMin}
+                </span>
+                <div className="flex flex-col items-start pb-0.5">
+                    <span className="text-sm font-bold text-[var(--text-secondary)] tracking-wider leading-none">{ampm}</span>
+                    <span className="text-xs font-medium text-[var(--text-secondary)]/50 font-mono leading-none mt-0.5">{strSec}s</span>
+                </div>
+                {/* Calendar popup button */}
+                <div className="ml-auto relative shrink-0" ref={calendarRef}>
+                    <button
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all border ${
+                            showCalendar
+                                ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                                : 'bg-white dark:bg-black/20 border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-orange-600 hover:border-orange-300'
+                        }`}
+                        title="ಕ್ಯಾಲೆಂಡರ್"
+                    >
+                        <CalendarDays size={18} />
+                    </button>
+                    <AnimatePresence>
+                        {showCalendar && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                transition={{ duration: 0.18, ease: 'easeOut' }}
+                                className="fixed bottom-6 left-6 z-[2000] shadow-2xl rounded-3xl bg-white dark:bg-slate-900 border-2 border-[var(--primary)] overflow-hidden"
+                            >
+                                <CalendarWidget selectedDate={activeDate} onChange={handleCalendarSelect} />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
 
-            <div className="flex-1 flex flex-col gap-6">
-                {/* Schedule Section */}
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-4 text-[var(--text-primary)]">
-                        <Clock size={16} className="text-amber-500" />
-                        <h3 className="font-bold text-sm">ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Schedule)</h3>
-                    </div>
+            {/* ═══ Dates: Gregorian + Hindu ═══ */}
+            <div className="relative z-10 flex flex-col gap-1.5">
+                {/* Line 1: Today badge + Gregorian */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                        onClick={handleResetToToday}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 ${
+                            isToday
+                                ? 'bg-orange-500 text-white border-orange-600'
+                                : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-orange-500/10'
+                        }`}
+                    >
+                        <Calendar size={10} />
+                        {isToday ? 'ಈ ದಿನ' : 'ಇಂದು'}
+                    </button>
+                    <span className="text-base font-bold text-[var(--text-primary)] leading-snug">
+                        {formattedDate}
+                    </span>
+                </div>
 
-                    {schedule.length > 0 ? (
-                        <div className="space-y-3">
-                            {schedule.map((item, idx) => (
-                                <div key={item.id} className="flex items-center gap-3 group relative">
-                                    {/* Timeline Line */}
-                                    {idx !== schedule.length - 1 && (
-                                        <div className="absolute left-[15px] top-[24px] bottom-[-12px] w-px bg-[var(--glass-border)] group-hover:bg-[var(--primary)]/30 transition-colors" />
-                                    )}
+                {/* Line 2: Hindu Panchanga — saffron italic, same size */}
+                <span className="text-base font-bold text-[var(--accent-saffron)] italic leading-snug">
+                    {panchanga?.indianDate}
+                </span>
+            </div>
 
-                                    <div className="w-8 h-8 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 z-10 shadow-sm">
-                                        <Clock size={12} className="text-[var(--primary)]" />
-                                    </div>
+            {/* ═══ Panchanga Info Pills ═══ */}
+            {panchanga ? (
+                <div className="grid grid-cols-2 gap-2 relative z-10">
+                    <InfoPill icon={<Moon size={13} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
+                    <InfoPill icon={<Star size={13} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
+                    <InfoPill icon={<Sun size={13} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
+                    <InfoPill icon={<Sun size={13} />} label="ಸೂರ್ಯಾಸ್ತ" value={panchanga.sunset} color="text-rose-400" />
+                </div>
+            ) : (
+                <p className="text-sm text-slate-500 py-4">ಪಂಚಾಂಗ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.</p>
+            )}
 
-                                    <div className="flex-1 bg-white/40 dark:bg-black/20 border border-[var(--glass-border)] rounded-xl px-4 py-2 flex justify-between items-center group-hover:border-[var(--primary)]/30 transition-colors">
-                                        <span className="font-medium text-[var(--text-primary)] text-sm">{item.title}</span>
-                                        <span className="font-mono text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] px-2 py-1 rounded-md">
-                                            {item.time} <span className="text-[10px]">{item.period}</span>
-                                        </span>
-                                    </div>
+            {/* ═══ Daily Schedule ═══ */}
+            <div className="pt-3 border-t border-[var(--glass-border)] relative z-10">
+                <div className="relative group inline-block">
+                    <span className="cursor-pointer text-sm font-bold text-[var(--accent-saffron)] hover:text-orange-600 flex items-center gap-2 transition-colors">
+                        <Clock size={15} />
+                        ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Daily Routine)
+                    </span>
+                    <div className="absolute left-0 bottom-full mb-2 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
+                        <div className="bg-white/95 dark:bg-slate-900/95 border border-[var(--glass-border)] rounded-2xl shadow-xl p-4">
+                            <h3 className="font-bold text-sm mb-3 text-[var(--text-primary)] border-b border-black/10 dark:border-white/10 pb-2 flex items-center gap-2">
+                                <Clock size={14} className="text-amber-500" />
+                                ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ
+                            </h3>
+                            {schedule.length > 0 ? (
+                                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                                    {schedule.map((item) => (
+                                        <div key={item.id} className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
+                                            <div className="w-6 h-6 rounded-full bg-white/50 dark:bg-black/50 border border-[var(--glass-border)] flex items-center justify-center shrink-0">
+                                                <Clock size={10} className="text-[var(--primary)]" />
+                                            </div>
+                                            <div className="flex-1 flex flex-col">
+                                                <span className="font-medium text-[var(--text-primary)] text-xs">{item.title}</span>
+                                                <span className="font-mono text-[10px] text-[var(--text-secondary)]">{item.time} {item.period}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            ) : (
+                                <p className="text-xs text-[var(--text-secondary)] text-center py-2">ವೇಳಾಪಟ್ಟಿ ಲಭ್ಯವಿಲ್ಲ.</p>
+                            )}
                         </div>
-                    ) : (
-                        <div className="h-full flex flex-col justify-center items-center text-center p-6 border border-dashed border-[var(--glass-border)] rounded-2xl bg-[var(--glass-bg)]">
-                            <Clock className="mb-2 text-[var(--text-secondary)] opacity-50" size={24} />
-                            <p className="text-sm text-[var(--text-secondary)]">ವೇಳಾಪಟ್ಟಿ ಲಭ್ಯವಿಲ್ಲ.</p>
-                            <p className="text-xs text-[var(--text-secondary)]/70 mt-1">ಸೆಟ್ಟಿಂಗ್ಸ್ ನಲ್ಲಿ ಸೇರಿಸಿ.</p>
-                        </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -201,19 +256,18 @@ export default function EeDinaCard({ date }: EeDinaCardProps) {
 
 function InfoPill({ icon, label, value, color }: { icon: ReactNode; label: string; value: string; color: string }) {
     return (
-        <div className="flex items-center gap-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-3 hover:bg-white/40 dark:hover:bg-black/20 transition-colors">
-            <div className={`w-8 h-8 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm ${color}`}>
+        <div className="flex items-center gap-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-2.5 hover:bg-white/40 dark:hover:bg-black/20 transition-colors">
+            <div className={`w-7 h-7 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm shrink-0 ${color}`}>
                 {icon}
             </div>
-            <div>
-                <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-0.5">{label}</p>
-                <p className="text-xs md:text-sm font-bold text-[var(--text-primary)]">{value}</p>
+            <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium leading-none mb-0.5">{label}</p>
+                <p className="text-sm font-bold text-[var(--text-primary)] truncate">{value}</p>
             </div>
         </div>
     );
 }
 
-// --- Tithi at Sunrise ---
 function getTithiAtSunrise(sunriseDate: Date): string {
     const tithis = [
         'ಪ್ರತಿಪದೆ', 'ದ್ವಿತೀಯಾ', 'ತೃತೀಯಾ', 'ಚತುರ್ಥೀ', 'ಪಂಚಮಿ',
@@ -221,20 +275,16 @@ function getTithiAtSunrise(sunriseDate: Date): string {
         'ಏಕಾದಶಿ', 'ದ್ವಾದಶಿ', 'ತ್ರಯೋದಶಿ', 'ಚತುರ್ದಶಿ'
     ];
     const epoch = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
-    const diffMs = sunriseDate.getTime() - epoch.getTime();
     const synodicMonth = 29.53058868;
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const diffDays = (sunriseDate.getTime() - epoch.getTime()) / (1000 * 60 * 60 * 24);
     const lunarAge = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
     const tithiNum = Math.floor(lunarAge / (synodicMonth / 30));
-
     if (tithiNum < 15) {
         const idx = tithiNum % 15;
-        if (idx === 14) return 'ಶುಕ್ಲ ಪೂರ್ಣಿಮೆ';
-        return `ಶುಕ್ಲ ${tithis[idx]}`;
+        return idx === 14 ? 'ಶುಕ್ಲ ಪೂರ್ಣಿಮೆ' : `ಶುಕ್ಲ ${tithis[idx]}`;
     } else {
         const idx = (tithiNum - 15) % 15;
-        if (idx === 14) return 'ಕೃಷ್ಣ ಅಮಾವಾಸ್ಯೆ';
-        return `ಕೃಷ್ಣ ${tithis[idx]}`;
+        return idx === 14 ? 'ಕೃಷ್ಣ ಅಮಾವಾಸ್ಯೆ' : `ಕೃಷ್ಣ ${tithis[idx]}`;
     }
 }
 
@@ -252,26 +302,35 @@ function getApproxNakshatra(date: Date): string {
 }
 
 function getSakaSamvatDate(date: Date): string {
-    const sakaMonths = [
-        'ಚೈತ್ರ', 'ವೈಶಾಖ', 'ಜ್ಯೇಷ್ಠ', 'ಆಷಾಢ',
-        'ಶ್ರಾವಣ', 'ಭಾದ್ರಪದ', 'ಆಶ್ವಿನ', 'ಕಾರ್ತಿಕ',
-        'ಮಾರ್ಗಶಿರ', 'ಪುಷ್ಯ', 'ಮಾಘ', 'ಫಾಲ್ಗುಣ'
+    const sakaMonths = ['ಚೈತ್ರ', 'ವೈಶಾಖ', 'ಜ್ಯೇಷ್ಠ', 'ಆಷಾಢ', 'ಶ್ರಾವಣ', 'ಭಾದ್ರಪದ', 'ಆಶ್ವಿನ', 'ಕಾರ್ತಿಕ', 'ಮಾರ್ಗಶಿರ', 'ಪುಷ್ಯ', 'ಮಾಘ', 'ಫಾಲ್ಗುಣ'];
+    const samvatsaras = [
+        "ಪ್ರಭವ", "ವಿಭವ", "ಶುಕ್ಲ", "ಪ್ರಮೋದೂತ", "ಪ್ರಜೋತ್ಪತ್ತಿ",
+        "ಆಂಗಿರಸ", "ಶ್ರೀಮುಖ", "ಭಾವ", "ಯುವ", "ಧಾತೃ",
+        "ಈಶ್ವರ", "ಬಹುಧಾನ್ಯ", "ಪ್ರಮಾಧಿ", "ವಿಕ್ರಮ", "ವೃಷಭ",
+        "ಚಿತ್ರಭಾನು", "ಸ್ವಭಾನು", "ತಾರಣ", "ಪಾರ್ಥಿವ", "ವ್ಯಯ",
+        "ಸರ್ವಜಿತ್", "ಸರ್ವಧಾರಿ", "ವಿರೋಧಿ", "ವಿಕೃತಿ", "ಖರ",
+        "ನಂದನ", "ವಿಜಯ", "ಜಯ", "ಮನ್ಮಥ", "ದುರ್ಮುಖಿ",
+        "ಹೇವಿಳಂಬಿ", "ವಿಳಂಬಿ", "ವಿಕಾರಿ", "ಶಾರ್ವರಿ", "ಪ್ಲವ",
+        "ಶುಭಕೃತ್", "ಶೋಭಕೃತ್", "ಕ್ರೋಧಿ", "ವಿಶ್ವಾವಸು", "ಪರಾಭವ",
+        "ಪ್ಲವಂಗ", "ಕೀಲಕ", "ಸೌಮ್ಯ", "ಸಾಧಾರಣ", "ವಿರೋಧಿಕೃತ್",
+        "ಪರಿಧಾವಿ", "ಪ್ರಮಾದಿ", "ಆನಂದ", "ರಾಕ್ಷಸ", "ನಳ",
+        "ಪಿಂಗಳ", "ಕಾಲಯುಕ್ತಿ", "ಸಿದ್ಧಾರ್ಥಿ", "ರೌದ್ರಿ", "ದುರ್ಮತಿ",
+        "ದುಂದುಭಿ", "ರುಧಿರೋದ್ಗಾರಿ", "ರಕ್ತಾಕ್ಷಿ", "ಕ್ರೋಧನ", "ಅಕ್ಷಯ"
     ];
 
-    const marchEquinox = new Date(date.getFullYear(), 2, 22);
-    let sakaYear: number;
-    let monthIdx: number;
+    const ugadiDate = new Date(date.getFullYear(), 2, 19);
+    let shakaYear = date.getFullYear() - 78;
+    if (date < ugadiDate) shakaYear--;
+    const samvatsara = samvatsaras[(shakaYear + 11) % 60];
 
+    const marchEquinox = new Date(date.getFullYear(), 2, 22);
+    let monthIdx: number;
     if (date >= marchEquinox) {
-        sakaYear = date.getFullYear() - 78;
-        const daysSinceEquinox = Math.floor((date.getTime() - marchEquinox.getTime()) / (1000 * 60 * 60 * 24));
-        monthIdx = Math.min(11, Math.floor(daysSinceEquinox / 30.4));
+        monthIdx = Math.min(11, Math.floor((date.getTime() - marchEquinox.getTime()) / (1000 * 60 * 60 * 24 * 30.4)));
     } else {
-        sakaYear = date.getFullYear() - 79;
         const prevEquinox = new Date(date.getFullYear() - 1, 2, 22);
-        const daysSinceEquinox = Math.floor((date.getTime() - prevEquinox.getTime()) / (1000 * 60 * 60 * 24));
-        monthIdx = Math.min(11, Math.floor(daysSinceEquinox / 30.4));
+        monthIdx = Math.min(11, Math.floor((date.getTime() - prevEquinox.getTime()) / (1000 * 60 * 60 * 24 * 30.4)));
     }
 
-    return `${sakaMonths[monthIdx]}, ಶಕ ಸಂವತ್ ${sakaYear}`;
+    return `${samvatsara} ಸಂವತ್ಸರ, ${sakaMonths[monthIdx]} ಮಾಸ`;
 }

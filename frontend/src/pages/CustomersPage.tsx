@@ -1,343 +1,535 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Phone, Mail, MapPin, MessageCircle, ChevronLeft, ChevronRight,
-    Trash2, Edit3, Receipt, Users
+    Plus, Phone, Mail, ChevronLeft, ChevronRight,
+    Trash2, Edit3, Users, Search, Filter, X,
+    DatabaseZap, UserCircle2
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import CustomerForm from '../components/CustomerForm';
-import { customerApi } from '../api';
+import DevoteeDetailsModal from '../components/DevoteeDetailsModal';
+import RegistrationModal from '../components/RegistrationModal';
+import ReceiptGenerator from '../components/ReceiptGenerator';
+import { devoteeApi, sevaApi, lookupApi } from '../api';
 import { useToast } from '../components/Toast';
 
-interface Customer {
-    ID1: number;
-    ID?: string;
+interface Devotee {
+    DevoteeId: number;
     Name: string;
-    Sgotra?: string;
-    SNakshatra?: string;
-    Address?: string;
-    City?: string;
     Phone?: string;
     WhatsApp_Phone?: string;
-    Email_ID?: string;
-    Google_Maps_Location?: string;
+    Email?: string;
+    Gotra?: string;
+    Nakshatra?: string;
+    Address?: string;
+    City?: string;
+    PinCode?: string;
+    PhotoPath?: string;
+    IsDeleted?: boolean;
 }
 
-interface CustomersPageProps {
-    onIssueReceipt: (customer: Customer) => void;
-}
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
-const PAGE_SIZE = 25;
-
-export default function CustomersPage({ onIssueReceipt }: CustomersPageProps) {
-    const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+export default function CustomersPage() {
+    const [allDevotees, setAllDevotees] = useState<Devotee[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(() => {
+        const saved = localStorage.getItem('seva_page_size');
+        return saved ? parseInt(saved) : DEFAULT_PAGE_SIZE;
+    });
     const [loading, setLoading] = useState(true);
 
     // Form state
     const [showForm, setShowForm] = useState(false);
-    const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
+    const [editDevotee, setEditDevotee] = useState<Devotee | null>(null);
 
-    // Selection state
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    // Detail & Booking state
+    const [viewDevotee, setViewDevotee] = useState<Devotee | null>(null);
+    const [bookingDevotee, setBookingDevotee] = useState<Devotee | null>(null);
+    const [showBooking, setShowBooking] = useState(false);
+    const [receiptData, setReceiptData] = useState<any>(null);
+    const [showReceipt, setShowReceipt] = useState(false);
+
+    // Advanced search
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [advGotra, setAdvGotra] = useState('');
+    const [advNakshatra, setAdvNakshatra] = useState('');
+    const [advPinCode, setAdvPinCode] = useState('');
+    const [advSevaCodes, setAdvSevaCodes] = useState<string[]>([]);
+    const [advDateFrom, setAdvDateFrom] = useState('');
+    const [advDateTo, setAdvDateTo] = useState('');
+
+    // Lookup data
+    const [gotraList, setGotraList] = useState<string[]>([]);
+    const [nakshatraList, setNakshatraList] = useState<{ nakshatra: string; raashi: string }[]>([]);
+    const [sevaList, setSevaList] = useState<any[]>([]);
 
     const { showToast } = useToast();
 
-    // Fetch all customers on mount
+    // Fetch devotees
     useEffect(() => {
-        fetchCustomers();
+        fetchDevotees();
+        fetchLookups();
     }, []);
 
-    const fetchCustomers = async () => {
+    const fetchDevotees = async () => {
         try {
             setLoading(true);
-            const res = await customerApi.list();
-            setAllCustomers(res.data);
-        } catch (err) {
-            showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
+            const res = await devoteeApi.list();
+            setAllDevotees(res.data);
+        } catch {
+            showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ (Failed to load devotees)');
         } finally {
             setLoading(false);
         }
     };
 
-    // Client-side search filtering
-    const filteredCustomers = useMemo(() => {
-        if (!searchQuery.trim()) return allCustomers;
+    const fetchLookups = async () => {
+        try {
+            const [gotraRes, nakRes, sevaRes] = await Promise.all([
+                lookupApi.gotra(),
+                lookupApi.nakshatra(),
+                sevaApi.list(),
+            ]);
+            setGotraList(gotraRes.data);
+            setNakshatraList(nakRes.data);
+            setSevaList(sevaRes.data);
+        } catch {
+            /* lookups are optional */
+        }
+    };
+
+    // Client-side basic filtering
+    const filteredDevotees = useMemo(() => {
+        if (!searchQuery.trim()) return allDevotees;
         const q = searchQuery.toLowerCase();
-        return allCustomers.filter((c) =>
-            (c.Name?.toLowerCase().includes(q)) ||
-            (c.Phone?.toLowerCase().includes(q)) ||
-            (c.City?.toLowerCase().includes(q)) ||
-            (c.Sgotra?.toLowerCase().includes(q)) ||
-            (c.ID?.toLowerCase().includes(q))
+        return allDevotees.filter(
+            (d) =>
+                d.Name?.toLowerCase().includes(q) ||
+                d.Phone?.toLowerCase().includes(q)
         );
-    }, [allCustomers, searchQuery]);
+    }, [allDevotees, searchQuery]);
 
     // Pagination
-    const totalPages = Math.ceil(filteredCustomers.length / PAGE_SIZE);
-    const paginatedCustomers = filteredCustomers.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE
+    const totalPages = Math.ceil(filteredDevotees.length / pageSize);
+    const paginatedDevotees = filteredDevotees.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
     );
 
-    // Reset page and selections on search
     useEffect(() => {
         setCurrentPage(1);
-        setSelectedIds([]);
     }, [searchQuery]);
 
     const handleSearch = useCallback((q: string) => {
         setSearchQuery(q);
+        setShowAdvanced(false);
     }, []);
 
-    const handleAddCustomer = async (data: any) => {
+    // Advanced search
+    const handleAdvancedSearch = async () => {
+        const params: Record<string, string> = {};
+        if (searchQuery.trim()) params.name = searchQuery;
+        if (advPinCode) params.pin_code = advPinCode;
+        if (advGotra) params.gotra = advGotra;
+        if (advNakshatra) params.nakshatra = advNakshatra;
+        if (advSevaCodes.length > 0) params.seva_codes = advSevaCodes.join(',');
+        if (advDateFrom) params.date_from = advDateFrom;
+        if (advDateTo) params.date_to = advDateTo;
+
+        if (Object.keys(params).length === 0) {
+            showToast('info', 'ಯಾವುದಾದರೂ ಶೋಧ ಮಾನದಂಡ ನಮೂದಿಸಿ (Enter at least one criteria)');
+            return;
+        }
+
         try {
-            if (data.ID1) {
-                await customerApi.update(data.ID1, data);
+            setLoading(true);
+            const res = await devoteeApi.searchAdvanced(params);
+            setAllDevotees(res.data);
+            setCurrentPage(1);
+            showToast('success', `${res.data.length} ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿವೆ (results found)`);
+        } catch {
+            showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲ (Search failed)');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const clearAdvancedSearch = () => {
+        setAdvGotra('');
+        setAdvNakshatra('');
+        setAdvPinCode('');
+        setAdvSevaCodes([]);
+        setAdvDateFrom('');
+        setAdvDateTo('');
+        setShowAdvanced(false);
+        fetchDevotees();
+    };
+
+    // CRUD handlers
+    const handleSaveDevotee = async (data: any) => {
+        if (loading) return;
+        try {
+            setLoading(true);
+            if (editDevotee) {
+                await devoteeApi.update(editDevotee.DevoteeId, data);
                 showToast('success', `${data.Name} ನವೀಕರಿಸಲಾಗಿದೆ`);
             } else {
-                await customerApi.create(data);
+                await devoteeApi.create(data);
                 showToast('success', `${data.Name} ಸೇರಿಸಲಾಗಿದೆ`);
             }
             setShowForm(false);
-            fetchCustomers();
-        } catch (err) {
-            showToast('error', data.ID1 ? 'ನವೀಕರಿಸಲಾಗಲಿಲ್ಲ' : 'ಭಕ್ತರನ್ನು ಸೇರಿಸಲಾಗಲಿಲ್ಲ');
+            setEditDevotee(null);
+            fetchDevotees();
+        } catch (err: any) {
+            const detail = err?.response?.data?.detail;
+            showToast('error', detail || 'ಕಾರ್ಯ ವಿಫಲ (Operation failed)');
+            setLoading(false);
         }
     };
 
-    const handleEditCustomer = async (data: any) => {
-        if (!editCustomer) return;
+    const handleSoftDelete = async (d: Devotee) => {
+        // Stop row click (details) propagation is already done in row buttons
+        if (!confirm(`${d.Name} ಅಳಿಸಬೇಕೇ? (Delete Devotee?)`)) return;
         try {
-            await customerApi.update(editCustomer.ID1, data);
-            showToast('success', `${data.Name} ನವೀಕರಿಸಲಾಗಿದೆ`);
-            setEditCustomer(null);
-            fetchCustomers();
-        } catch (err) {
-            showToast('error', 'ನವೀಕರಿಸಲಾಗಲಿಲ್ಲ');
+            setLoading(true);
+            await devoteeApi.delete(d.DevoteeId);
+            showToast('success', `${d.Name} ಅಳಿಸಲಾಗಿದೆ (Soft deleted)`);
+            setViewDevotee(null); 
+            fetchDevotees();
+        } catch {
+            showToast('error', 'ಅಳಿಸಲಾಗಲಿಲ್ಲ (Delete failed)');
+            setLoading(false);
         }
     };
 
-    const handleDeleteCustomer = async (c: Customer) => {
-        if (!confirm(`${c.Name} ಅಳಿಸಬೇಕೇ?`)) return;
+    const handleDatabaseCleanup = async () => {
+        if (!confirm('ಎಚ್ಚರಿಕೆ! ಅಳಿಸಲಾದ ಎಲ್ಲ ಭಕ್ತರನ್ನು ಶಾಶ್ವತವಾಗಿ ತೆಗೆಯಲಾಗುತ್ತದೆ.\n\nWARNING: All soft-deleted devotees will be permanently purged. This cannot be undone.\n\nProceed?')) return;
         try {
-            await customerApi.delete(c.ID1);
-            showToast('success', `${c.Name} ಅಳಿಸಲಾಗಿದೆ`);
-            setSelectedIds(prev => prev.filter(id => id !== c.ID1));
-            fetchCustomers();
-        } catch (err) {
-            showToast('error', 'ಅಳಿಸಲಾಗಲಿಲ್ಲ');
+            const res = await devoteeApi.cleanup();
+            showToast('success', res.data.detail);
+        } catch {
+            showToast('error', 'Cleanup failed');
         }
     };
 
-    const handleBulkDelete = async () => {
-        if (selectedIds.length === 0) return;
-        if (!confirm(`ಆಯ್ಕೆ ಮಾಡಿದ ${selectedIds.length} ಭಕ್ತರನ್ನು ಅಳಿಸಬೇಕೇ? (Delete ${selectedIds.length} devotees?)`)) return;
-        try {
-            for (const id of selectedIds) {
-                await customerApi.delete(id);
-            }
-            showToast('success', `${selectedIds.length} ಭಕ್ತರನ್ನು ಅಳಿಸಲಾಗಿದೆ`);
-            setSelectedIds([]);
-            fetchCustomers();
-        } catch (err) {
-            showToast('error', 'ಕೆಲವು ಭಕ್ತರನ್ನು ಅಳಿಸಲಾಗಲಿಲ್ಲ');
-            fetchCustomers();
-        }
+    const changePageSize = (size: number) => {
+        setPageSize(size);
+        localStorage.setItem('seva_page_size', String(size));
+        setCurrentPage(1);
     };
 
-    const handleBulkUpdateAttempt = () => {
-        if (selectedIds.length === 1) {
-            const c = allCustomers.find(cust => cust.ID1 === selectedIds[0]);
-            if (c) {
-                setEditCustomer(c);
-                setShowForm(true);
-            }
-        } else if (selectedIds.length > 1) {
-            showToast('error', 'ನವೀಕರಣವನ್ನು ಒಮ್ಮೆಗೆ ಒಂದು ಮಾತ್ರ ಮಾಡಬಹುದು (Update can be performed only one at a time)');
-        }
-    };
-
-    const toggleSelection = (id: number) => {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
+    const toggleSevaCode = (code: string) => {
+        setAdvSevaCodes((prev) =>
+            prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
         );
     };
 
-    const toggleSelectAll = () => {
-        if (selectedIds.length === paginatedCustomers.length && paginatedCustomers.length > 0) {
-            // Deselect all on current page
-            const currentPageIds = paginatedCustomers.map(c => c.ID1);
-            setSelectedIds(prev => prev.filter(id => !currentPageIds.includes(id)));
-        } else {
-            // Select all on current page
-            const newIds = new Set(selectedIds);
-            paginatedCustomers.forEach(c => newIds.add(c.ID1));
-            setSelectedIds(Array.from(newIds));
-        }
-    };
-
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <Users size={28} className="text-[var(--accent-blue)]" />
+                    <h2 className="text-2xl font-bold flex items-center gap-3 text-[var(--text-primary)]">
+                        <Users size={28} className="text-[var(--primary)]" />
                         ಭಕ್ತರು
                     </h2>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
-                        {allCustomers.length.toLocaleString()} ರಲ್ಲಿ {filteredCustomers.length.toLocaleString()} ಭಕ್ತರು
+                        {allDevotees.length.toLocaleString()} ರಲ್ಲಿ {filteredDevotees.length.toLocaleString()} ಭಕ್ತರು
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <SearchBar
-                        placeholder="ಹೆಸರು, ಫೋನ್, ನಗರ, ಗೋತ್ರದಿಂದ ಹುಡುಕಿ..."
+                        placeholder="ಹೆಸರು / ಫೋನ್ ಹುಡುಕಿ..."
                         onSearch={handleSearch}
                     />
                     <button
-                        onClick={() => { setEditCustomer(null); setShowForm(true); }}
-                        className="btn-primary shrink-0 text-sm"
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className={`p-3 rounded-xl transition-all border shrink-0 ${showAdvanced
+                            ? 'bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)]'
+                            : 'bg-white dark:bg-black/20 border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)]'
+                            }`}
+                        title="Advanced Search"
                     >
-                        <Plus size={16} /> ಸೇರಿಸಿ
+                        <Filter size={18} />
+                    </button>
+                    <button
+                        onClick={() => { setEditDevotee(null); setShowForm(true); }}
+                        className="px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--primary)] to-amber-500 text-white font-bold shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2 shrink-0"
+                    >
+                        <Plus size={18} /> <span className="hidden sm:inline">Add New</span>
                     </button>
                 </div>
             </div>
 
-            {/* Bulk Action Bar */}
-            {selectedIds.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-                    <span className="text-sm font-medium text-[var(--primary)] flex items-center gap-2">
-                        <span className="w-5 h-5 flex items-center justify-center bg-[var(--primary)] text-white rounded-full text-xs">{selectedIds.length}</span>
-                        ಭಕ್ತರನ್ನು ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ (Devotees selected)
-                    </span>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleBulkUpdateAttempt}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${selectedIds.length === 1
-                                    ? 'bg-white dark:bg-slate-800 text-[var(--text-primary)] hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm'
-                                    : 'opacity-50 cursor-not-allowed bg-white/50 dark:bg-slate-800/50 text-[var(--text-secondary)]'
-                                }`}
-                        >
-                            <Edit3 size={14} /> ನವೀಕರಿಸಿ (Update)
-                        </button>
-                        <button
-                            onClick={handleBulkDelete}
-                            className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-medium flex items-center gap-1.5 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
-                        >
-                            <Trash2 size={14} /> ಅಳಿಸಿ (Delete)
-                        </button>
-                    </div>
-                </motion.div>
-            )}
+            {/* Advanced Search Panel */}
+            <AnimatePresence>
+                {showAdvanced && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="glass-card p-5 space-y-4 border-l-4 border-l-[var(--primary)]">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                    <Filter size={16} className="text-[var(--primary)]" />
+                                    ಸುಧಾರಿತ ಹುಡುಕಾಟ
+                                </h3>
+                                <button onClick={clearAdvancedSearch} className="text-xs text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors flex items-center gap-1">
+                                    <X size={12} /> Clear
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* PIN Code */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಪಿನ್ ಕೋಡ್</label>
+                                    <input
+                                        type="text"
+                                        value={advPinCode}
+                                        onChange={(e) => setAdvPinCode(e.target.value)}
+                                        placeholder="570001"
+                                        maxLength={6}
+                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] text-sm"
+                                    />
+                                </div>
+
+                                {/* Gotra */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಗೋತ್ರ</label>
+                                    <select
+                                        value={advGotra}
+                                        onChange={(e) => setAdvGotra(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] text-sm"
+                                    >
+                                        <option value="">-- ಎಲ್ಲಾ --</option>
+                                        {gotraList.map((g) => (
+                                            <option key={g} value={g}>{g}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Nakshatra */}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನಕ್ಷತ್ರ</label>
+                                    <select
+                                        value={advNakshatra}
+                                        onChange={(e) => setAdvNakshatra(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] text-sm"
+                                    >
+                                        <option value="">-- ಎಲ್ಲಾ --</option>
+                                        {nakshatraList.map((n) => (
+                                            <option key={n.nakshatra} value={n.nakshatra}>
+                                                {n.nakshatra} ({n.raashi})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Seva multi-select */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಾಯಿತ ಸೇವೆ</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {sevaList.map((s: any) => (
+                                        <button
+                                            key={s.SevaCode}
+                                            onClick={() => toggleSevaCode(s.SevaCode)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${advSevaCodes.includes(s.SevaCode)
+                                                ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-sm'
+                                                : 'bg-white dark:bg-black/20 text-[var(--text-secondary)] border-black/10 dark:border-white/10 hover:border-[var(--primary)]/50'
+                                                }`}
+                                        >
+                                            {s.Description} (₹{s.Amount})
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Date range (only when seva is selected) */}
+                            {advSevaCodes.length > 0 && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಮೊದಲ ದಿನಾಂಕ (From)</label>
+                                        <input
+                                            type="date"
+                                            value={advDateFrom}
+                                            onChange={(e) => {
+                                                const d = e.target.value;
+                                                if (d) {
+                                                    const [y, m, day] = d.split('-');
+                                                    setAdvDateFrom(`${day}${m}${y.slice(-2)}`);
+                                                } else {
+                                                    setAdvDateFrom('');
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] text-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಕೊನೆಯ ದಿನಾಂಕ (To)</label>
+                                        <input
+                                            type="date"
+                                            value={advDateTo}
+                                            onChange={(e) => {
+                                                const d = e.target.value;
+                                                if (d) {
+                                                    const [y, m, day] = d.split('-');
+                                                    setAdvDateTo(`${day}${m}${y.slice(-2)}`);
+                                                } else {
+                                                    setAdvDateTo('');
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] text-sm"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            <button
+                                onClick={handleAdvancedSearch}
+                                className="px-6 py-2.5 rounded-xl bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] transition-colors flex items-center gap-2"
+                            >
+                                <Search size={16} /> ಹುಡುಕಿ (Search)
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Database Cleanup Button */}
+            <div className="flex justify-end">
+                <button
+                    onClick={handleDatabaseCleanup}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors flex items-center gap-1.5 border border-amber-200 dark:border-amber-500/20"
+                    title="Permanently purge soft-deleted devotees"
+                >
+                    <DatabaseZap size={14} /> Cleanup Deleted
+                </button>
+            </div>
 
             {/* Table */}
             <div className="glass-card overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-black/10">
-                                <th className="pb-3 pt-1 w-10 pl-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={paginatedCustomers.length > 0 && selectedIds.length === paginatedCustomers.length}
-                                        onChange={toggleSelectAll}
-                                        className="w-4 h-4 rounded border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
-                                    />
-                                </th>
-                                <th className="pb-3 pt-1 font-semibold text-[var(--text-secondary)] uppercase text-xs">ಹೆಸರು ಮತ್ತು ಗೋತ್ರ</th>
-                                <th className="pb-3 pt-1 font-semibold text-[var(--text-secondary)] uppercase text-xs">ಸಂಪರ್ಕ</th>
-                                <th className="pb-3 pt-1 font-semibold text-[var(--text-secondary)] uppercase text-xs hidden md:table-cell">ಸ್ಥಳ</th>
-                                <th className="pb-3 pt-1 font-semibold text-[var(--text-secondary)] uppercase text-xs text-right">ಕ್ರಿಯೆಗಳು</th>
+                            <tr className="border-b border-black/10 dark:border-white/10">
+                                <th className="pb-3 pt-3 w-12 pl-4"></th>
+                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">ಹೆಸರು / ಗೋತ್ರ</th>
+                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">ಸಂಪರ್ಕ</th>
+                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider hidden lg:table-cell">ನಗರ / ಪಿನ್</th>
+                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider text-right pr-4">ಕ್ರಿಯೆಗಳು</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedCustomers.map((c) => (
+                            {paginatedDevotees.map((d) => (
                                 <tr
-                                    key={c.ID1}
-                                    onClick={(e) => {
-                                        if ((e.target as HTMLElement).tagName !== 'BUTTON' && (e.target as HTMLElement).tagName !== 'A' && (e.target as HTMLElement).tagName !== 'INPUT') {
-                                            toggleSelection(c.ID1);
-                                        }
-                                    }}
-                                    className={`border-b border-black/5 hover:bg-black/[0.02] transition-colors group cursor-pointer ${selectedIds.includes(c.ID1) ? 'bg-[var(--primary)]/5 dark:bg-[var(--primary)]/10' : ''}`}
+                                    key={d.DevoteeId}
+                                    onClick={() => setViewDevotee(d)}
+                                    className={`border-b border-black/5 dark:border-white/5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors cursor-pointer group ${
+                                        pageSize <= 5 ? 'py-6 px-4' : pageSize <= 10 ? 'py-4 px-4' : 'py-2 px-4'
+                                    }`}
                                 >
-                                    <td className="py-3.5 pl-4">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.includes(c.ID1)}
-                                            onChange={() => toggleSelection(c.ID1)}
-                                            className="w-4 h-4 rounded border-[var(--glass-border)] bg-[var(--glass-bg)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
-                                        />
-                                    </td>
-                                    <td className="py-3.5">
-                                        <p className="font-medium">{c.Name || 'Unnamed'}</p>
-                                        <p className="text-xs text-slate-500 mt-0.5">
-                                            {c.Sgotra || '—'} • {c.SNakshatra || '—'}
-                                        </p>
-                                    </td>
-                                    <td className="py-3.5">
-                                        <div className="flex flex-col gap-0.5 text-sm text-[var(--text-secondary)]">
-                                            {c.Phone && <span className="flex items-center gap-1.5"><Phone size={11} />{c.Phone}</span>}
-                                            {c.WhatsApp_Phone && <span className="flex items-center gap-1.5 text-green-400"><MessageCircle size={11} />{c.WhatsApp_Phone}</span>}
-                                            {c.Email_ID && <span className="flex items-center gap-1.5"><Mail size={11} />{c.Email_ID}</span>}
-                                            {!c.Phone && !c.Email_ID && <span className="text-slate-600">—</span>}
-                                        </div>
-                                    </td>
-                                    <td className="py-3.5 text-sm text-slate-400 hidden md:table-cell">
-                                        {c.City || '—'}
-                                        {c.Google_Maps_Location && (
-                                            <a href={c.Google_Maps_Location} target="_blank" rel="noreferrer" className="block text-[var(--accent-blue)] text-xs mt-0.5 hover:underline">
-                                                <MapPin size={10} className="inline mr-1" />ನಕ್ಷೆ
-                                            </a>
-                                        )}
-                                    </td>
-                                    <td className="py-3.5 text-right">
-                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => onIssueReceipt(c)}
-                                                className="px-2.5 py-1.5 bg-[var(--primary)]/80 hover:bg-[var(--primary)] text-white text-xs rounded-md transition-colors flex items-center gap-1"
-                                            >
-                                                <Receipt size={12} /> ರಸೀದಿ
-                                            </button>
-                                            <button
-                                                onClick={() => { setEditCustomer(c); setShowForm(true); }}
-                                                className="p-1.5 rounded-md hover:bg-black/5 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors"
-                                            >
-                                                <Edit3 size={14} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteCustomer(c)}
-                                                className="p-1.5 rounded-md hover:bg-red-50 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                     <td className={`pl-4 ${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}></td>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}>
+                                         {d.PhotoPath ? (
+                                             <img src={d.PhotoPath} alt="" className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-9 h-9'} rounded-full object-cover border-2 border-[var(--glass-border)] transition-all`} />
+                                         ) : (
+                                             <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-9 h-9'} rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] transition-all`}>
+                                                 <UserCircle2 size={pageSize <= 10 ? 32 : 20} />
+                                             </div>
+                                         )}
+                                     </td>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}>
+                                         <p className={`font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors ${pageSize <= 5 ? 'text-lg' : 'text-sm'}`}>{d.Name || 'Unnamed'}</p>
+                                         <p className={`${pageSize <= 5 ? 'text-sm' : 'text-xs'} text-[var(--text-secondary)] mt-0.5`}>
+                                             {d.Gotra || '—'} • {d.Nakshatra || '—'}
+                                         </p>
+                                     </td>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}>
+                                         <div className="flex flex-col gap-0.5 text-sm text-[var(--text-secondary)]">
+                                             {d.Phone && (
+                                                 <span className="flex items-center gap-1.5">
+                                                     <Phone size={11} className="text-[var(--primary)]" />{d.Phone}
+                                                 </span>
+                                             )}
+                                             {d.Email && (
+                                                 <span className="flex items-center gap-1.5">
+                                                     <Mail size={11} />{d.Email}
+                                                 </span>
+                                             )}
+                                             {!d.Phone && !d.Email && <span className="text-slate-400">—</span>}
+                                         </div>
+                                     </td>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-sm text-[var(--text-secondary)] hidden lg:table-cell transition-all`}>
+                                         <div>
+                                             {d.City || '—'}
+                                             {d.PinCode ? ` - ${d.PinCode}` : ''}
+                                         </div>
+                                     </td>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-right pr-4 transition-all`}>
+                                         <div className="flex items-center justify-end gap-1">
+                                             <button
+                                                 onClick={(e) => { e.stopPropagation(); setEditDevotee(d); setShowForm(true); }}
+                                                 className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-[var(--text-secondary)] hover:text-blue-600 transition-colors"
+                                                 title="Edit"
+                                             >
+                                                 <Edit3 size={14} />
+                                             </button>
+                                             <button
+                                                 onClick={(e) => { e.stopPropagation(); handleSoftDelete(d); }}
+                                                 className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                                                 title="Delete"
+                                             >
+                                                 <Trash2 size={14} />
+                                             </button>
+                                         </div>
+                                     </td>
+                                 </tr>
                             ))}
                         </tbody>
                     </table>
 
-                    {paginatedCustomers.length === 0 && !loading && (
-                        <div className="text-center py-12 text-slate-500">
-                            {searchQuery ? `"${searchQuery}" ಗೆ ಫಲಿತಾಂಶಗಳಿಲ್ಲ` : 'ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ'}
+                    {paginatedDevotees.length === 0 && !loading && (
+                        <div className="text-center py-16 text-[var(--text-secondary)]">
+                            <Users size={48} className="mx-auto mb-3 opacity-30" />
+                            <p className="font-medium">{searchQuery ? `"${searchQuery}" ಗೆ ಫಲಿತಾಂಶಗಳಿಲ್ಲ` : 'ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ'}</p>
                         </div>
                     )}
 
                     {loading && (
-                        <div className="text-center py-12 text-slate-500">ಭಕ್ತರು ಲೋಡ್ ಆಗುತ್ತಿದೆ...</div>
+                        <div className="text-center py-16 text-[var(--text-secondary)]">
+                            <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                            <p>ಭಕ್ತರು ಲೋಡ್ ಆಗುತ್ತಿದೆ...</p>
+                        </div>
                     )}
                 </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between pt-4 mt-4 border-t border-black/10 px-1">
-                        <p className="text-xs text-slate-500">
-                            ಪುಟ {currentPage} / {totalPages}
-                        </p>
+                {/* Footer: Pagination + Page Size + Cleanup */}
+                {totalPages >= 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between pt-4 mt-2 border-t border-black/10 dark:border-white/10 px-4 pb-3 gap-3">
+                        <div className="flex items-center gap-3">
+                            <p className="text-xs text-[var(--text-secondary)]">
+                                ಪುಟ {currentPage} / {totalPages}
+                            </p>
+                            <div className="flex items-center gap-1">
+                                <span className="text-xs text-[var(--text-secondary)]">ಸಾಲುಗಳು:</span>
+                                <select
+                                    value={pageSize}
+                                    onChange={(e) => changePageSize(Number(e.target.value))}
+                                    className="px-2 py-1 rounded-md bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                                >
+                                    {PAGE_SIZE_OPTIONS.map((s) => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -346,7 +538,7 @@ export default function CustomersPage({ onIssueReceipt }: CustomersPageProps) {
                             >
                                 <ChevronLeft size={16} />
                             </button>
-                            {/* Page number buttons */}
+                            {/* Page buttons */}
                             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                 const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
                                 const page = start + i;
@@ -357,7 +549,7 @@ export default function CustomersPage({ onIssueReceipt }: CustomersPageProps) {
                                         onClick={() => setCurrentPage(page)}
                                         className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${page === currentPage
                                             ? 'bg-[var(--primary)] text-white'
-                                            : 'hover:bg-black/5 text-slate-400'
+                                            : 'hover:bg-black/5 text-[var(--text-secondary)]'
                                             }`}
                                     >
                                         {page}
@@ -376,13 +568,52 @@ export default function CustomersPage({ onIssueReceipt }: CustomersPageProps) {
                 )}
             </div>
 
+            {/* Devotee Details Modal */}
+            <DevoteeDetailsModal
+                isOpen={!!viewDevotee}
+                onClose={() => setViewDevotee(null)}
+                devotee={viewDevotee}
+                onEdit={(d) => { setEditDevotee(d); setShowForm(true); setViewDevotee(null); }}
+                onDelete={(d) => handleSoftDelete(d)}
+                onBookSeva={(d) => { setBookingDevotee(d); setShowBooking(true); setViewDevotee(null); }}
+            />
+
+            {/* Registration/Booking Modal */}
+            <RegistrationModal
+                isOpen={showBooking}
+                onClose={() => { setShowBooking(false); setBookingDevotee(null); }}
+                prefillDevotee={bookingDevotee}
+                onSuccess={(data) => {
+                    setShowBooking(false);
+                    setReceiptData({
+                        voucherNo: data.invoice.VoucherNo,
+                        date: data.invoice.RegistrationDate || data.invoice.Date,
+                        customerName: data.customer.Name,
+                        gotra: data.customer.Gotra || data.customer.Sgotra,
+                        nakshatra: data.customer.Nakshatra || data.customer.SNakshatra,
+                        sevaDescription: data.item.Description,
+                        amount: data.invoice.GrandTotal || data.invoice.TotalAmount,
+                        paymentMode: data.invoice.PaymentMode || data.invoice.Payment_Mode
+                    });
+                    setShowReceipt(true);
+                }}
+            />
+
+            {/* Receipt Generator */}
+            <ReceiptGenerator
+                isOpen={showReceipt}
+                onClose={() => setShowReceipt(false)}
+                receiptData={receiptData}
+            />
+
             {/* Customer Form Modal */}
             <CustomerForm
                 isOpen={showForm}
-                onClose={() => { setShowForm(false); setEditCustomer(null); }}
-                onSubmit={editCustomer ? handleEditCustomer : handleAddCustomer}
-                initialData={editCustomer || undefined}
-                title={editCustomer ? `${editCustomer.Name} ಬದಲಿಸಿ` : 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ'}
+                onClose={() => { setShowForm(false); setEditDevotee(null); }}
+                onSubmit={handleSaveDevotee}
+                initialData={editDevotee || undefined}
+                title={editDevotee ? `${editDevotee.Name} ಬದಲಿಸಿ` : 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ'}
+                loading={loading}
             />
         </motion.div>
     );

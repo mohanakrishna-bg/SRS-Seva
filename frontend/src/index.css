@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   /* Light Saffron theme */
   --primary: #e67e22;
   --primary-hover: #d35400;
   --bg-dark: #fdf6ee;
-  --glass-bg: rgba(180, 120, 50, 0.06);
+  --glass-bg: rgba(180, 120, 50, 0.08);
   --glass-border: rgba(180, 120, 50, 0.15);
   --text-primary: #2c1810;
   --text-secondary: #7a5c3e;
@@ -15,10 +16,11 @@
   --accent-green: #d35400;
   --accent-purple: #c0392b;
   --accent-saffron: #ff8c00;
-  --glass-card-bg: rgba(255, 255, 255, 0.7);
+  --glass-card-bg: rgba(253, 246, 238, 0.98);
 }
 
 [data-theme='dark'] {
+  color-scheme: dark;
   --primary: #d35400;
   --primary-hover: #e67e22;
   --bg-dark: #2c1810;
@@ -30,7 +32,7 @@
   --accent-green: #e67e22;
   --accent-purple: #c0392b;
   --accent-saffron: #ff8c00;
-  --glass-card-bg: rgba(44, 24, 16, 0.7);
+  --glass-card-bg: rgba(44, 24, 16, 0.98);
 }
 
 * {
@@ -77,4 +79,39 @@ body {
     transform: translateY(-0.25rem);
     box-shadow: 0 10px 25px -5px rgba(230, 126, 34, 0.3);
   }
+
+  .form-input {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  }
+}
+
+/* Override react-transliterate dropdown */
+ul[class*="_ReactTransliterate_"] {
+  background-color: var(--glass-card-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+ul[class*="_ReactTransliterate_"] > li:hover {
+  background-color: var(--glass-bg) !important;
+}
+
+li[class*="_Active_"] {
+  background-color: var(--primary) !important;
+  color: white !important;
 }

@@ -2,33 +2,46 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Settings as SettingsIcon, Building2, Bell, Save, ImageIcon,
-    Trash2, Camera, Link2, Upload, Calendar as CalendarIcon, Plus
+    Settings as SettingsIcon, Building2, Save, ImageIcon,
+    Trash2, Camera, Link2, Upload, Plus, Clock
 } from 'lucide-react';
-import TodayHighlights from '../components/TodayHighlights';
+
 import { useToast } from '../components/Toast';
 import TransliteratedInput from '../components/TransliteratedInput';
+import GlobalInputToolbar from '../components/GlobalInputToolbar';
 
 const SETTINGS_KEY = 'seva_org_settings';
 const MAX_IMAGE_SIZE = 500 * 1024;
 
 interface OrgSettings {
     orgName: string;
+    orgNameEn?: string;
     address: string;
+    addressEn?: string;
     phone: string;
     whatsapp: string;
     website: string;
+    foodServiceCharges?: string;
     logoImage?: string;
     bgImage?: string;
+    bankName?: string;
+    branchIfsc?: string;
+    accountNumber?: string;
+    accountType?: string;
+    upiVpa?: string;
+    upiQrCode?: string;
     standardSchedule?: { id: number; title: string; time: string; period: 'AM' | 'PM' }[];
 }
 
 const defaultSettings: OrgSettings = {
     orgName: 'ಶ್ರೀ ಮಠ ಆಡಳಿತ',
+    orgNameEn: 'Shri Matha Admin',
     address: '',
+    addressEn: '',
     phone: '',
     whatsapp: '',
     website: '',
+    foodServiceCharges: '100, 150, 200',
     standardSchedule: [
         { id: 1, title: 'ಅಭಿಷೇಕ', time: '6:30', period: 'AM' },
         { id: 2, title: 'ಬೆಳಗಿನ ಪೂಜೆ', time: '8:00', period: 'AM' },
@@ -82,14 +95,14 @@ function validateUrl(val: string): string | null {
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OrgSettings>(defaultSettings);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [showUrlInput, setShowUrlInput] = useState<'logoImage' | 'bgImage' | null>(null);
+    const [showUrlInput, setShowUrlInput] = useState<'logoImage' | 'bgImage' | 'upiQrCode' | null>(null);
     const [urlValue, setUrlValue] = useState('');
     const [loadingImage, setLoadingImage] = useState(false);
     const { showToast } = useToast();
     const logoInputRef = useRef<HTMLInputElement>(null);
     const bgInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
-    const cameraTargetRef = useRef<'logoImage' | 'bgImage'>('logoImage');
+    const cameraTargetRef = useRef<'logoImage' | 'bgImage' | 'upiQrCode'>('logoImage');
 
     useEffect(() => {
         const stored = localStorage.getItem(SETTINGS_KEY);
@@ -103,38 +116,29 @@ export default function SettingsPage() {
         setErrors((prev) => { const n = { ...prev }; delete n[key]; return n; });
     };
 
+    const persistSettings = (updated: OrgSettings) => {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
+    };
+
     const handleScheduleChange = (id: number, key: 'title' | 'time' | 'period', value: string) => {
-        setSettings((prev) => {
-            const schedule = prev.standardSchedule || [];
-            return {
-                ...prev,
-                standardSchedule: schedule.map(s => s.id === id ? { ...s, [key]: value } : s)
-            };
-        });
+        setSettings(prev => ({
+            ...prev,
+            standardSchedule: prev.standardSchedule?.map(s => s.id === id ? { ...s, [key]: value } as any : s) || []
+        }));
     };
 
     const addScheduleItem = () => {
-        setSettings((prev) => {
-            const schedule = prev.standardSchedule || [];
-            return {
-                ...prev,
-                standardSchedule: [...schedule, { id: Date.now(), title: 'ಹೊಸ ಸೇವೆ', time: '12:00', period: 'AM' }]
-            };
-        });
+        setSettings(prev => ({
+            ...prev,
+            standardSchedule: [...(prev.standardSchedule || []), { id: Date.now(), title: 'ಹೊಸ ಸೇವೆ', time: '12:00', period: 'AM' }]
+        }));
     };
 
     const removeScheduleItem = (id: number) => {
-        setSettings((prev) => {
-            const schedule = prev.standardSchedule || [];
-            return {
-                ...prev,
-                standardSchedule: schedule.filter(s => s.id !== id)
-            };
-        });
-    };
-
-    const persistSettings = (updated: OrgSettings) => {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
+        setSettings(prev => ({
+            ...prev,
+            standardSchedule: prev.standardSchedule?.filter(s => s.id !== id) || []
+        }));
     };
 
     const validateAll = (): boolean => {
@@ -156,7 +160,7 @@ export default function SettingsPage() {
         showToast('success', 'ಸೆಟ್ಟಿಂಗ್ಸ್ ಉಳಿಸಲಾಗಿದೆ');
     };
 
-    const handleImageUpload = async (key: 'logoImage' | 'bgImage', file: File) => {
+    const handleImageUpload = async (key: 'logoImage' | 'bgImage' | 'upiQrCode', file: File) => {
         setLoadingImage(true);
         try {
             const reader = new FileReader();
@@ -178,12 +182,12 @@ export default function SettingsPage() {
         setLoadingImage(false);
     };
 
-    const openCamera = (key: 'logoImage' | 'bgImage') => {
+    const openCamera = (key: 'logoImage' | 'bgImage' | 'upiQrCode') => {
         cameraTargetRef.current = key;
         cameraInputRef.current?.click();
     };
 
-    const loadImageFromUrl = async (key: 'logoImage' | 'bgImage') => {
+    const loadImageFromUrl = async (key: 'logoImage' | 'bgImage' | 'upiQrCode') => {
         if (!urlValue.trim()) return;
         setLoadingImage(true);
         try {
@@ -207,7 +211,7 @@ export default function SettingsPage() {
         setLoadingImage(false);
     };
 
-    const removeImage = (key: 'logoImage' | 'bgImage') => {
+    const removeImage = (key: 'logoImage' | 'bgImage' | 'upiQrCode') => {
         const newSettings = { ...settings };
         delete newSettings[key];
         setSettings(newSettings);
@@ -216,16 +220,27 @@ export default function SettingsPage() {
 
     const fields: { key: keyof OrgSettings; label: string; placeholder: string; canTransliterate: boolean; multiline?: boolean }[] = [
         { key: 'orgName', label: 'ಸಂಸ್ಥೆಯ ಹೆಸರು', placeholder: 'ಮಠ / ದೇವಸ್ಥಾನದ ಹೆಸರು', canTransliterate: true },
+        { key: 'orgNameEn', label: 'Name of Organization', placeholder: 'Matha / Temple Name', canTransliterate: false },
         { key: 'address', label: 'ವಿಳಾಸ', placeholder: 'ಪೂರ್ಣ ವಿಳಾಸ', canTransliterate: true, multiline: true },
+        { key: 'addressEn', label: 'Address (En)', placeholder: 'Full Address in English', canTransliterate: false, multiline: true },
+        { key: 'foodServiceCharges', label: 'ಅನ್ನಸಂತರ್ಪಣೆ ದರ', placeholder: '100, 150, 200', canTransliterate: false },
         { key: 'phone', label: 'ಫೋನ್', placeholder: 'ಸಂಪರ್ಕ ಸಂಖ್ಯೆ', canTransliterate: false },
         { key: 'whatsapp', label: 'ವಾಟ್ಸ್ಆಪ್', placeholder: 'ವಾಟ್ಸ್ಆಪ್ ಸಂಖ್ಯೆ', canTransliterate: false },
         { key: 'website', label: 'ವೆಬ್ಸೈಟ್', placeholder: 'ವೆಬ್ಸೈಟ್ URL', canTransliterate: false },
     ];
 
-    const iconBtnClass = "p-2 rounded-lg border border-black/10 bg-white/60 text-[var(--text-secondary)] hover:bg-white hover:text-[var(--primary)] transition-colors disabled:opacity-40";
-    const iconBtnDeleteClass = "p-2 rounded-lg border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 transition-colors";
+    const bankingFields: { key: keyof OrgSettings; label: string; placeholder: string; canTransliterate: boolean; type?: string }[] = [
+        { key: 'bankName', label: 'ಬ್ಯಾಂಕ್ ಹೆಸರು', placeholder: 'Bank Name', canTransliterate: true },
+        { key: 'branchIfsc', label: 'ಶಾಖೆ, IFSC', placeholder: 'Branch Name / IFSC Code', canTransliterate: false },
+        { key: 'accountNumber', label: 'ಖಾತೆ ಸಂಖ್ಯೆ', placeholder: 'Account Number', canTransliterate: false },
+        { key: 'accountType', label: 'ಖಾತೆ ಪ್ರಕಾರ', placeholder: 'Savings / Current', canTransliterate: false },
+        { key: 'upiVpa', label: 'ಯುಪಿಐ', placeholder: 'example@upi', canTransliterate: false },
+    ];
 
-    const renderImageSection = (key: 'logoImage' | 'bgImage', label: string, ref: React.RefObject<HTMLInputElement | null>, previewClass: string) => (
+    const iconBtnClass = "p-2 rounded-lg border border-black/10 dark:border-white/10 bg-white/60 dark:bg-black/30 text-[var(--text-secondary)] hover:bg-white dark:hover:bg-black/50 hover:text-[var(--primary)] transition-colors disabled:opacity-40";
+    const iconBtnDeleteClass = "p-2 rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors";
+
+    const renderImageSection = (key: 'logoImage' | 'bgImage' | 'upiQrCode', label: string, ref: React.RefObject<HTMLInputElement | null>, previewClass: string) => (
         <div>
             <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2 uppercase tracking-wider">{label}</label>
             <div className="flex items-center gap-3">
@@ -261,7 +276,7 @@ export default function SettingsPage() {
                 <div className="mt-2 flex gap-2">
                     <input type="url" value={urlValue} onChange={(e) => setUrlValue(e.target.value)}
                         placeholder="https://example.com/image.jpg"
-                        className="flex-1 px-3 py-2 rounded-lg bg-white border border-black/10 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20"
+                        className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20"
                     />
                     <button onClick={() => loadImageFromUrl(key)} disabled={loadingImage || !urlValue.trim()}
                         className="px-3 py-2 rounded-lg bg-[var(--primary)] text-white text-xs font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50"
@@ -275,10 +290,13 @@ export default function SettingsPage() {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h2 className="text-2xl font-bold flex items-center gap-3 text-[var(--primary)]">
-                <SettingsIcon size={28} />
-                ಸೆಟ್ಟಿಂಗ್ಸ್
-            </h2>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+                <h2 className="text-2xl font-bold flex items-center gap-3 text-[var(--primary)]">
+                    <SettingsIcon size={28} />
+                    ಸೆಟ್ಟಿಂಗ್ಸ್
+                </h2>
+                <GlobalInputToolbar />
+            </div>
 
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
                 onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(cameraTargetRef.current, file); if (e.target) e.target.value = ''; }}
@@ -333,62 +351,89 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                {/* Today's Highlights */}
-                <div>
+                {/* Banking & Financial Settings */}
+                <div className="glass-card lg:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
-                        <Bell size={20} className="text-[var(--primary)]" />
-                        <h3 className="font-bold text-lg">ಇಂದಿನ ವಿಶೇಷಗಳು</h3>
-                        <span className="text-xs text-[var(--text-secondary)]">(ಸಂಪಾದಿಸಬಹುದು)</span>
+                        <span className="text-[var(--primary)] text-xl">🏦</span>
+                        <h3 className="font-bold text-lg">ಬ್ಯಾಂಕಿಂಗ್ ಮತ್ತು ಆರ್ಥಿಕ ಮಾಹಿತಿ (Banking & Financial)</h3>
                     </div>
-                    <TodayHighlights editable={true} />
+                    <div className="space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {bankingFields.map((field) => (
+                                <div key={field.key}>
+                                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1 uppercase tracking-wider">{field.label}</label>
+                                    <div className="mt-1">
+                                        <TransliteratedInput
+                                            value={(settings[field.key] as string) || ''}
+                                            onChange={(val) => handleChange(field.key, val)}
+                                            placeholder={field.placeholder}
+                                            enableVoice={false}
+                                            disableTransliteration={!field.canTransliterate}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* QR Code Upload */}
+                        <div className="mt-6 border-t border-black/10 dark:border-white/10 pt-4">
+                            {renderImageSection('upiQrCode', 'ಯುಪಿಐ ಕ್ಯೂಆರ್ ಕೋಡ್ (UPI QR Code)', useRef<HTMLInputElement>(null), 'w-20 h-20')}
+                        </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <button onClick={handleSave}
+                            className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow hover:shadow-md flex items-center gap-2 hover:bg-[var(--primary-hover)] transition-all">
+                            <Save size={16} /> ಉಳಿಸಿ
+                        </button>
+                    </div>
                 </div>
 
-                {/* Standard Daily Schedule */}
+
+                {/* Standard Schedule */}
                 <div className="glass-card lg:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <CalendarIcon size={20} className="text-[var(--primary)]" />
-                            <h3 className="font-bold text-lg">ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Standard Schedule)</h3>
+                            <Clock size={20} className="text-[var(--primary)]" />
+                            <h3 className="font-bold text-lg">ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Daily Routine)</h3>
                         </div>
-                        <button onClick={addScheduleItem} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-medium hover:bg-[var(--primary)]/20 transition-colors">
-                            <Plus size={16} /> ಸೇರಿಸಿ
+                        <button onClick={addScheduleItem} className="flex items-center gap-1 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 px-3 py-1.5 rounded-lg transition-colors font-medium">
+                            <Plus size={16} /> ಸೇರಿಸಿ (Add)
                         </button>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(settings.standardSchedule || []).map((item) => (
-                            <div key={item.id} className="flex flex-col gap-2 p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
-                                <div className="flex justify-between items-start">
-                                    <TransliteratedInput
-                                        value={item.title}
-                                        onChange={(val) => handleScheduleChange(item.id, 'title', val)}
-                                        placeholder="ಉದಾ: ಅಭಿಷೇಕ"
-                                        className="h-8 py-1 text-sm bg-white/50"
-                                        enableVoice={false}
-                                    />
-                                    <button onClick={() => removeScheduleItem(item.id)} className="p-1.5 ml-2 rounded-lg text-red-400 hover:bg-red-50 transition-colors shrink-0">
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={item.time}
-                                        onChange={(e) => handleScheduleChange(item.id, 'time', e.target.value)}
-                                        className="w-16 h-8 px-2 rounded-md bg-white border border-black/10 text-sm focus:outline-none focus:border-[var(--primary)]"
-                                        placeholder="12:00"
-                                    />
-                                    <select
-                                        value={item.period}
-                                        onChange={(e) => handleScheduleChange(item.id, 'period', e.target.value)}
-                                        className="h-8 px-2 rounded-md bg-white border border-black/10 text-sm focus:outline-none focus:border-[var(--primary)] appearance-none"
-                                    >
-                                        <option value="AM">AM</option>
-                                        <option value="PM">PM</option>
-                                    </select>
-                                </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {settings.standardSchedule?.map((item) => (
+                            <div key={item.id} className="flex items-center gap-2 bg-white/50 dark:bg-black/20 border border-[var(--glass-border)] rounded-xl p-2.5">
+                                <TransliteratedInput
+                                    value={item.title}
+                                    onChange={(val) => handleScheduleChange(item.id, 'title', val)}
+                                    placeholder="ಹೆಸರು"
+                                />
+                                <input
+                                    type="text"
+                                    value={item.time}
+                                    onChange={(e) => handleScheduleChange(item.id, 'time', e.target.value)}
+                                    className="w-14 px-2 py-1.5 rounded-lg bg-white/80 dark:bg-black/40 border border-black/10 dark:border-white/10 text-sm text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--primary)]"
+                                    placeholder="12:00"
+                                />
+                                <select
+                                    value={item.period}
+                                    onChange={(e) => handleScheduleChange(item.id, 'period', e.target.value as 'AM'|'PM')}
+                                    className="px-1 py-1.5 rounded-lg bg-white/80 dark:bg-black/40 border border-black/10 dark:border-white/10 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                                >
+                                    <option value="AM">AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                                <button onClick={() => removeScheduleItem(item.id)} className="p-1.5 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0">
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         ))}
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <button onClick={handleSave}
+                            className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow hover:shadow-md flex items-center gap-2 hover:bg-[var(--primary-hover)] transition-all">
+                            <Save size={16} /> ಉಳಿಸಿ
+                        </button>
                     </div>
                 </div>
             </div>

@@ -1,13 +1,14 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8001/api';
+// API routes are proxied by Vite directly to the backend.
+const API_BASE = '/api';
 
 const api = axios.create({
     baseURL: API_BASE,
     headers: { 'Content-Type': 'application/json' },
 });
 
-// JWT interceptor — attach token from localStorage
+// JWT interceptor
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('seva_token');
     if (token) {
@@ -16,7 +17,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Response error handler
 api.interceptors.response.use(
     (res) => res,
     (err) => {
@@ -27,28 +27,64 @@ api.interceptors.response.use(
     }
 );
 
-// --- Customer API ---
-export const customerApi = {
-    list: (skip = 0, limit = 2000) => api.get(`/customers?skip=${skip}&limit=${limit}`),
-    search: (q: string) => api.get(`/customers/search?q=${encodeURIComponent(q)}`),
-    get: (id: number) => api.get(`/customers/${id}`),
-    create: (data: any) => api.post('/customers', data),
-    update: (id: number, data: any) => api.put(`/customers/${id}`, data),
-    delete: (id: number) => api.delete(`/customers/${id}`),
+// ─── Devotee API ───
+export const devoteeApi = {
+    list: (skip = 0, limit = 2000) =>
+        api.get(`/devotees?skip=${skip}&limit=${limit}`),
+    get: (id: number) => api.get(`/devotees/${id}`),
+    create: (data: any) => api.post('/devotees', data),
+    update: (id: number, data: any) => api.put(`/devotees/${id}`, data),
+    delete: (id: number, permanent = false) =>
+        api.delete(`/devotees/${id}?permanent=${permanent}`),
+    cleanup: () => api.post('/devotees/cleanup'),
+    searchBasic: (q: string) =>
+        api.get(`/devotees/search/basic?q=${encodeURIComponent(q)}`),
+    searchAdvanced: (params: Record<string, string>) => {
+        const qs = new URLSearchParams(params).toString();
+        return api.get(`/devotees/search/advanced?${qs}`);
+    },
+    uploadPhoto: (id: number, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/devotees/${id}/photo`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
 };
 
-// --- Items / Sevas API ---
+// ─── Seva API ───
 export const sevaApi = {
-    list: () => api.get('/items'),
+    list: () => api.get('/sevas'),
+    create: (data: any) => api.post('/sevas', data),
+    update: (code: string, data: any) => api.put(`/sevas/${code}`, data),
+    delete: (code: string) => api.delete(`/sevas/${code}`),
 };
 
-// --- Invoice API ---
-export const invoiceApi = {
-    create: (data: any) => api.post('/invoices', data),
-    list: () => api.get('/invoices'),
+// ─── Events API ───
+export const eventsApi = {
+    calendar: (date: string) => api.get(`/events/calendar?date=${date}`),
 };
 
-// --- Auth API ---
+// ─── Registration API ───
+export const registrationApi = {
+    list: (skip = 0, limit = 100) =>
+        api.get(`/registrations?skip=${skip}&limit=${limit}`),
+    create: (data: any) => api.post('/registrations', data),
+    byDevotee: (id: number) => api.get(`/registrations/by-devotee/${id}`),
+};
+
+// ─── Lookup API ───
+export const lookupApi = {
+    gotra: () => api.get('/lookups/gotra'),
+    nakshatra: () => api.get('/lookups/nakshatra'),
+};
+
+// ─── Stats API ───
+export const statsApi = {
+    daily: (date: string) => api.get(`/stats/daily?date=${date}`),
+};
+
+// ─── Auth API ───
 export const authApi = {
     login: (username: string, password: string) => {
         const formData = new URLSearchParams();
@@ -60,7 +96,21 @@ export const authApi = {
     },
 };
 
-// --- Upload API ---
+// ─── Legacy (backward compat) ───
+export const customerApi = {
+    list: (skip = 0, limit = 2000) => api.get(`/customers?skip=${skip}&limit=${limit}`),
+    search: (q: string) => api.get(`/customers/search?q=${encodeURIComponent(q)}`),
+    get: (id: number) => api.get(`/customers/${id}`),
+    create: (data: any) => api.post('/customers', data),
+    update: (id: number, data: any) => api.put(`/customers/${id}`, data),
+    delete: (id: number) => api.delete(`/customers/${id}`),
+};
+
+export const invoiceApi = {
+    create: (data: any) => api.post('/invoices', data),
+    list: () => api.get('/invoices'),
+};
+
 export const uploadApi = {
     image: (file: File) => {
         const formData = new FormData();
@@ -69,6 +119,79 @@ export const uploadApi = {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
+};
+
+export const paymentApi = {
+    verifyUPI: (data: { gateway: string, transaction_id: string }) => 
+        api.post('/payments/verify-upi', data),
+};
+
+export const accountingApi = {
+    getAccounts: () => api.get('/accounting/accounts'),
+    getJournal: (params?: any) => api.get('/accounting/journal', { params }),
+    getBankAccounts: () => api.get('/accounting/bank-accounts'),
+    createBankAccount: (data: any) => api.post('/accounting/bank-accounts', data),
+    getBankTransactions: (params?: any) => api.get('/accounting/bank-transactions', { params }),
+    createBankTransaction: (data: any) => api.post('/accounting/bank-transactions', data),
+    reconcileTransaction: (id: number) => api.post(`/accounting/bank-transactions/${id}/reconcile`),
+};
+
+export const reportsApi = {
+    getCollectionSummary: (from: string, to: string) => 
+        api.get(`/accounting/reports/collection?from_date=${from}&to_date=${to}`),
+    getIncomeExpenditure: (from?: string, to?: string) => 
+        api.get('/accounting/reports/income-expenditure', { params: { from_date: from, to_date: to } }),
+    getBalanceSheet: (asOf?: string) => 
+        api.get('/accounting/reports/balance-sheet', { params: { as_of: asOf } }),
+    getReceiptsPayments: (from?: string, to?: string) =>
+        api.get('/accounting/reports/receipts-payments', { params: { from_date: from, to_date: to } }),
+    getBankReconciliation: (bankId: number) =>
+        api.get(`/accounting/reports/bank-reconciliation?bank_id=${bankId}`),
+};
+
+export const testApi = {
+    simulate: () => api.post('/test/simulate'),
+    cleanup: () => api.delete('/test/cleanup'),
+};
+
+// ─── Inventory API ───
+export const inventoryApi = {
+    // Items
+    listItems: (params?: { search?: string; category?: string; material?: string; include_deleted?: boolean }) =>
+        api.get('/inventory/items', { params }),
+    getItem: (id: number) => api.get(`/inventory/items/${id}`),
+    createItem: (data: any) => api.post('/inventory/items', data),
+    updateItem: (id: number, data: any) => api.put(`/inventory/items/${id}`, data),
+    deleteItem: (id: number, hard = false) => api.delete(`/inventory/items/${id}?hard=${hard}`),
+    restoreItem: (id: number) => api.put(`/inventory/items/${id}/restore`),
+    // Categories
+    listCategories: () => api.get('/inventory/categories'),
+    createCategory: (data: { Name: string }) => api.post('/inventory/categories', data),
+    deleteCategory: (id: number) => api.delete(`/inventory/categories/${id}`),
+    // Materials
+    listMaterials: () => api.get('/inventory/materials'),
+    createMaterial: (data: { Name: string; BullionRate?: number }) => api.post('/inventory/materials', data),
+    updateMaterial: (id: number, data: { BullionRate: number }) => api.put(`/inventory/materials/${id}`, data),
+    // Revaluation
+    revalueAll: () => api.post('/inventory/revalue'),
+    // Audit
+    auditLog: (params?: { item_id?: number; action?: string; limit?: number }) =>
+        api.get('/inventory/audit-log', { params }),
+    // Summary
+    summary: () => api.get('/inventory/summary'),
+    // Image Sync
+    syncConfig: () => api.get('/inventory/sync/config'),
+    updateSyncConfig: (data: any) => api.put('/inventory/sync/config', data),
+    syncInbox: () => api.get('/inventory/sync/inbox'),
+    runSync: (data?: { category?: string }) => api.post('/inventory/sync/run', data || {}),
+    syncUpload: (files: File[]) => {
+        const formData = new FormData();
+        files.forEach(f => formData.append('files', f));
+        return api.post('/inventory/sync/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+    syncCheckpoints: () => api.get('/inventory/sync/checkpoints'),
 };
 
 export default api;

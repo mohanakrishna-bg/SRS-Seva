@@ -117,7 +117,7 @@ export default function VoiceInputButton({
             onClick={toggle}
             className={`p-2 rounded-lg border transition-all shrink-0 ${listening
                 ? 'bg-red-50 border-red-400 text-red-500 animate-pulse'
-                : 'bg-white border-black/10 text-[var(--text-secondary)] hover:bg-black/5 hover:text-[var(--primary)]'
+                : 'bg-white dark:bg-black/20 border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--primary)]'
                 } ${className}`}
             title={listening ? 'ನಿಲ್ಲಿಸಿ' : 'ಧ್ವನಿ ಇನ್‌ಪುಟ್'}
         >

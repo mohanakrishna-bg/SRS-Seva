@@ -18,7 +18,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+                    className="fixed inset-0 bg-black/60 flex items-start sm:items-center justify-center p-4 py-8 sm:py-12 z-[100] overflow-y-auto"
                     onClick={(e) => e.target === e.currentTarget && onClose()}
                 >
                     <motion.div

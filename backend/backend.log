@@ -1,0 +1,246 @@
+INFO:     Will watch for changes in these directories: ['/Users/bgm/my_Projects/SRS/Seva/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [21201] using WatchFiles
+INFO:     Started server process [21204]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:49650 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49651 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49653 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49653 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49656 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49689 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49690 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49705 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49706 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49713 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49710 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49707 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49717 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49704 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49721 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49799 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49811 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49837 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49840 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49842 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49842 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49845 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49848 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49852 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49858 - "GET /api/devotees/search/basic?q=moha HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49861 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49866 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49869 - "GET /api/devotees/search/basic?q=mohan HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49872 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49875 - "GET /api/devotees/search/basic?q=mohana%20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49898 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49899 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49903 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49906 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49900 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49897 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49909 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49912 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49915 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49918 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49921 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49924 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49934 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49935 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49942 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49939 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49936 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49945 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49948 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49955 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49958 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49960 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49960 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50089 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50090 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50092 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50092 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50191 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50192 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50193 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50194 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50196 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50196 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50196 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50196 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50302 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50305 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50304 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50306 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50304 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50307 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50304 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50304 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50348 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50349 - "GET /api/devotees/search/basic?q=mohan HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50352 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50358 - "POST /api/devotees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50361 - "POST /api/registrations HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50364 - "POST /api/devotees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50367 - "POST /api/registrations HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50415 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50416 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50423 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50421 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50417 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50414 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50426 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50429 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50438 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50441 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50443 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50443 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50447 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50769 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50777 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50815 - "POST /api/devotees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50818 - "POST /api/registrations HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:50826 - "POST /api/devotees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50829 - "POST /api/registrations HTTP/1.1" 500 Internal Server Error
+WARNING:  WatchFiles detected changes in 'migrate_v4.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21204]
+INFO:     Started server process [23872]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50901 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50902 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50904 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50904 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50915 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50921 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50922 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50916 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50925 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50913 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50928 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50931 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50934 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50937 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50940 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50950 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50951 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50952 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50958 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50957 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50961 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50949 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50964 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50997 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51000 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51010 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51011 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51018 - "GET /api/lookups/nakshatra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51012 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51017 - "GET /api/lookups/gotra HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51021 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51009 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51024 - "GET /api/devotees?skip=0&limit=2000 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51027 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51030 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51033 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51036 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51444 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51445 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51447 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51447 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51458 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51465 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51476 - "POST /api/devotees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51479 - "POST /api/registrations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51545 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51548 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51551 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51557 - "GET /api/devotees/search/basic?q=moh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51560 - "GET /api/devotees/search/basic?q=moha HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51563 - "GET /api/devotees/search/basic?q=mohana%20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51574 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51706 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51707 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51709 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51709 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51760 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51761 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51763 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51763 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51872 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51873 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51875 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51875 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52106 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52111 - "GET /api/devotees/search/basic?q=9742287905 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52124 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52132 - "GET /api/devotees/search/basic?q=974 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52135 - "GET /api/devotees/search/basic?q=97422 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52138 - "GET /api/devotees/search/basic?q=9742287 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52141 - "GET /api/devotees/search/basic?q=974228790 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52144 - "GET /api/devotees/search/basic?q=9742287905 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52147 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52150 - "GET /api/devotees/search/basic?q=moh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52153 - "GET /api/devotees/search/basic?q=mohan HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52156 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52159 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52162 - "GET /api/sevas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52166 - "GET /api/devotees/search/basic?q=mohana HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52196 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52198 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52199 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52198 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52200 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52201 - "GET /api/events/calendar?date=200326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52198 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52198 - "GET /api/stats/daily?date=2026-03-20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52774 - "GET /api/events/calendar?date=210326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52775 - "GET /api/events/calendar?date=210326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52777 - "GET /api/stats/daily?date=2026-03-21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52778 - "GET /api/events/calendar?date=210326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52777 - "GET /api/stats/daily?date=2026-03-21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52779 - "GET /api/events/calendar?date=210326 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52777 - "GET /api/stats/daily?date=2026-03-21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52777 - "GET /api/stats/daily?date=2026-03-21 HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [23872]
+INFO:     Started server process [27377]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27377]
+INFO:     Started server process [27385]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27385]
+INFO:     Started server process [27390]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [27390]
+INFO:     Started server process [27395]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

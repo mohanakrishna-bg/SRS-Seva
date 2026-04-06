@@ -1,0 +1,17 @@
+Source Table,Legacy ID,Reason
+Customer,1486,Empty name
+Invoice_Hdr,25-26/1917,Devotee not found for ID=mutt
+Invoice_Hdr,25-26/1941,Devotee not found for ID=mutt
+Invoice_Hdr,25-26/0663,Devotee not found for ID=8861631339-1
+Invoice_Hdr,25-26/0780,Devotee not found for ID=9449264611
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=9999
+Invoice_Hdr,TEST-ROWID,Devotee not found for ID=
+Invoice_Hdr,TEST-ROWID-2,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=
+Invoice_Hdr,,Devotee not found for ID=

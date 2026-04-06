@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Plus, Trash2, Check, Pencil, Sparkles, Moon, Sun, Star } from 'lucide-react';
 import TransliteratedInput from './TransliteratedInput';
+import GlobalInputToolbar from './GlobalInputToolbar';
 
 interface Highlight {
     id: number;
@@ -110,7 +111,7 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -160,13 +161,16 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
                                     <Sparkles size={18} className="text-[var(--primary)]" />
                                     <h3 className="font-bold text-[var(--text-primary)] text-lg">ವಿಶೇಷ ಸೇವೆಗಳು / ಘಟನೆಗಳು</h3>
                                 </div>
-                                <button
-                                    onClick={() => setIsAdding(!isAdding)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-all shadow-sm"
-                                >
-                                    {isAdding ? <X size={14} /> : <Plus size={14} />}
-                                    {isAdding ? 'ರದ್ದುಗೊಳಿಸಿ' : 'ಸೇರಿಸಿ'}
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <GlobalInputToolbar />
+                                    <button
+                                        onClick={() => setIsAdding(!isAdding)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-all shadow-sm"
+                                    >
+                                        {isAdding ? <X size={14} /> : <Plus size={14} />}
+                                        {isAdding ? 'ರದ್ದುಗೊಳಿಸಿ' : 'ಸೇರಿಸಿ'}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Add Form */}
@@ -210,14 +214,12 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
                                         <span className="w-2.5 h-2.5 rounded-full bg-[var(--primary)] shrink-0" />
 
                                         {editingId === h.id ? (
-                                            <div className="flex-1 flex flex-col md:flex-row gap-2">
-                                                <input type="text" value={editText} onChange={(e) => setEditText(e.target.value)}
-                                                    className="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" autoFocus onKeyDown={(e) => e.key === 'Enter' && saveEdit()} />
-                                                <input type="text" value={editTime} onChange={(e) => setEditTime(e.target.value)}
-                                                    placeholder="ಸಮಯ" className="w-full md:w-32 px-3 py-1.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" onKeyDown={(e) => e.key === 'Enter' && saveEdit()} />
-                                                <div className="flex shrink-0 gap-1">
-                                                    <button onClick={saveEdit} className="p-1.5 rounded-lg bg-emerald-100/50 text-emerald-600 hover:bg-emerald-100 transition-all"><Check size={16} /></button>
-                                                    <button onClick={() => setEditingId(null)} className="p-1.5 rounded-lg bg-black/5 text-[var(--text-secondary)] hover:bg-black/10 transition-all"><X size={16} /></button>
+                                            <div className="flex-1 flex flex-col gap-2">
+                                                <TransliteratedInput value={editText} onChange={setEditText} placeholder="ಸೇವಾ ಹೆಸರು" />
+                                                <TransliteratedInput value={editTime} onChange={setEditTime} placeholder="ಸಮಯ" />
+                                                <div className="flex shrink-0 gap-1 justify-end">
+                                                    <button onClick={saveEdit} className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all font-bold text-xs">ಉಳಿಸಿ (Save)</button>
+                                                    <button onClick={() => setEditingId(null)} className="p-1.5 rounded-lg bg-black/5 text-[var(--text-secondary)] hover:bg-black/10 transition-all font-bold text-xs">✕</button>
                                                 </div>
                                             </div>
                                         ) : (

@@ -72,6 +72,50 @@ export async function transliterateToKannada(text: string): Promise<string> {
 }
 
 /**
+ * Basic Kannada → English Transliteration Utility
+ * Performs a straightforward phonetic mapping.
+ */
+export function transliterateKnToEn(text: string): string {
+    if (!text || !/[\u0C80-\u0CFF]/.test(text)) return text;
+
+    // Small dictionary of common words/phrases to handle better
+    const dictionary: Record<string, string> = {
+        'ಶ್ರೀ': 'Shree',
+        'ಮಠ': 'Matha',
+        'ಆಡಳಿತ': 'Admin',
+        'ದೇವಸ್ಥಾನ': 'Temple',
+        'ಸೇವೆ': 'Seva',
+        'ನಮಸ್ಕಾರ': 'Namaskara',
+        'ಹರಿಃ': 'Harih',
+        'ಓಂ': 'Om'
+    };
+
+    // Replace known dictionary words first
+    let result = text;
+    for (const [kn, en] of Object.entries(dictionary)) {
+        result = result.replace(new RegExp(kn, 'g'), en);
+    }
+
+    // Comprehensive char mapping
+    const mapping: Record<string, string> = {
+        'ಅ': 'a', 'ಆ': 'aa', 'ಇ': 'i', 'ಈ': 'ee', 'ಉ': 'u', 'ಊ': 'oo', 'ಋ': 'ru', 'ಎ': 'e', 'ಏ': 'ee', 'ಐ': 'ai', 'ಒ': 'o', 'ಓ': 'oo', 'ಔ': 'au', 'ಅಂ': 'am', 'ಅಃ': 'ah',
+        'ಕ': 'ka', 'ಖ': 'kha', 'ಗ': 'ga', 'ಘ': 'gha', 'ಙ': 'nga',
+        'ಚ': 'cha', 'ಛ': 'chha', 'ಜ': 'ja', 'ಝ': 'jha', 'ಞ': 'nya',
+        'ಟ': 'ta', 'ಠ': 'tha', 'ಡ': 'da', 'ಢ': 'dha', 'ಣ': 'na',
+        'ತ': 'ta', 'ಥ': 'tha', 'ದ': 'da', 'ಧ': 'dha', 'ನ': 'na',
+        'ಪ': 'pa', 'ಫ': 'pha', 'ಬ': 'ba', 'ಭ': 'bha', 'ಮ': 'ma',
+        'ಯ': 'ya', 'ರ': 'ra', 'ಲ': 'la', 'ವ': 'va', 'ಶ': 'sha', 'ಷ': 'sha', 'ಸ': 'sa', 'ಹ': 'ha', 'ಳ': 'la',
+        'ಾ': 'aa', 'ಿ': 'i', 'ೀ': 'ee', 'ು': 'u', 'ೂ': 'oo', 'ೃ': 'ru', 'ೆ': 'e', 'ೇ': 'ee', 'ೈ': 'ai', 'ೊ': 'o', 'ೋ': 'oo', 'ೌ': 'au', '್': '', 'ಂ': 'm', 'ಃ': 'h'
+    };
+
+    // Simple phonetic replacement for remaining Kannada chars
+    return result.split('').map(char => mapping[char] || char).join('')
+        .replace(/([aeiou])a/g, '$1') // Clean up redundant vowels
+        .replace(/aa/g, 'a') // Simplify
+        .trim();
+}
+
+/**
  * Check if text contains any Kannada characters.
  */
 export function isKannada(text: string): boolean {

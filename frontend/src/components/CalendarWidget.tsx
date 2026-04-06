@@ -38,34 +38,34 @@ export default function CalendarWidget({ selectedDate, onChange }: CalendarWidge
         'ಜುಲೈ', 'ಆಗಸ್ಟ್', 'ಸೆಪ್ಟೆಂಬರ್', 'ಅಕ್ಟೋಬರ್', 'ನವೆಂಬರ್', 'ಡಿಸೆಂಬರ್'
     ];
 
-    const daysOfWeek = ['ಭಾನು', 'ಸೋಮ', 'ಮಂಗಳ', 'ಬುಧ', 'ಗುರು', 'ಶುಕ್ರ', 'ಶನಿ'];
+    const daysOfWeek = ['ಭಾನುವಾರ', 'ಸೋಮವಾರ', 'ಮಂಗಳವಾರ', 'ಬುಧವಾರ', 'ಗುರುವಾರ', 'ಶುಕ್ರವಾರ', 'ಶನಿವಾರ'];
 
     return (
-        <div className="glass-card flex flex-col items-center">
-            <div className="flex items-center justify-between w-full mb-4">
-                <button onClick={prevMonth} className="p-1 rounded-full hover:bg-black/5 text-[var(--text-secondary)] transition-colors">
-                    <ChevronLeft size={20} />
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col items-center shadow-2xl min-w-[320px]">
+            <div className="flex items-center justify-between w-full mb-6">
+                <button onClick={prevMonth} className="p-2 rounded-full hover:bg-black/5 text-[var(--text-secondary)] transition-colors">
+                    <ChevronLeft size={24} />
                 </button>
-                <div className="flex items-center gap-2">
-                    <CalendarIcon size={16} className="text-[var(--primary)]" />
-                    <h3 className="font-bold text-lg">
+                <div className="flex items-center gap-3">
+                    <CalendarIcon size={20} className="text-[var(--primary)]" />
+                    <h3 className="font-extrabold text-xl tracking-tight">
                         {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                     </h3>
                 </div>
-                <button onClick={nextMonth} className="p-1 rounded-full hover:bg-black/5 text-[var(--text-secondary)] transition-colors">
-                    <ChevronRight size={20} />
+                <button onClick={nextMonth} className="p-2 rounded-full hover:bg-black/5 text-[var(--text-secondary)] transition-colors">
+                    <ChevronRight size={24} />
                 </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 w-full text-center mb-2">
+            <div className="grid grid-cols-7 gap-2 w-full text-center mb-4">
                 {daysOfWeek.map((day) => (
-                    <div key={day} className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                        {day}
+                    <div key={day} className="text-[10px] font-bold text-[var(--text-secondary)]/60 uppercase tracking-tighter">
+                        {day.substring(0, 1)}
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-1 w-full">
+            <div className="grid grid-cols-7 gap-2 w-full">
                 {Array.from({ length: firstDayOfMonth }).map((_, i) => (
                     <div key={`empty-${i}`} className="p-2" />
                 ))}
@@ -78,9 +78,9 @@ export default function CalendarWidget({ selectedDate, onChange }: CalendarWidge
                             key={day}
                             onClick={() => handleDateClick(day)}
                             className={`
-                aspect-square flex items-center justify-center p-2 rounded-lg text-sm transition-all relative
-                ${selected ? 'bg-[var(--primary)] text-white font-bold shadow-md' : 'hover:bg-black/5 text-[var(--text-primary)]'}
-                ${today && !selected ? 'border border-[var(--primary)] text-[var(--primary)] font-bold' : ''}
+                aspect-square flex items-center justify-center p-3 rounded-xl text-base transition-all relative font-medium
+                ${selected ? 'bg-[var(--primary)] text-white font-bold shadow-lg scale-110 z-10' : 'hover:bg-black/5 text-[var(--text-primary)]'}
+                ${today && !selected ? 'ring-2 ring-[var(--primary)] text-[var(--primary)] font-bold' : ''}
               `}
                         >
                             {day}
