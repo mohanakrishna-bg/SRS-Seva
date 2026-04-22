@@ -156,6 +156,7 @@ class SevaRegistrationBase(BaseModel):
     VoucherNo: Optional[str] = None
     Remarks: Optional[str] = None
     GrandTotal: Optional[float] = 0.0
+    IsFulfilled: Optional[bool] = False
 
     @field_validator("Rate", "Amount", "GrandTotal", mode="before")
     @classmethod

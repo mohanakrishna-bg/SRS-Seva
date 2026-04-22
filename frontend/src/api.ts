@@ -71,6 +71,7 @@ export const registrationApi = {
         api.get(`/registrations?skip=${skip}&limit=${limit}`),
     create: (data: any) => api.post('/registrations', data),
     byDevotee: (id: number) => api.get(`/registrations/by-devotee/${id}`),
+    fulfil: (id: number, isFulfilled: boolean) => api.put(`/registrations/${id}/fulfil?is_fulfilled=${isFulfilled}`),
 };
 
 // ─── Lookup API ───

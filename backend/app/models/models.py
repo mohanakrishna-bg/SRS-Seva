@@ -89,6 +89,7 @@ class SevaRegistration(Base):
     Remarks = Column(Text, nullable=True)
     GrandTotal = Column(Float, default=0.0)            # INR, 2 decimal
     IsTest = Column(Boolean, default=True)
+    IsFulfilled = Column(Boolean, default=False)
     CreatedAt = Column(DateTime, default=datetime.datetime.utcnow)
 
     devotee = relationship("Devotee", back_populates="registrations")

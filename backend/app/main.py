@@ -456,6 +456,18 @@ def registrations_by_devotee(devotee_id: int, db: Session = Depends(database.get
     )
 
 
+@app.put("/api/registrations/{registration_id}/fulfil", response_model=schemas.SevaRegistration)
+def fulfil_registration(registration_id: int, is_fulfilled: bool = True, db: Session = Depends(database.get_db)):
+    reg = db.query(models.SevaRegistration).filter(models.SevaRegistration.RegistrationId == registration_id).first()
+    if not reg:
+        raise HTTPException(status_code=404, detail="Registration not found")
+    reg.IsFulfilled = is_fulfilled
+    db.commit()
+    db.refresh(reg)
+    return reg
+
+
+
 # ─── Stats ───
 
 @app.get("/api/stats/daily")
