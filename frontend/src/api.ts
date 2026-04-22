@@ -157,41 +157,50 @@ export const testApi = {
 // ─── Inventory API ───
 export const inventoryApi = {
     // Items
-    listItems: (params?: { search?: string; category?: string; material?: string; include_deleted?: boolean }) =>
+    listItems: (params?: { search?: string; category?: string; material?: string; item_type?: string; include_deleted?: boolean }) =>
         api.get('/inventory/items', { params }),
     getItem: (id: number) => api.get(`/inventory/items/${id}`),
     createItem: (data: any) => api.post('/inventory/items', data),
     updateItem: (id: number, data: any) => api.put(`/inventory/items/${id}`, data),
-    deleteItem: (id: number, hard = false) => api.delete(`/inventory/items/${id}?hard=${hard}`),
+    deleteItem: (id: number, hard = false, reason?: string) => 
+        api.delete(`/inventory/items/${id}`, { params: { hard, reason } }),
     restoreItem: (id: number) => api.put(`/inventory/items/${id}/restore`),
+    uncategorizedImages: () => api.get('/inventory/uncategorized-images'),
+    browseImages: (category?: string) => api.get('/inventory/browse-images', { params: { category } }),
+    discardUncategorizedImage: (filename: string) => api.delete(`/inventory/uncategorized-images/${filename}`),
+    uploadToUncategorized: (files: FileList | File[]) => {
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('files', f));
+        return api.post('/inventory/uncategorized-upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
     // Categories
-    listCategories: () => api.get('/inventory/categories'),
-    createCategory: (data: { Name: string }) => api.post('/inventory/categories', data),
+    listCategories: (forType?: string) => api.get('/inventory/categories', { params: forType ? { for_type: forType } : {} }),
+    createCategory: (data: { Name: string; ForType?: string }) => api.post('/inventory/categories', data),
     deleteCategory: (id: number) => api.delete(`/inventory/categories/${id}`),
     // Materials
     listMaterials: () => api.get('/inventory/materials'),
     createMaterial: (data: { Name: string; BullionRate?: number }) => api.post('/inventory/materials', data),
     updateMaterial: (id: number, data: { BullionRate: number }) => api.put(`/inventory/materials/${id}`, data),
+    // Locations
+    listLocations: () => api.get('/inventory/locations'),
+    createLocation: (data: { Name: string; Description?: string }) => api.post('/inventory/locations', data),
+    deleteLocation: (id: number) => api.delete(`/inventory/locations/${id}`),
     // Revaluation
     revalueAll: () => api.post('/inventory/revalue'),
+    refreshBullionRates: () => api.post('/inventory/bullion-rates-refresh'),
     // Audit
     auditLog: (params?: { item_id?: number; action?: string; limit?: number }) =>
         api.get('/inventory/audit-log', { params }),
     // Summary
-    summary: () => api.get('/inventory/summary'),
-    // Image Sync
-    syncConfig: () => api.get('/inventory/sync/config'),
-    updateSyncConfig: (data: any) => api.put('/inventory/sync/config', data),
-    syncInbox: () => api.get('/inventory/sync/inbox'),
-    runSync: (data?: { category?: string }) => api.post('/inventory/sync/run', data || {}),
-    syncUpload: (files: File[]) => {
-        const formData = new FormData();
-        files.forEach(f => formData.append('files', f));
-        return api.post('/inventory/sync/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
-    },
-    syncCheckpoints: () => api.get('/inventory/sync/checkpoints'),
+    summary: (params?: { item_type?: string }) => api.get('/inventory/summary', { params }),
+    // Wipe Test Data
+    wipeTestData: () => api.delete('/inventory/test-data'),
+    // Donations
+    createDonation: (data: any) => api.post('/inventory/donations', data),
+    listDonations: (params?: any) => api.get('/inventory/donations', { params }),
+    getDonation: (id: number) => api.get(`/inventory/donations/${id}`),
 };
 
 export default api;

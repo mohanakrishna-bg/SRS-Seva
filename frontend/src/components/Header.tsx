@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Globe, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
     compact?: boolean;
     onBack?: () => void;
-    onHome?: () => void;
     rightContent?: React.ReactNode;
 }
 
@@ -18,13 +18,16 @@ function getOrgSettings() {
     return {};
 }
 
-export default function Header({ compact = false, onBack, onHome, rightContent }: HeaderProps) {
+export default function Header({ compact = false, onBack, rightContent }: HeaderProps) {
     const settings = getOrgSettings();
     const orgName = settings.orgName || 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
     const logoImage = settings.logoImage;
     const address = settings.address;
     const phone = settings.phone;
     const website = settings.website;
+    const navigate = useNavigate();
+
+    const handleBack = onBack || (() => navigate(-1));
 
     if (compact) {
         return (
@@ -34,18 +37,16 @@ export default function Header({ compact = false, onBack, onHome, rightContent }
                 className="flex items-center justify-between mb-6 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-black/40 border border-[var(--glass-border)] backdrop-blur-xl shadow-sm"
             >
                 <div className="flex items-center gap-3">
-                    {onBack && (
-                        <button
-                            onClick={onBack}
-                            className="p-1.5 rounded-lg hover:bg-black/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                            title="ಹಿಂದೆ"
-                        >
-                            <ArrowLeft size={18} />
-                        </button>
-                    )}
-                    <button 
-                        onClick={onHome} 
-                        className={`flex items-center gap-3 text-left ${onHome ? 'hover:opacity-80 transition-opacity cursor-pointer' : 'cursor-default'}`}
+                    <button
+                        onClick={handleBack}
+                        className="p-1.5 rounded-lg hover:bg-black/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                        title="ಹಿಂದೆ"
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                    <Link 
+                        to="/" 
+                        className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer"
                     >
                         {logoImage ? (
                             <img src={logoImage} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-orange-300/50" />
@@ -57,7 +58,7 @@ export default function Header({ compact = false, onBack, onHome, rightContent }
                         <span className="text-sm font-semibold text-[var(--primary)] truncate">
                             {orgName}
                         </span>
-                    </button>
+                    </Link>
                 </div>
                 {rightContent && (
                     <div className="flex items-center gap-2">
@@ -75,9 +76,9 @@ export default function Header({ compact = false, onBack, onHome, rightContent }
             className="relative"
         >
             <div className="relative z-10 flex flex-col items-center text-center gap-4">
-                <button 
-                    onClick={onHome} 
-                    className={`flex flex-col md:flex-row items-center gap-5 mb-1 ${onHome ? 'hover:opacity-80 transition-opacity cursor-pointer' : 'cursor-default'}`}
+                <Link 
+                    to="/" 
+                    className="flex flex-col md:flex-row items-center gap-5 mb-1 hover:opacity-80 transition-opacity cursor-pointer"
                 >
                     {logoImage ? (
                         <img
@@ -96,9 +97,9 @@ export default function Header({ compact = false, onBack, onHome, rightContent }
                         </h1>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 mt-1.5 text-sm text-[var(--text-secondary)]">
                             {address && (
-                                <span className="flex items-center gap-1.5">
-                                    <MapPin size={13} className="text-[var(--primary)] shrink-0" />
-                                    <span className="whitespace-pre-line">{address}</span>
+                                <span className="flex items-center gap-1.5 px-3 py-1 bg-[var(--primary)]/5 dark:bg-[var(--primary)]/10 border border-[var(--primary)]/10 rounded-full shadow-sm">
+                                    <MapPin size={14} className="text-[var(--primary)] shrink-0" />
+                                    <span className="whitespace-pre-line font-bold text-[var(--text-primary)] text-xs md:text-sm">{address}</span>
                                 </span>
                             )}
                             {phone && (
@@ -115,7 +116,7 @@ export default function Header({ compact = false, onBack, onHome, rightContent }
                             )}
                         </div>
                     </div>
-                </button>
+                </Link>
 
                 {rightContent && (
                     <div className="flex items-center gap-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-1 shadow-sm backdrop-blur-md shrink-0">

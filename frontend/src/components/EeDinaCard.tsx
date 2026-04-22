@@ -30,8 +30,9 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
     const [loading, setLoading] = useState(true);
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [showCalendar, setShowCalendar] = useState(false);
+    const [showRoutine, setShowRoutine] = useState(false);
     const calendarRef = useRef<HTMLDivElement>(null);
+    const routineRef = useRef<HTMLDivElement>(null);
 
     const activeDate = date;
     const today = new Date();
@@ -51,13 +52,13 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
-                setShowCalendar(false);
+            if (routineRef.current && !routineRef.current.contains(e.target as Node)) {
+                setShowRoutine(false);
             }
         };
-        if (showCalendar) document.addEventListener('mousedown', handleClickOutside);
+        if (showRoutine) document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [showCalendar]);
+    }, [showRoutine]);
 
     const formatTime = (d: Date) => {
         let hours = d.getHours();
@@ -116,7 +117,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
         } catch { return 0; }
     };
 
-    const handleCalendarSelect = (newDate: Date) => { onDateChange(newDate); setShowCalendar(false); };
+    const handleCalendarSelect = (newDate: Date) => { onDateChange(newDate); };
     const handleResetToToday = () => onDateChange(new Date());
     const { hours, strMin, strSec, ampm } = formatTime(currentTime);
 
@@ -132,122 +133,134 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card relative flex flex-col gap-4 p-5"
-            style={{ overflow: 'visible', minWidth: '260px' }}
+            className="glass-card relative flex flex-col md:flex-row gap-2 p-3 h-[330px]"
+            style={{ overflow: 'visible' }}
         >
             {/* Background Accent */}
             <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-400/10 dark:bg-orange-500/5 rounded-full blur-3xl" />
             </div>
 
-            {/* ═══ Live Clock ═══ */}
-            <div className="relative z-10 flex items-end gap-2">
-                <span className="text-4xl font-black tracking-tight text-[var(--primary)] font-mono leading-none">
-                    {hours}:{strMin}
-                </span>
-                <div className="flex flex-col items-start pb-0.5">
-                    <span className="text-sm font-bold text-[var(--text-secondary)] tracking-wider leading-none">{ampm}</span>
-                    <span className="text-xs font-medium text-[var(--text-secondary)]/50 font-mono leading-none mt-0.5">{strSec}s</span>
+            {/* ═══ Left Column: Info ═══ */}
+            <div className="flex-1 flex flex-col gap-2 min-w-0">
+                {/* Clock */}
+                <div className="relative z-10 flex items-end gap-2 text-left">
+                    <span className="text-4xl font-black tracking-tighter text-[var(--primary)] font-mono leading-none">
+                        {hours}:{strMin}
+                    </span>
+                    <div className="flex flex-col items-start pb-0.5">
+                        <span className="text-sm font-bold text-[var(--text-secondary)] tracking-wider leading-none">{ampm}</span>
+                        <span className="text-[10px] font-medium text-[var(--text-secondary)]/50 font-mono leading-none mt-0.5">{strSec}s</span>
+                    </div>
                 </div>
-                {/* Calendar popup button */}
-                <div className="ml-auto relative shrink-0" ref={calendarRef}>
-                    <button
-                        onClick={() => setShowCalendar(!showCalendar)}
-                        className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all border ${
-                            showCalendar
-                                ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
-                                : 'bg-white dark:bg-black/20 border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-orange-600 hover:border-orange-300'
-                        }`}
-                        title="ಕ್ಯಾಲೆಂಡರ್"
+
+                {/* Dates: Gregorian + Hindu */}
+                <div className="relative z-10 flex flex-col gap-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <motion.button
+                            onClick={handleResetToToday}
+                            animate={!isToday ? {
+                                backgroundColor: ['rgba(249, 115, 22, 1)', 'rgba(30, 41, 59, 1)', 'rgba(249, 115, 22, 1)'],
+                                color: ['#ffffff', '#f97316', '#ffffff'],
+                                scale: [1, 1.1, 1],
+                                boxShadow: [
+                                    '0 0 0px rgba(249, 115, 22, 0)',
+                                    '0 0 20px rgba(249, 115, 22, 0.4)',
+                                    '0 0 0px rgba(249, 115, 22, 0)'
+                                ]
+                            } : {}}
+                            transition={!isToday ? {
+                                repeat: Infinity,
+                                duration: 1.5,
+                                ease: "easeInOut"
+                            } : {}}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 shadow-lg ${
+                                isToday
+                                    ? 'bg-orange-500 text-white border-orange-600'
+                                    : 'border-orange-500'
+                            }`}
+                        >
+                            <Calendar size={10} />
+                            {isToday ? 'ಈ ದಿನ' : 'ಇಂದು ಮರುಹೊಂದಿಸಿ'}
+                        </motion.button>
+                        <span className="text-lg font-bold text-[var(--text-primary)] leading-tight">
+                            {formattedDate}
+                        </span>
+                    </div>
+
+                    <span className="text-lg font-bold text-[var(--accent-saffron)] italic leading-tight">
+                        {panchanga?.indianDate}
+                    </span>
+                </div>
+
+                {/* Panchanga Info Pills — Larger grid, less white space */}
+                {panchanga ? (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 relative z-10 w-full lg:w-fit">
+                        <InfoPill icon={<Moon size={16} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
+                        <InfoPill icon={<Star size={16} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
+                        <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
+                        <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯಾಸ್ತ" value={panchanga.sunset} color="text-rose-400" />
+                    </div>
+                ) : (
+                    <p className="text-sm text-slate-500 py-4">ಪಂಚಾಂಗ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.</p>
+                )}
+
+                {/* Daily Schedule Trigger */}
+                <div className="mt-auto pt-1.5 border-t border-[var(--glass-border)] relative z-20 w-fit" ref={routineRef}>
+                    <button 
+                        onClick={() => setShowRoutine(!showRoutine)}
+                        className="text-xs font-bold text-[var(--accent-saffron)] hover:text-orange-600 flex items-center gap-2 transition-colors"
                     >
-                        <CalendarDays size={18} />
+                        <Clock size={12} />
+                        ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ
                     </button>
+                    
                     <AnimatePresence>
-                        {showCalendar && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        {showRoutine && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                transition={{ duration: 0.18, ease: 'easeOut' }}
-                                className="fixed bottom-6 left-6 z-[2000] shadow-2xl rounded-3xl bg-white dark:bg-slate-900 border-2 border-[var(--primary)] overflow-hidden"
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                className="absolute left-0 bottom-full mb-3 w-80 z-[100]"
                             >
-                                <CalendarWidget selectedDate={activeDate} onChange={handleCalendarSelect} />
+                                <div className="bg-white/95 dark:bg-slate-900/95 border border-[var(--glass-border)] rounded-3xl shadow-2xl p-5 backdrop-blur-xl">
+                                    <div className="flex justify-between items-center mb-4 border-b border-black/10 dark:border-white/10 pb-2">
+                                        <h3 className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
+                                            <Clock size={16} className="text-amber-500" />
+                                            ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ
+                                        </h3>
+                                        <button onClick={() => setShowRoutine(false)} className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                                            <CalendarDays size={14} className="text-[var(--text-secondary)]" />
+                                        </button>
+                                    </div>
+                                    {schedule.length > 0 ? (
+                                        <div className="space-y-2.5 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+                                            {schedule.map((item) => (
+                                                <div key={item.id} className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-2xl px-4 py-3 border border-transparent hover:border-orange-500/20 transition-all">
+                                                    <div className="w-8 h-8 rounded-full bg-white/50 dark:bg-black/50 border border-[var(--glass-border)] flex items-center justify-center shrink-0">
+                                                        <Clock size={12} className="text-[var(--primary)]" />
+                                                    </div>
+                                                    <div className="flex-1 flex flex-col min-w-0">
+                                                        <span className="font-bold text-[var(--text-primary)] text-sm truncate">{item.title}</span>
+                                                        <span className="font-mono text-[11px] text-[var(--text-secondary)] font-bold">{item.time} {item.period}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-[var(--text-secondary)] text-center py-4 font-bold italic">ವೇಳಾಪಟ್ಟಿ ಲಭ್ಯವಿಲ್ಲ.</p>
+                                    )}
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
             </div>
 
-            {/* ═══ Dates: Gregorian + Hindu ═══ */}
-            <div className="relative z-10 flex flex-col gap-1.5">
-                {/* Line 1: Today badge + Gregorian */}
-                <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                        onClick={handleResetToToday}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 ${
-                            isToday
-                                ? 'bg-orange-500 text-white border-orange-600'
-                                : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-orange-500/10'
-                        }`}
-                    >
-                        <Calendar size={10} />
-                        {isToday ? 'ಈ ದಿನ' : 'ಇಂದು'}
-                    </button>
-                    <span className="text-base font-bold text-[var(--text-primary)] leading-snug">
-                        {formattedDate}
-                    </span>
-                </div>
-
-                {/* Line 2: Hindu Panchanga — saffron italic, same size */}
-                <span className="text-base font-bold text-[var(--accent-saffron)] italic leading-snug">
-                    {panchanga?.indianDate}
-                </span>
-            </div>
-
-            {/* ═══ Panchanga Info Pills ═══ */}
-            {panchanga ? (
-                <div className="grid grid-cols-2 gap-2 relative z-10">
-                    <InfoPill icon={<Moon size={13} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
-                    <InfoPill icon={<Star size={13} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
-                    <InfoPill icon={<Sun size={13} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
-                    <InfoPill icon={<Sun size={13} />} label="ಸೂರ್ಯಾಸ್ತ" value={panchanga.sunset} color="text-rose-400" />
-                </div>
-            ) : (
-                <p className="text-sm text-slate-500 py-4">ಪಂಚಾಂಗ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.</p>
-            )}
-
-            {/* ═══ Daily Schedule ═══ */}
-            <div className="pt-3 border-t border-[var(--glass-border)] relative z-10">
-                <div className="relative group inline-block">
-                    <span className="cursor-pointer text-sm font-bold text-[var(--accent-saffron)] hover:text-orange-600 flex items-center gap-2 transition-colors">
-                        <Clock size={15} />
-                        ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Daily Routine)
-                    </span>
-                    <div className="absolute left-0 bottom-full mb-2 w-72 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
-                        <div className="bg-white/95 dark:bg-slate-900/95 border border-[var(--glass-border)] rounded-2xl shadow-xl p-4">
-                            <h3 className="font-bold text-sm mb-3 text-[var(--text-primary)] border-b border-black/10 dark:border-white/10 pb-2 flex items-center gap-2">
-                                <Clock size={14} className="text-amber-500" />
-                                ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ
-                            </h3>
-                            {schedule.length > 0 ? (
-                                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                                    {schedule.map((item) => (
-                                        <div key={item.id} className="flex items-center gap-3 bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
-                                            <div className="w-6 h-6 rounded-full bg-white/50 dark:bg-black/50 border border-[var(--glass-border)] flex items-center justify-center shrink-0">
-                                                <Clock size={10} className="text-[var(--primary)]" />
-                                            </div>
-                                            <div className="flex-1 flex flex-col">
-                                                <span className="font-medium text-[var(--text-primary)] text-xs">{item.title}</span>
-                                                <span className="font-mono text-[10px] text-[var(--text-secondary)]">{item.time} {item.period}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-[var(--text-secondary)] text-center py-2">ವೇಳಾಪಟ್ಟಿ ಲಭ್ಯವಿಲ್ಲ.</p>
-                            )}
-                        </div>
-                    </div>
+            {/* ═══ Right Column: Compact Persistent Calendar ═══ */}
+            <div className="shrink-0 relative z-10 w-[300px]" ref={calendarRef}>
+                <div className="h-full p-0.5 bg-[var(--primary)]/5 dark:bg-white/5 rounded-2xl border border-[var(--primary)]/10">
+                    <CalendarWidget selectedDate={activeDate} onChange={handleCalendarSelect} compact={true} />
                 </div>
             </div>
         </motion.div>
@@ -256,13 +269,13 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
 
 function InfoPill({ icon, label, value, color }: { icon: ReactNode; label: string; value: string; color: string }) {
     return (
-        <div className="flex items-center gap-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-2.5 hover:bg-white/40 dark:hover:bg-black/20 transition-colors">
-            <div className={`w-7 h-7 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm shrink-0 ${color}`}>
+        <div className="flex items-center gap-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-2.5 hover:bg-white/40 dark:hover:bg-black/20 transition-colors min-w-[170px]">
+            <div className={`w-9 h-9 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm shrink-0 ${color}`}>
                 {icon}
             </div>
             <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium leading-none mb-0.5">{label}</p>
-                <p className="text-sm font-bold text-[var(--text-primary)] truncate">{value}</p>
+                <p className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold leading-none mb-1.5">{label}</p>
+                <p className="text-sm font-black text-[var(--text-primary)] whitespace-nowrap">{value}</p>
             </div>
         </div>
     );

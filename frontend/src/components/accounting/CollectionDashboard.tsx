@@ -6,9 +6,14 @@ const CollectionDashboard = () => {
     const [balances, setBalances] = useState<any[]>([]);
 
     useEffect(() => {
-        const today = new Date().toISOString().split('T')[0];
+        // RegistrationDate is stored as DDMMYY in the database
+        const now = new Date();
+        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const y = String(now.getFullYear()).slice(-2);
+        const ddmmyy = `${d}${m}${y}`;
         
-        reportsApi.getCollectionSummary(today, today)
+        reportsApi.getCollectionSummary(ddmmyy, ddmmyy)
             .then(res => setSummary(res.data))
             .catch(console.error);
             

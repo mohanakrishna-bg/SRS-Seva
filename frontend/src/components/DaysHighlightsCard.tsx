@@ -54,15 +54,15 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
     if (loading) return null;
 
     return (
-        <div className="glass-card relative overflow-hidden border-2 border-[var(--accent-saffron)]/30 w-full">
+        <div className="glass-card relative overflow-hidden border-2 border-[var(--accent-saffron)]/30 w-full h-full flex flex-col">
             {/* Background Accent */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-saffron)]/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Header */}
-            <div className="relative z-10 flex items-center justify-between p-4 pb-3 border-b border-[var(--glass-border)]">
+            <div className="relative z-10 flex items-center justify-between p-4 pb-3 border-b border-[var(--glass-border)] shrink-0">
                 <div className="flex items-center gap-2 text-[var(--primary)]">
                     <Sparkles size={20} className="text-[var(--accent-saffron)]" />
-                    <h3 className="font-bold text-lg">ದಿನದ ವಿಶೇಷಗಳು (Day's Highlights)</h3>
+                    <h3 className="font-bold text-lg">ದಿನದ ವಿಶೇಷಗಳು</h3>
                 </div>
                 {events.length > 0 && (
                     <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] border border-[var(--glass-border)] px-2 py-1 rounded-full">
@@ -72,10 +72,10 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
             </div>
 
             {/* Events list */}
-            <div className="relative z-10 p-4 space-y-3 overflow-y-auto">
+            <div className="relative z-10 p-4 space-y-3 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {events.length === 0 && (
                     <p className="text-sm text-[var(--text-secondary)] py-4 text-center">
-                        ಈ ದಿನ ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆಗಳಿಲ್ಲ (No special events today).
+                        ಈ ದಿನ ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆಗಳಿಲ್ಲ.
                     </p>
                 )}
 
@@ -120,7 +120,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                             : 'bg-[var(--accent-saffron)] text-white hover:bg-orange-600 hover:shadow-lg'
                                     }`}
                                 >
-                                    ನೋಂದಾಯಿಸಿ (Register)
+                                    ನೋಂದಾಯಿಸಿ
                                 </button>
                             </div>
 
@@ -129,12 +129,12 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                 <div className="flex items-center gap-4 mt-2 pt-2 border-t border-[var(--glass-border)]">
                                     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                         <Users size={13} />
-                                        ಸೇವಾಕರ್ತರು (Devotees):&nbsp;
+                                        ಸೇವಾಕರ್ತರು:&nbsp;
                                         <span className="text-sm font-black">{s.sevakartas || 0}</span>
                                     </span>
                                     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
                                         <Utensils size={13} />
-                                        ತೀರ್ಥ ಪ್ರಸಾದ (Prasada):&nbsp;
+                                        ತೀರ್ಥ ಪ್ರಸಾದ:&nbsp;
                                         <span className="text-sm font-black">{s.prasada || 0}</span>
                                     </span>
                                 </div>

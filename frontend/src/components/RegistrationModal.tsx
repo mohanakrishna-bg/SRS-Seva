@@ -89,8 +89,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     const [paymentRef, setPaymentRef] = useState('');
     // Granular Payment Details
     const [upiDetails, setUpiDetails] = useState({ gateway: '', transactionId: '', vpa: '', screenshot: '' });
-    const [chqDetails, setChqDetails] = useState({ accNo: '', holder: '', bank: '', date: '', number: '' });
-    const [netDetails, setNetDetails] = useState({ utr: '' });
+    const [chqDetails, setChqDetails] = useState({ accNo: '', holder: '', bank: '', branch: '', date: '', number: '' });
+    const [netDetails, setNetDetails] = useState({ bank: '', utr: '', date: '' });
     const [uploading, setUploading] = useState(false);
     const [verifyingUpi, setVerifyingUpi] = useState(false);
     const [upiStatus, setUpiStatus] = useState<{ status: 'idle' | 'success' | 'failure', message: string }>({ status: 'idle', message: '' });
@@ -108,8 +108,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             setPaymentMode('Cash');
             setPaymentRef('');
             setUpiDetails({ gateway: '', transactionId: '', vpa: '', screenshot: '' });
-            setChqDetails({ accNo: '', holder: '', bank: '', date: '', number: '' });
-            setNetDetails({ utr: '' });
+            setChqDetails({ accNo: '', holder: '', bank: '', branch: '', date: '', number: '' });
+            setNetDetails({ bank: '', utr: '', date: '' });
             setUpiStatus({ status: 'idle', message: '' });
             setIsNewCustomer(true);
         } else {
@@ -263,7 +263,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
         if (!item) return 0;
         let total = item.Amount || item.Basic || 0;
         if (optPrasada) {
-            total += (1 + familyMembers) * (parseInt(foodServiceRateStr) || 0);
+            // Food service is charged for additional people only
+            total += familyMembers * (parseInt(foodServiceRateStr) || 0);
         }
         return total;
     };
@@ -288,6 +289,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             if (!chqDetails.date) { showToast('error', 'Date is required'); return; }
         } else if (paymentMode === 'Netbanking') {
             if (!netDetails.utr) { showToast('error', 'UTR is required'); return; }
+            if (!netDetails.date) { showToast('error', 'Date of Transfer is required'); return; }
         }
 
         setLoading(true);
@@ -327,7 +329,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                 Rate: getSelectedItem()?.Amount || 0.0,
                 Amount: getSelectedItem()?.Amount || 0.0,
                 OptTheerthaPrasada: optPrasada,
-                PrasadaCount: optPrasada ? familyMembers + 1 : 0,
+                PrasadaCount: optPrasada ? familyMembers : 0,
                 PaymentMode: paymentMode,
                 PaymentReference: paymentRef || null,
                 PaymentDetails: paymentMode === 'UPI' ? upiDetails : 
@@ -640,19 +642,15 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 flex-1">
                                                             <label className="text-sm font-medium text-[var(--text-primary)]">ದರ (ತಲಾವಾರು)</label>
                                                             <div className="relative w-32">
-                                                                <input
-                                                                    type="text"
-                                                                    list="food-rates"
+                                                                <select
                                                                     value={foodServiceRateStr}
                                                                     onChange={(e) => setFoodServiceRateStr(e.target.value)}
                                                                     className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
-                                                                    placeholder="ದರ ನಮೂದಿಸಿ"
-                                                                />
-                                                                <datalist id="food-rates">
+                                                                >
                                                                     {defaultFoodRates.map((rate: number) => (
-                                                                        <option key={rate} value={rate}>{rate}</option>
+                                                                        <option key={rate} value={rate}>₹{rate}</option>
                                                                     ))}
-                                                                </datalist>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -721,7 +719,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Transaction ID <span className="text-red-500">*</span></label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Transaction ID / RRN (12 digits) <span className="text-red-500">*</span></label>
                                                     <input
                                                         type="text"
                                                         value={upiDetails.transactionId}
@@ -826,14 +824,25 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Bank Name <span className="text-red-500">*</span></label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={chqDetails.bank} 
-                                                        onChange={(e) => setChqDetails({...chqDetails, bank: e.target.value})}
-                                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
-                                                    />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Bank Name <span className="text-red-500">*</span></label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={chqDetails.bank} 
+                                                            onChange={(e) => setChqDetails({...chqDetails, bank: e.target.value})}
+                                                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Branch / IFSC</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={chqDetails.branch} 
+                                                            onChange={(e) => setChqDetails({...chqDetails, branch: e.target.value})}
+                                                            className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div className="space-y-1">
@@ -864,6 +873,26 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
                                     {paymentMode === 'Netbanking' && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 mt-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Sender Bank Name <span className="text-red-500">*</span></label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={netDetails.bank} 
+                                                        onChange={(e) => setNetDetails({...netDetails, bank: e.target.value})}
+                                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Date of Transfer <span className="text-red-500">*</span></label>
+                                                    <input 
+                                                        type="date" 
+                                                        value={netDetails.date} 
+                                                        onChange={(e) => setNetDetails({...netDetails, date: e.target.value})}
+                                                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="space-y-1">
                                                 <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">UTR Number <span className="text-red-500">*</span></label>
                                                 <input 
