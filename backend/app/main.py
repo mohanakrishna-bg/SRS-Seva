@@ -471,7 +471,11 @@ def fulfil_registration(registration_id: int, is_fulfilled: bool = True, db: Ses
 # ─── Stats ───
 
 @app.get("/api/stats/daily")
-def get_daily_stats(date: str, db: Session = Depends(database.get_db)):
+def get_daily_stats(
+    date: str, 
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
     """
     Get registration stats for a given date (DDMMYY format).
     Returns counts per SevaCode.
@@ -500,7 +504,11 @@ def get_daily_stats(date: str, db: Session = Depends(database.get_db)):
 
 
 @app.get("/api/stats/daily-summary")
-def get_daily_summary(date: str, db: Session = Depends(database.get_db)):
+def get_daily_summary(
+    date: str, 
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
     """
     Get financial summary for a given date (DDMMYY format).
     Returns total_income, payment_breakdown, and seva_breakdown.
