@@ -499,6 +499,47 @@ def get_daily_stats(date: str, db: Session = Depends(database.get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/stats/daily-summary")
+def get_daily_summary(date: str, db: Session = Depends(database.get_db)):
+    """
+    Get financial summary for a given date (DDMMYY format).
+    Returns total_income, payment_breakdown, and seva_breakdown.
+    """
+    try:
+        results = (
+            db.query(
+                models.SevaRegistration.PaymentMode,
+                func.sum(models.SevaRegistration.GrandTotal).label("total_amount"),
+                func.count(models.SevaRegistration.RegistrationId).label("count"),
+            )
+            .filter(models.SevaRegistration.RegistrationDate == date)
+            .group_by(models.SevaRegistration.PaymentMode)
+            .all()
+        )
+
+        payment_breakdown: dict = {}
+        total_income = 0.0
+        total_registrations = 0
+
+        for row in results:
+            mode = row.PaymentMode or "Cash"
+            amt = float(row.total_amount or 0.0)
+            cnt = int(row.count or 0)
+            payment_breakdown[mode] = {"total": amt, "count": cnt}
+            total_income += amt
+            total_registrations += cnt
+
+        return {
+            "date": date,
+            "total_registrations": total_registrations,
+            "total_income": total_income,
+            "total_expense": 0.0,
+            "payment_breakdown": payment_breakdown,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ─── Lookup tables ───
 
 @app.get("/api/lookups/gotra")

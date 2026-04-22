@@ -17,6 +17,13 @@
   --accent-purple: #c0392b;
   --accent-saffron: #ff8c00;
   --glass-card-bg: rgba(253, 246, 238, 0.98);
+  /* Phase 2 financial design tokens */
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, sans-serif;
+  --color-saffron: #FF9933;
+  --color-gold: #D4AF37;
+  --color-income: #00E676;
+  --color-expense: #FF5252;
 }
 
 [data-theme='dark'] {
@@ -39,7 +46,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body, 'Inter', system-ui, -apple-system, sans-serif);
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -114,4 +121,13 @@ ul[class*="_ReactTransliterate_"] > li:hover {
 li[class*="_Active_"] {
   background-color: var(--primary) !important;
   color: white !important;
+}
+
+/* Financial utility classes */
+.font-heading {
+  font-family: var(--font-heading, 'Outfit', system-ui, sans-serif);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }

@@ -1,99 +1,181 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Building2, BarChart3, CheckCircle2, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Building2, BarChart3, CheckCircle2, AlertCircle, X, TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import CollectionDashboard from '../components/accounting/CollectionDashboard';
 import JournalTable from '../components/accounting/JournalTable';
 import BankRemittanceForm from '../components/accounting/BankRemittanceForm';
 import ReportViewer from '../components/accounting/ReportViewer';
-import { reportsApi, accountingApi, testApi } from '../api';
+import { reportsApi, accountingApi, testApi, statsApi } from '../api';
 import { useToast } from '../components/Toast';
+
+interface DailySummary {
+    total_income: number;
+    total_expense: number;
+    payment_breakdown: Record<string, number>;
+}
+
+const SummaryCard = ({
+    label,
+    value,
+    icon,
+    color,
+    subtitle,
+}: {
+    label: string;
+    value: string;
+    icon: React.ReactNode;
+    color: string;
+    subtitle?: string;
+}) => (
+    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+            <span className="text-white/50 text-sm font-medium">{label}</span>
+            <span style={{ color }} className="opacity-70">{icon}</span>
+        </div>
+        <div className="font-heading text-3xl font-bold tabular-nums" style={{ color }}>
+            {value}
+        </div>
+        {subtitle && <p className="text-white/30 text-xs">{subtitle}</p>}
+    </div>
+);
 
 const AccountingPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
-    const [actionState, setActionState] = useState<{ 
-        stage: 'none' | 'confirm' | 'status', 
-        type?: 'success' | 'error',
-        message?: string 
+    const [summary, setSummary] = useState<DailySummary | null>(null);
+    const [actionState, setActionState] = useState<{
+        stage: 'none' | 'confirm' | 'status';
+        type?: 'success' | 'error';
+        message?: string;
     }>({ stage: 'none' });
+
+    useEffect(() => {
+        const now = new Date();
+        const d = String(now.getDate()).padStart(2, '0');
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const y = String(now.getFullYear()).slice(-2);
+        const ddmmyy = `${d}${m}${y}`;
+
+        // Try the new daily-summary endpoint; fall back gracefully
+        statsApi.dailySummary(ddmmyy)
+            .then(res => setSummary(res.data))
+            .catch(() => {
+                // Fallback: derive from collection summary
+                reportsApi.getCollectionSummary(ddmmyy, ddmmyy)
+                    .then(res => {
+                        const total = res.data?.total || 0;
+                        setSummary({ total_income: total, total_expense: 0, payment_breakdown: {} });
+                    })
+                    .catch(console.error);
+            });
+    }, []);
 
     const handleSimulate = async () => {
         setLoading(true);
         try {
             await testApi.simulate();
-            setActionState({ 
-                stage: 'status', 
-                type: 'success', 
-                message: 'Simulation complete! Test data has been generated across all temple modules.' 
+            setActionState({
+                stage: 'status',
+                type: 'success',
+                message: 'Simulation complete! Test data has been generated across all temple modules.',
             });
-        } catch(e) { 
-            setActionState({ 
-                stage: 'status', 
-                type: 'error', 
-                message: 'Simulation failed. Database might be busy or Master data missing.' 
+        } catch (e) {
+            setActionState({
+                stage: 'status',
+                type: 'error',
+                message: 'Simulation failed. Database might be busy or Master data missing.',
             });
-            console.error(e); 
+            console.error(e);
+        } finally {
+            setLoading(false);
         }
-        finally { setLoading(false); }
     };
 
     const triggerCleanup = () => {
-        setActionState({ 
-            stage: 'confirm', 
-            message: 'Are you sure you want to delete all test data? This will purge all simulated Seva registrations and audit logs marked as test. Migrated data will remain safe.' 
+        setActionState({
+            stage: 'confirm',
+            message:
+                'Are you sure you want to delete all test data? This will purge all simulated Seva registrations and audit logs marked as test. Migrated data will remain safe.',
         });
     };
 
     const handleCleanup = async () => {
         setLoading(true);
-        setActionState({ stage: 'none' }); // Close confirm modal
+        setActionState({ stage: 'none' });
         try {
             await testApi.cleanup();
-            setActionState({ 
-                stage: 'status', 
-                type: 'success', 
-                message: 'Cleanup complete! All transient test records have been purged.' 
+            setActionState({
+                stage: 'status',
+                type: 'success',
+                message: 'Cleanup complete! All transient test records have been purged.',
             });
-        } catch(e) { 
-            setActionState({ 
-                stage: 'status', 
-                type: 'error', 
-                message: 'Cleanup failed. Some records might be locked or in use.' 
+        } catch (e) {
+            setActionState({
+                stage: 'status',
+                type: 'error',
+                message: 'Cleanup failed. Some records might be locked or in use.',
             });
-            console.error(e); 
+            console.error(e);
+        } finally {
+            setLoading(false);
         }
-        finally { setLoading(false); }
     };
+
+    const income = summary?.total_income ?? 0;
+    const expense = summary?.total_expense ?? 0;
+    const closing = income - expense;
 
     const ActionModal = () => {
         if (actionState.stage === 'none') return null;
-        
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                 <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-[var(--glass-border)] transform transition-all scale-100">
-                    <div className={`p-6 text-center ${actionState.stage === 'confirm' ? 'bg-amber-500/10' : (actionState.type === 'success' ? 'bg-emerald-500/10' : 'bg-red-500/10')}`}>
-                        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 text-white shadow-lg ${
-                            actionState.stage === 'confirm' ? 'bg-amber-500' : (actionState.type === 'success' ? 'bg-emerald-500' : 'bg-red-500')
-                        }`}>
-                            {actionState.stage === 'confirm' ? <AlertCircle size={32} /> : (actionState.type === 'success' ? <CheckCircle2 size={32} /> : <X size={32} />)}
+                    <div
+                        className={`p-6 text-center ${
+                            actionState.stage === 'confirm'
+                                ? 'bg-amber-500/10'
+                                : actionState.type === 'success'
+                                ? 'bg-emerald-500/10'
+                                : 'bg-red-500/10'
+                        }`}
+                    >
+                        <div
+                            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 text-white shadow-lg ${
+                                actionState.stage === 'confirm'
+                                    ? 'bg-amber-500'
+                                    : actionState.type === 'success'
+                                    ? 'bg-emerald-500'
+                                    : 'bg-red-500'
+                            }`}
+                        >
+                            {actionState.stage === 'confirm' ? (
+                                <AlertCircle size={32} />
+                            ) : actionState.type === 'success' ? (
+                                <CheckCircle2 size={32} />
+                            ) : (
+                                <X size={32} />
+                            )}
                         </div>
                         <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-                            {actionState.stage === 'confirm' ? 'Confirmation' : (actionState.type === 'success' ? 'Success!' : 'Oops!')}
+                            {actionState.stage === 'confirm'
+                                ? 'Confirmation'
+                                : actionState.type === 'success'
+                                ? 'Success!'
+                                : 'Oops!'}
                         </h3>
                         <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                             {actionState.message}
                         </p>
                     </div>
-                    
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex flex-col gap-2">
                         {actionState.stage === 'confirm' ? (
                             <>
-                                <button 
+                                <button
                                     onClick={handleCleanup}
                                     className="w-full py-3 rounded-xl font-bold text-white bg-destructive hover:bg-red-600 transition-all shadow-lg active:scale-95"
                                 >
                                     Yes, Purge Test Data
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setActionState({ stage: 'none' })}
                                     className="w-full py-3 rounded-xl font-medium text-[var(--text-secondary)] bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 transition-all"
                                 >
@@ -101,10 +183,12 @@ const AccountingPage: React.FC = () => {
                                 </button>
                             </>
                         ) : (
-                            <button 
+                            <button
                                 onClick={() => window.location.reload()}
                                 className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg active:scale-95 ${
-                                    actionState.type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' : 'bg-slate-700 hover:bg-slate-800 shadow-slate-500/20'
+                                    actionState.type === 'success'
+                                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20'
+                                        : 'bg-slate-700 hover:bg-slate-800 shadow-slate-500/20'
                                 }`}
                             >
                                 Refresh Dashboard
@@ -116,58 +200,98 @@ const AccountingPage: React.FC = () => {
         );
     };
 
-
     return (
         <div className="space-y-6">
             <ActionModal />
-            <div className="flex justify-between items-center bg-muted/20 p-4 rounded-lg border border-dashed border-primary/50 mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Accounting</h1>
-                    <p className="text-secondary-foreground/60">Manage temple finances, view collections and generate reports.</p>
-                </div>
-                <div className="flex items-center gap-4">
+
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#1A0F02] to-[#121212] rounded-2xl border border-white/10 p-8">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="font-heading text-3xl font-bold text-white tracking-tight">
+                            ಹಣಕಾಸು ನಿರ್ವಹಣೆ
+                        </h1>
+                        <p className="text-[#E6CDA9]/70 mt-1 text-sm">
+                            Financial Management · Receipt Generation · Daily Ledger
+                        </p>
+                    </div>
                     <div className="flex gap-2">
-                        <button onClick={handleSimulate} disabled={loading} className="px-3 py-1.5 bg-secondary text-secondary-foreground text-sm font-medium rounded hover:bg-secondary/80 disabled:opacity-50">
-                            {loading ? 'Working...' : 'Simulate Test Data'}
+                        <button
+                            onClick={handleSimulate}
+                            disabled={loading}
+                            className="px-3 py-1.5 bg-white/10 text-white/70 text-sm font-medium rounded-lg hover:bg-white/20 disabled:opacity-50 transition-colors"
+                        >
+                            {loading ? 'Working...' : 'Simulate'}
                         </button>
-                        <button onClick={triggerCleanup} disabled={loading} className="px-3 py-1.5 bg-destructive text-destructive-foreground text-sm font-medium rounded hover:bg-destructive/90 disabled:opacity-50">
-                            {loading ? 'Working...' : 'Cleanup UI Data'}
+                        <button
+                            onClick={triggerCleanup}
+                            disabled={loading}
+                            className="px-3 py-1.5 bg-red-500/20 text-red-300 text-sm font-medium rounded-lg hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+                        >
+                            {loading ? 'Working...' : 'Cleanup'}
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="border-b bg-card rounded-t-lg px-4 flex flex-wrap gap-4 overflow-x-auto">
-                <NavLink 
-                    to="/accounting/dashboard"
-                    className={({ isActive }) => `flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${isActive ? 'border-primary text-primary font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Dashboard</span>
-                </NavLink>
-                <NavLink 
-                    to="/accounting/journal"
-                    className={({ isActive }) => `flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${isActive ? 'border-primary text-primary font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    <BookOpen className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Journal</span>
-                </NavLink>
-                <NavLink 
-                    to="/accounting/bank"
-                    className={({ isActive }) => `flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${isActive ? 'border-primary text-primary font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    <Building2 className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Bank & Cash</span>
-                </NavLink>
-                <NavLink 
-                    to="/accounting/reports"
-                    className={({ isActive }) => `flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${isActive ? 'border-primary text-primary font-medium' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-                >
-                    <BarChart3 className="w-4 h-4" />
-                    <span className="whitespace-nowrap">Reports</span>
-                </NavLink>
+            {/* Daily Summary Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <SummaryCard
+                    label="Opening Balance"
+                    value="₹0.00"
+                    icon={<PiggyBank size={20} />}
+                    color="#D4AF37"
+                    subtitle="Start of day"
+                />
+                <SummaryCard
+                    label="Today's Income"
+                    value={`₹${income.toFixed(2)}`}
+                    icon={<TrendingUp size={20} />}
+                    color="#00E676"
+                    subtitle="Seva collections"
+                />
+                <SummaryCard
+                    label="Today's Expenses"
+                    value={`₹${expense.toFixed(2)}`}
+                    icon={<TrendingDown size={20} />}
+                    color="#FF5252"
+                    subtitle="Journal entries"
+                />
+                <SummaryCard
+                    label="Closing Balance"
+                    value={`₹${closing.toFixed(2)}`}
+                    icon={<Wallet size={20} />}
+                    color="#FF9933"
+                    subtitle="Income − Expenses"
+                />
             </div>
 
+            {/* Pill-style Tab Nav */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex gap-1 overflow-x-auto">
+                {[
+                    { to: '/accounting/dashboard', icon: <LayoutDashboard size={15} />, label: 'Dashboard' },
+                    { to: '/accounting/journal', icon: <BookOpen size={15} />, label: 'Journal' },
+                    { to: '/accounting/bank', icon: <Building2 size={15} />, label: 'Bank & Cash' },
+                    { to: '/accounting/reports', icon: <BarChart3 size={15} />, label: 'Reports' },
+                ].map(tab => (
+                    <NavLink
+                        key={tab.to}
+                        to={tab.to}
+                        className={({ isActive }) =>
+                            `flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                                isActive
+                                    ? 'bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30'
+                                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                            }`
+                        }
+                    >
+                        {tab.icon}
+                        <span>{tab.label}</span>
+                    </NavLink>
+                ))}
+            </div>
+
+            {/* Route Content */}
             <div className="min-h-[500px]">
                 <Routes>
                     <Route path="dashboard" element={<CollectionDashboard />} />

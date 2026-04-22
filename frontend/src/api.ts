@@ -83,6 +83,7 @@ export const lookupApi = {
 // ─── Stats API ───
 export const statsApi = {
     daily: (date: string) => api.get(`/stats/daily?date=${date}`),
+    dailySummary: (date: string) => api.get(`/stats/daily-summary?date=${date}`),
 };
 
 // ─── Auth API ───
