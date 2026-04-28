@@ -287,7 +287,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6"
+                        className="glass-card w-full max-w-md max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -311,17 +311,17 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         </div>
 
                         {/* Receipt Preview (Target for printing/HTML2Canvas) */}
-                        <div
+                        <div 
                             ref={receiptRef}
-                            className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-w-sm mx-auto mb-5 space-y-1"
+                            className="bg-white dark:bg-white text-black rounded-xl border border-gray-200 p-5 mb-5 font-mono text-sm space-y-1 shadow-inner relative"
                         >
                             <div className="text-center mb-3">
-                                <p className="font-heading text-xl font-bold text-[#D4AF37]">{activeOrgName}</p>
-                                {activeAddress && <p className="text-white/50 text-xs mt-1">{activeAddress}</p>}
-                                {settings.phone && <p className="text-white/50 text-xs">Ph: {settings.phone}</p>}
+                                <p className="text-base font-bold text-gray-900">{activeOrgName}</p>
+                                {activeAddress && <p className="text-xs text-gray-600">{activeAddress}</p>}
+                                {settings.phone && <p className="text-xs text-gray-600">Ph: {settings.phone}</p>}
                             </div>
 
-                            <hr className="border-dashed border-white/20 my-4" />
+                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">{labels.receiptNo}</span>
                                     <span className="text-gray-900 font-bold">{currentData.voucherNo}</span>
@@ -332,26 +332,26 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <div className="flex justify-between py-1.5 text-sm">
-                                    <span className="text-white/70">{labels.devotee}</span>
-                                    <span className="text-white font-semibold">{currentData.customerName}</span>
+                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">{labels.devotee}</span>
+                                    <span className="text-gray-900 font-bold">{currentData.customerName}</span>
                                 </div>
                                 {currentData.gotra && (
-                                    <div className="flex justify-between py-1.5 text-sm">
-                                        <span className="text-white/70">{labels.gotra}</span>
-                                        <span className="text-white">{currentData.gotra}</span>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">{labels.gotra}</span>
+                                        <span className="text-gray-900">{currentData.gotra}</span>
                                     </div>
                                 )}
                                 {currentData.nakshatra && (
-                                    <div className="flex justify-between py-1.5 text-sm">
-                                        <span className="text-white/70">{labels.nakshatra}</span>
-                                        <span className="text-white">{currentData.nakshatra}</span>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">{labels.nakshatra}</span>
+                                        <span className="text-gray-900">{currentData.nakshatra}</span>
                                     </div>
                                 )}
                             </div>
 
-                            <hr className="border-dashed border-white/20 my-3" />
+                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">{labels.seva}</span>
                                     <span className="text-gray-900 font-bold max-w-[60%] text-right leading-tight">{currentData.sevaDescription}</span>
@@ -366,41 +366,40 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 </div>
                             </div>
 
-                            <div className="border-t border-dashed border-white/20 pt-3 mt-3 text-center">
-                                <p className="font-mono text-white/30 text-xs text-center">{labels.greeting}</p>
-                                <p className="text-xs font-mono text-white/30 text-center mt-1">{currentData.voucherNo}</p>
+                            <div className="border-t border-dashed border-gray-300 pt-3 mt-3 text-center">
+                                <p className="text-gray-600 font-bold text-xs">{labels.greeting}</p>
                             </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3 justify-center flex-wrap">
+                        <div className="grid grid-cols-3 gap-3">
                             <button
                                 onClick={handlePrint}
                                 disabled={generating || !kannadaData}
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-all text-sm disabled:opacity-50"
+                                className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-gradient-to-br from-blue-600/20 to-sky-600/20 border border-blue-500/30 hover:border-blue-400/50 transition-all text-sm disabled:opacity-50"
                             >
-                                <Printer size={16} />
-                                <span>{lang === 'kn' ? 'ಮುದ್ರಿಸಿ' : 'Print'}</span>
+                                <Printer size={20} className="text-blue-400" />
+                                <span className="text-xs font-medium">{lang === 'kn' ? 'ಮುದ್ರಿಸಿ' : 'Print'}</span>
                             </button>
                             <button
                                 onClick={handleDownload}
                                 disabled={generating || !kannadaData}
-                                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#FF9933] hover:bg-[#e08820] text-white font-semibold transition-all shadow-lg shadow-[#FF9933]/20 disabled:opacity-50 text-sm"
+                                className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 border border-emerald-500/30 hover:border-emerald-400/50 transition-all text-sm disabled:opacity-50"
                             >
-                                <Download size={16} />
-                                <span>{lang === 'kn' ? 'ಡೌನ್ಲೋಡ್' : 'Download PDF'}</span>
+                                <Download size={20} className="text-emerald-400" />
+                                <span className="text-xs font-medium">{lang === 'kn' ? 'ಡೌನ್ಲೋಡ್' : 'Download'}</span>
                             </button>
                             {showSendMenu ? (
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-1.5 justify-center h-full">
                                     <button
                                         onClick={handleWhatsApp}
-                                        className="px-4 py-2.5 rounded-xl bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 transition-all text-sm font-bold border border-[#25D366]/30"
+                                        className="w-full py-1.5 rounded-lg bg-[#25D366]/20 text-[#075E54] hover:bg-[#25D366]/30 transition-all text-xs font-bold border border-[#25D366]/30 flex items-center justify-center gap-1"
                                     >
                                         WhatsApp
                                     </button>
                                     <button
                                         onClick={handleSMS}
-                                        className="px-4 py-2.5 rounded-xl bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-all text-sm font-bold border border-blue-500/30"
+                                        className="w-full py-1.5 rounded-lg bg-blue-500/20 text-blue-700 hover:bg-blue-500/30 transition-all text-xs font-bold border border-blue-500/30 flex items-center justify-center gap-1"
                                     >
                                         SMS
                                     </button>
@@ -409,13 +408,12 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 <button
                                     onClick={() => setShowSendMenu(true)}
                                     disabled={generating || !kannadaData}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 transition-all text-sm disabled:opacity-50"
+                                    className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-gradient-to-br from-green-600/20 to-lime-600/20 border border-green-500/30 hover:border-green-400/50 transition-all text-sm disabled:opacity-50"
                                 >
-                                    <MessageCircle size={16} />
-                                    <span>Share</span>
+                                    <MessageCircle size={20} className="text-green-500" />
+                                    <span className="text-xs font-bold text-center leading-tight">ಫೋನ್‌ಗೆ ಕಳುಹಿಸಿ</span>
                                 </button>
                             )}
-                        </div>
                         </div>
 
                         {/* Close */}
