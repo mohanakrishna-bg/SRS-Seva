@@ -1,35 +1,66 @@
-# UI Review: Phase 1 (Core Devotee & Seva)
+# Phase 1 — UI Review
 
-**Date**: 2026-04-22
-**Overall Score**: 22/24
-
-## 1. Copywriting (3/4)
-- **Observations**: The text used ("Seva Booking Dashboard", "Track and mark completed sevas", "Search devotee by name...") is highly contextual, clear, and direct. The tone is respectful and functional.
-- **Feedback**: While functional, the terminology could be further localized or polished (e.g., distinguishing between "Seva" and "Booking" consistently) to elevate the premium feel.
-
-## 2. Visuals (4/4)
-- **Observations**: Glassmorphism is executed excellently. The components use `bg-white/10`, `backdrop-blur-md`, and `border-white/20` consistently across the Autocomplete Bar, the Devotee Card, and the Fulfilment List. The background gradient (`from-indigo-900 via-purple-900 to-black`) provides a striking, modern aesthetic.
-- **Feedback**: The visual hierarchy is very strong. The glass cards pop perfectly against the dark background.
-
-## 3. Color (4/4)
-- **Observations**: The color palette is cohesive. Deep purples and indigos create a premium, slightly spiritual atmosphere fitting for a temple intranet. Contrast is maintained using `text-white` and `text-indigo-200`. Status indicators (success toast, emerald borders for fulfilled) are distinct.
-- **Feedback**: Excellent use of contextual color for the fulfilment toggles (slate for pending, emerald for fulfilled).
-
-## 4. Typography (3/4)
-- **Observations**: Good use of structural sizing (`text-4xl font-bold tracking-tight` for headers, `text-sm` for labels).
-- **Feedback**: The application relies on system defaults. Implementing a premium Google Font like *Inter* or *Outfit* would instantly elevate the typographic design from good to excellent.
-
-## 5. Spacing (4/4)
-- **Observations**: Layouts are comfortably spaced. The forms use `space-y-8`, grid layouts with `gap-6`, and generous internal padding (`p-6`, `p-8`) to ensure touch targets are large and the UI doesn't feel cramped.
-- **Feedback**: Padding and margins are consistent and follow the 8pt grid system implicitly via Tailwind.
-
-## 6. Experience Design (4/4)
-- **Observations**: The user journey is frictionless. The voice dictation mic includes a pulsing animation to indicate listening state. The fulfilment list utilizes optimistic UI updates, ensuring that staff can click rapidly through a list without waiting for network latency.
-- **Feedback**: Outstanding micro-interactions, particularly the `animate-in slide-in-from-bottom-4` transition when the Devotee card appears.
+**Audited:** 2026-04-29
+**Baseline:** Abstract 6-pillar standards & Project Brand Guidelines
+**Screenshots:** Captured (Playwright/Browser Subagent)
 
 ---
 
-## Top Fixes & Recommendations
-1. **Premium Typography**: Add a custom modern web font (e.g., 'Inter' or 'Outfit') to Tailwind configuration to elevate the baseline typography.
-2. **Glass Highlights**: Add a lighter top border (`border-t-white/30`) to the glass cards to create a more authentic 3D light-reflection effect.
-3. **Empty States**: Ensure that the "No Devotees Found" state in the autocomplete includes an actionable "Create New Devotee" button to prevent dead ends in the user flow.
+## Pillar Scores
+
+| Pillar | Score | Key Finding |
+|--------|-------|-------------|
+| 1. Copywriting | 4/4 | Consistent use of Kannada/English with appropriate spiritual/functional tone. |
+| 2. Visuals | 2/4 | **BLOCKER**: Jarring aesthetic mismatch between components in dark mode. |
+| 3. Color | 2/4 | **WARNING**: Clashing warm (brown) and cool (navy) dark mode backgrounds. |
+| 4. Typography | 4/4 | Excellent use of Outfit/Inter font pairing for headers and body. |
+| 5. Spacing | 4/4 | Consistent use of 8pt grid system and glassmorphism padding. |
+| 6. Experience Design | 4/4 | Seamless transition and state handling; voice UI integrated well. |
+
+**Overall: 20/24**
+
+---
+
+## Top 3 Priority Fixes
+
+1. **Dark Mode Cohesion** — Visual mismatch between EeDinaCard (Warm Brown) and CalendarWidget (Cool Navy) — Replace `dark:bg-slate-900` in CalendarWidget with `glass-card` class to align with the global design system.
+2. **Component Synchronization** — Ensure all widgets use the same background token in dark mode — Audit all components for hardcoded `slate` or `gray` classes that bypass the `--glass-card-bg` variable.
+3. **Receipt Aesthetics** — Ensure the persistent settings branding is correctly sized on all viewport widths — (Based on manual observation during screenshotting).
+
+---
+
+## Detailed Findings
+
+### Pillar 1: Copywriting (4/4)
+- Strings in `EeDinaCard.tsx` and `CalendarWidget.tsx` are well-localized.
+- Transliteration logic works correctly for dynamic organization names.
+
+### Pillar 2: Visuals (2/4)
+- `EeDinaCard.tsx` uses the `glass-card` class correctly, giving it a premium warm dark brown feel.
+- `CalendarWidget.tsx` (Line 45) uses a hardcoded `dark:bg-slate-900`, which breaks the visual focal point and cohesion of the home page.
+
+### Pillar 3: Color (2/4)
+- **Violation**: `--bg-dark` is `#2c1810` (Warm Brown), but some components use `slate-900` (Cool Navy).
+- The "Ee Dina" card background (`#2c1810`) and "Calendar" background (`#0f172a`) do not combine aesthetically.
+
+### Pillar 4: Typography (4/4)
+- Headers use `Outfit` as intended.
+- Body text uses `Inter` for readability.
+- Font sizes are consistent across components.
+
+### Pillar 5: Spacing (4/4)
+- `gap-2` in `EeDinaCard.tsx` provides adequate breathing room between columns.
+- `p-6` in `CalendarWidget.tsx` maintains a premium feel.
+
+### Pillar 6: Experience Design (4/4)
+- Theme toggle is responsive and updates all variables.
+- Persistent settings from Phase 1 are correctly reflected in the UI.
+
+---
+
+## Files Audited
+- `frontend/src/components/EeDinaCard.tsx`
+- `frontend/src/components/CalendarWidget.tsx`
+- `frontend/src/index.css`
+- `frontend/src/App.tsx`
+- `frontend/src/pages/SettingsPage.tsx`
