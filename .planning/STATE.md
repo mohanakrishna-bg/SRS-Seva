@@ -21,9 +21,9 @@
 - `frontend/src/api.ts`: Added `statsApi.dailySummary()`
 
 ## Open Issues
-- Bug: Receipt header displays devotee info instead of organization branding.
+- None.
 
 ## Accumulated Context
 
 ### Pending Todos
-- [ ] Fix Receipt Header Organization Branding (ui)
+- None.
