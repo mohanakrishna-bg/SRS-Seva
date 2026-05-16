@@ -92,8 +92,11 @@ function validateUrl(val: string): string | null {
     try { new URL(val.startsWith('http') ? val : `https://${val}`); return null; } catch { return 'ಅಮಾನ್ಯ URL'; }
 }
 
+import { useSettings } from '../context/SettingsContext';
+
 export default function SettingsPage() {
-    const [settings, setSettings] = useState<OrgSettings>(defaultSettings);
+    const { settings: globalSettings, updateSettings } = useSettings();
+    const [settings, setSettings] = useState<OrgSettings>(globalSettings);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showUrlInput, setShowUrlInput] = useState<'logoImage' | 'bgImage' | 'upiQrCode' | null>(null);
     const [urlValue, setUrlValue] = useState('');
@@ -105,19 +108,12 @@ export default function SettingsPage() {
     const cameraTargetRef = useRef<'logoImage' | 'bgImage' | 'upiQrCode'>('logoImage');
 
     useEffect(() => {
-        const stored = localStorage.getItem(SETTINGS_KEY);
-        if (stored) {
-            try { setSettings({ ...defaultSettings, ...JSON.parse(stored) }); } catch { setSettings(defaultSettings); }
-        }
-    }, []);
+        setSettings(globalSettings);
+    }, [globalSettings]);
 
     const handleChange = (key: keyof OrgSettings, value: string) => {
         setSettings((prev) => ({ ...prev, [key]: value }));
         setErrors((prev) => { const n = { ...prev }; delete n[key]; return n; });
-    };
-
-    const persistSettings = (updated: OrgSettings) => {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
     };
 
     const handleScheduleChange = (id: number, key: 'title' | 'time' | 'period', value: string) => {
@@ -154,10 +150,14 @@ export default function SettingsPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!validateAll()) { showToast('error', 'ದಯವಿಟ್ಟು ದೋಷಗಳನ್ನು ಸರಿಪಡಿಸಿ'); return; }
-        persistSettings(settings);
-        showToast('success', 'ಸೆಟ್ಟಿಂಗ್ಸ್ ಉಳಿಸಲಾಗಿದೆ');
+        try {
+            await updateSettings(settings);
+            showToast('success', 'ಸೆಟ್ಟಿಂಗ್ಸ್ ಉಳಿಸಲಾಗಿದೆ');
+        } catch {
+            showToast('error', 'ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        }
     };
 
     const handleImageUpload = async (key: 'logoImage' | 'bgImage' | 'upiQrCode', file: File) => {
@@ -176,7 +176,7 @@ export default function SettingsPage() {
             }
             const newSettings = { ...settings, [key]: finalData };
             setSettings(newSettings);
-            persistSettings(newSettings);
+            await updateSettings(newSettings);
             showToast('success', 'ಚಿತ್ರ ಉಳಿಸಲಾಗಿದೆ');
         } catch { showToast('error', 'ಚಿತ್ರ ಲೋಡ್ ವಿಫಲ'); }
         setLoadingImage(false);
@@ -203,7 +203,7 @@ export default function SettingsPage() {
             if (blob.size > MAX_IMAGE_SIZE) finalData = await downsizeImage(dataUrl, MAX_IMAGE_SIZE);
             const newSettings = { ...settings, [key]: finalData };
             setSettings(newSettings);
-            persistSettings(newSettings);
+            await updateSettings(newSettings);
             showToast('success', 'ಚಿತ್ರ ಉಳಿಸಲಾಗಿದೆ');
             setShowUrlInput(null);
             setUrlValue('');
@@ -211,11 +211,11 @@ export default function SettingsPage() {
         setLoadingImage(false);
     };
 
-    const removeImage = (key: 'logoImage' | 'bgImage' | 'upiQrCode') => {
+    const removeImage = async (key: 'logoImage' | 'bgImage' | 'upiQrCode') => {
         const newSettings = { ...settings };
         delete newSettings[key];
         setSettings(newSettings);
-        persistSettings(newSettings);
+        await updateSettings(newSettings);
     };
 
     const fields: { key: keyof OrgSettings; label: string; placeholder: string; canTransliterate: boolean; multiline?: boolean }[] = [

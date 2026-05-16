@@ -172,6 +172,8 @@ def browse_images(category: Optional[str] = Query(None)):
     
     if not category or category.lower() == 'uncategorized':
         target_dir = os.path.join(base_dir, "uncategorized")
+    elif category.lower() == 'all':
+        target_dir = base_dir
     else:
         # Normalize category name for folder
         slug = re.sub(r'[^a-z0-9]+', '_', category.strip().lower())

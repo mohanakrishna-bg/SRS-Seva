@@ -23,9 +23,10 @@ interface EeDinaCardProps {
     onDateChange: (date: Date) => void;
 }
 
-const SETTINGS_KEY = 'seva_org_settings';
+import { useSettings } from '../context/SettingsContext';
 
 export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
+    const { settings } = useSettings();
     const [panchanga, setPanchanga] = useState<PanchangaData | null>(null);
     const [loading, setLoading] = useState(true);
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -72,16 +73,10 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
     };
 
     useEffect(() => {
-        try {
-            const storedSettings = localStorage.getItem(SETTINGS_KEY);
-            if (storedSettings) {
-                const parsed = JSON.parse(storedSettings);
-                if (parsed.standardSchedule && Array.isArray(parsed.standardSchedule)) {
-                    const sorted = [...parsed.standardSchedule].sort((a, b) => parseTime(a.time, a.period) - parseTime(b.time, b.period));
-                    setSchedule(sorted);
-                }
-            }
-        } catch { /* ignore */ }
+        if (settings.standardSchedule && Array.isArray(settings.standardSchedule)) {
+            const sorted = [...settings.standardSchedule].sort((a, b) => parseTime(a.time, a.period) - parseTime(b.time, b.period));
+            setSchedule(sorted);
+        }
 
         const fetchPanchanga = async () => {
             setLoading(true);
@@ -104,7 +99,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
             finally { setLoading(false); }
         };
         fetchPanchanga();
-    }, [activeDate.toDateString()]);
+    }, [activeDate.toDateString(), settings.standardSchedule]);
 
     const parseTime = (time: string, period: string) => {
         try {

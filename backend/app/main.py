@@ -42,6 +42,7 @@ from app.api.accounting import router as accounting_router
 from app.api.test_data import router as test_data_router
 from app.api.inventory import router as inventory_router
 from app.api.image_sync import router as image_sync_router
+from app.api.settings import router as settings_router
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -52,6 +53,7 @@ app.include_router(accounting_router)
 app.include_router(test_data_router)
 app.include_router(inventory_router)
 app.include_router(image_sync_router)
+app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
 
 app.add_middleware(
     CORSMiddleware,

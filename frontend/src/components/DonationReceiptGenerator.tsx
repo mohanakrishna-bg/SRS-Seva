@@ -31,15 +31,6 @@ interface DonationReceiptProps {
     receiptData: DonationReceiptData | null;
 }
 
-const SETTINGS_KEY = 'seva_org_settings';
-function getOrgSettings() {
-    try {
-        const stored = localStorage.getItem(SETTINGS_KEY);
-        if (stored) return JSON.parse(stored);
-    } catch {}
-    return {};
-}
-
 function formatReceiptDate(dateStr: string): string {
     if (!dateStr) return new Date().toLocaleDateString('en-IN');
     // Handle DD/MM/YYYY
@@ -54,16 +45,18 @@ function formatReceiptDate(dateStr: string): string {
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+import { useSettings } from '../context/SettingsContext';
+
 export default function DonationReceiptGenerator({ isOpen, onClose, receiptData }: DonationReceiptProps) {
+    const { settings } = useSettings();
     const [generating, setGenerating] = useState(false);
     const [lang, setLang] = useState<'kn' | 'en'>('kn');
     const [kannadaData, setKannadaData] = useState<DonationReceiptData | null>(null);
     const [showSendMenu, setShowSendMenu] = useState(false);
     const receiptRef = useRef<HTMLDivElement>(null);
-    const settings = getOrgSettings();
 
-    const orgNameKn = settings.orgName && settings.orgName.match(/[\u0C80-\u0CFF]/) ? settings.orgName : 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
-    const orgNameEn = settings.orgNameEn || 'Shri Matha Admin';
+    const orgNameKn = settings.orgName || 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
+    const orgNameEn = settings.orgNameEn || (settings.orgName ? transliterateKnToEn(settings.orgName) : 'Shri Matha Admin');
 
     useEffect(() => {
         if (!receiptData) return;

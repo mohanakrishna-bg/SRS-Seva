@@ -5,6 +5,7 @@ import { X, Search, User, CreditCard, Receipt, Check, Loader2, Info, Camera } fr
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
 import { useToast } from './Toast';
+import { useSettings } from '../context/SettingsContext';
 import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 import { devoteeApi, registrationApi, uploadApi, paymentApi } from '../api';
 
@@ -79,10 +80,10 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     const [optPrasada, setOptPrasada] = useState<boolean>(false);
     
     // Parse settings for food service
-    const orgSettings = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('seva_org_settings') || '{}') : {};
+    const { settings: orgSettings } = useSettings();
     const defaultFoodRates = (orgSettings.foodServiceCharges || '100, 150, 200').split(',').map((s: string) => parseInt(s.trim())).filter((n: number) => !isNaN(n));
     if (defaultFoodRates.length === 0) defaultFoodRates.push(200);
-    const [foodServiceRateStr, setFoodServiceRateStr] = useState<string>(defaultFoodRates[0].toString());
+    const [foodServiceRateStr, setFoodServiceRateStr] = useState<string>(defaultFoodRates[0]?.toString() || '200');
 
     // Payment Step State
     const [paymentMode, setPaymentMode] = useState<'Cash' | 'Cheque' | 'DD' | 'UPI' | 'Netbanking'>('Cash');

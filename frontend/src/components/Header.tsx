@@ -8,18 +8,10 @@ interface HeaderProps {
     rightContent?: React.ReactNode;
 }
 
-const SETTINGS_KEY = 'seva_org_settings';
-
-function getOrgSettings() {
-    try {
-        const stored = localStorage.getItem(SETTINGS_KEY);
-        if (stored) return JSON.parse(stored);
-    } catch { /* ignore */ }
-    return {};
-}
+import { useSettings } from '../context/SettingsContext';
 
 export default function Header({ compact = false, onBack, rightContent }: HeaderProps) {
-    const settings = getOrgSettings();
+    const { settings } = useSettings();
     const orgName = settings.orgName || 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
     const logoImage = settings.logoImage;
     const address = settings.address;

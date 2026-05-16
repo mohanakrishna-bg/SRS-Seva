@@ -157,3 +157,10 @@ class LegacyInvoiceDtl(Base):
     Basic = Column(Float)
     TPQty = Column(Float)
     Amount = Column(Float)
+
+class Settings(Base):
+    __tablename__ = "settings"
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, index=True)
+    value = Column(JSON)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

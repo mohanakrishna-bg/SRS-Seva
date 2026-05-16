@@ -8,18 +8,7 @@ import DonationModal from './DonationModal';
 import ReceiptGenerator from './ReceiptGenerator';
 import { useToast } from './Toast';
 
-const SETTINGS_KEY = 'seva_org_settings';
-
-function getBgImage(): string | undefined {
-    try {
-        const stored = localStorage.getItem(SETTINGS_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            return parsed.bgImage;
-        }
-    } catch { /* ignore */ }
-    return undefined;
-}
+import { useSettings } from '../context/SettingsContext';
 
 export type LayoutContextType = {
     openRegModal: (eventName?: string, eventCode?: string) => void;
@@ -28,7 +17,8 @@ export type LayoutContextType = {
 };
 
 export default function Layout() {
-    const bgImage = getBgImage();
+    const { settings } = useSettings();
+    const bgImage = settings.bgImage;
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
         return (localStorage.getItem('seva_theme') as 'light' | 'dark') || 'light';
     });
@@ -89,13 +79,6 @@ export default function Layout() {
         }
         setMediaModal({ ...mediaModal, isOpen: false });
     };
-
-    const navLinkClass = ({ isActive }: { isActive: boolean }) => 
-        `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${
-            isActive 
-                ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' 
-                : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'
-        }`;
 
     return (
         <div className="min-h-screen relative flex flex-col bg-[var(--bg-dark)]">
@@ -220,6 +203,23 @@ export default function Layout() {
             <DonationModal
                 isOpen={donModalOpen}
                 onClose={() => setDonModalOpen(false)}
+                onSuccess={(data) => {
+                    setDonModalOpen(false);
+                    setReceiptData({
+                        voucherNo: data.donation.DonationReceiptNo || data.donation.Id?.toString() || 'DON-XXX',
+                        date: data.donation.DonationDate || new Date().toISOString(),
+                        customerName: data.customer.Name,
+                        customerNameEn: data.customer.NameEn,
+                        gotra: data.customer.Sgotra,
+                        gotraEn: data.customer.SgotraEn,
+                        nakshatra: data.customer.SNakshatra,
+                        nakshatraEn: data.customer.SNakshatraEn,
+                        sevaDescription: data.donation.ItemName || 'ದಾನ (Donation)',
+                        amount: data.donation.EstimatedValue || 0,
+                        paymentMode: data.donation.PaymentMode || 'Cash'
+                    });
+                    setShowReceiptGenerator(true);
+                }}
             />
 
             <ReceiptGenerator

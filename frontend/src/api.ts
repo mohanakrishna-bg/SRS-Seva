@@ -205,4 +205,11 @@ export const inventoryApi = {
     getDonation: (id: number) => api.get(`/inventory/donations/${id}`),
 };
 
+// ─── Settings API ───
+export const settingsApi = {
+    get: (key: string) => api.get(`/settings/${key}`),
+    list: () => api.get('/settings'),
+    save: (key: string, value: any) => api.post('/settings', { key, value }),
+};
+
 export default api;

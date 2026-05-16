@@ -913,7 +913,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
 }) {
     const isEdit = !!item;
     const [uncatImages, setUncatImages] = useState<string[]>([]);
-    const [browsingMode, setBrowsingMode] = useState<'uncategorized' | 'category' | null>(null);
+    const [browsingMode, setBrowsingMode] = useState<'uncategorized' | 'category' | null>(item ? null : 'uncategorized');
     const [browseCategory, setBrowseCategory] = useState<string>(item?.Category || '');
     const [browsingFiles, setBrowsingFiles] = useState<string[]>([]);
     const [selectedUncatImg, setSelectedUncatImg] = useState<string>('');
@@ -1064,6 +1064,9 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
         if (mode === 'uncategorized' || selectedUncatImg === filename) {
             return `/uploads/photos/uncategorized/${filename}`;
         }
+        if (catName === 'all') {
+            return `/uploads/photos/${filename}`;
+        }
         const slug = (catName || 'uncategorized').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
         return `/uploads/photos/${slug}/${filename}`;
     };
@@ -1110,6 +1113,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                                                 className="form-input text-xs flex-1"
                                             >
                                                 <option value="uncategorized">Pending Photos (Uncategorized)</option>
+                                                <option value="all">All Photos (Album)</option>
                                                 {categories.filter(c => c.ForType === 'asset').map(c => <option key={c.Id} value={c.Name}>{c.Name}</option>)}
                                             </select>
                                             {browsingMode === 'uncategorized' && (
@@ -1174,29 +1178,28 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
 
                                     <div className="flex-1 min-h-[350px] rounded-2xl overflow-hidden border-2 border-[var(--glass-border)] bg-black/20 shadow-inner group relative flex items-center justify-center">
                                         {form.ImageLink || selectedUncatImg ? (
-                                            <>
-                                                <img 
-                                                    src={getPreviewUrl(selectedUncatImg || form.ImageLink, selectedUncatImg ? 'uncategorized' : 'category', form.Category)}
-                                                    alt="Asset" 
-                                                    className="w-full h-full object-contain"
-                                                />
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
-                                                    <button onClick={() => setBrowsingMode('uncategorized')} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
-                                                        <Camera size={32} />
-                                                        <span className="text-[10px] font-bold uppercase">Pending Pool</span>
-                                                    </button>
-                                                    <button onClick={() => { setBrowsingMode('category'); setBrowseCategory(form.Category || 'uncategorized'); }} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
-                                                        <FolderSync size={32} />
-                                                        <span className="text-[10px] font-bold uppercase">Browse Files</span>
-                                                    </button>
-                                                </div>
-                                            </>
+                                            <img 
+                                                src={getPreviewUrl(selectedUncatImg || form.ImageLink, selectedUncatImg ? 'uncategorized' : 'category', form.Category)}
+                                                alt="Asset" 
+                                                className="w-full h-full object-contain"
+                                            />
                                         ) : (
                                             <div className="flex flex-col items-center text-[var(--text-secondary)] opacity-30">
                                                 <ImageIconLucide size={64} />
                                                 <p className="font-bold mt-2">No Image Selected</p>
                                             </div>
                                         )}
+
+                                        <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 ${form.ImageLink || selectedUncatImg ? 'backdrop-blur-sm' : ''}`}>
+                                            <button type="button" onClick={() => setBrowsingMode('uncategorized')} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
+                                                <Camera size={32} />
+                                                <span className="text-[10px] font-bold uppercase">Pending Pool</span>
+                                            </button>
+                                            <button type="button" onClick={() => { setBrowsingMode('category'); setBrowseCategory(form.Category || 'all'); }} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
+                                                <FolderSync size={32} />
+                                                <span className="text-[10px] font-bold uppercase">Browse Files</span>
+                                            </button>
+                                        </div>
                                         
                                         {(selectedUncatImg || form.ImageLink) && (
                                             <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
