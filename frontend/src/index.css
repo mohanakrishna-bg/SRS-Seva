@@ -97,6 +97,10 @@ body {
     color: var(--text-primary);
     transition: all 0.2s;
   }
+  .form-input option {
+    background-color: var(--glass-card-bg);
+    color: var(--text-primary);
+  }
   .form-input:focus {
     outline: none;
     border-color: #10b981;

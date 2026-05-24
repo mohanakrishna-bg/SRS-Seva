@@ -14,6 +14,7 @@ import ContextHelp from '../components/ContextHelp';
 const getImgSrc = (link?: string, category?: string) => {
     if (!link) return null;
     if (isHttpUrl(link)) return link;
+    if (link.includes('/')) return `/uploads/photos/${link}`;
     // Normalized slug for category
     const slug = (category || 'uncategorized').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
     
@@ -474,10 +475,16 @@ function AssetRegisterTab({
                         <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">{deletedItems.length}</span>
                     )}
                 </button>
-                <button onClick={() => { setEditItem(null); setIsAddModalOpen(true); }}
-                    className="flex items-center gap-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20">
-                    <Plus size={16} /> Add Item
-                </button>
+                <div className="flex items-center gap-1">
+                    <button onClick={() => { setEditItem(null); setIsAddModalOpen(true); }}
+                        className="flex items-center gap-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20">
+                        <Plus size={16} /> Add Item
+                    </button>
+                    <ContextHelp 
+                        title="Image Upload Process" 
+                        content="Images can be uploaded manually to the Pending Pool (supports files and ZIPs), captured live via Web Camera, or synced automatically in the background from Google Drive." 
+                    />
+                </div>
                 <div className="flex items-center gap-2 ml-auto">
                     <span className="text-xs text-[var(--text-secondary)] font-medium">Rows:</span>
                     <select value={pageSize} onChange={e => {
@@ -913,7 +920,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
 }) {
     const isEdit = !!item;
     const [uncatImages, setUncatImages] = useState<string[]>([]);
-    const [browsingMode, setBrowsingMode] = useState<'uncategorized' | 'category' | null>(item ? null : 'uncategorized');
+    const [browsingMode, setBrowsingMode] = useState<'uncategorized' | 'category' | null>(null);
     const [browseCategory, setBrowseCategory] = useState<string>(item?.Category || '');
     const [browsingFiles, setBrowsingFiles] = useState<string[]>([]);
     const [selectedUncatImg, setSelectedUncatImg] = useState<string>('');
@@ -937,7 +944,24 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [cameraOpen, setCameraOpen] = useState(false);
     const { setGlobalLang } = useInputContext();
+
+    const handleCameraCapture = async (file: File) => {
+        try {
+            setUploading(true);
+            setError('');
+            const res = await uploadApi.image(file);
+            setForm(prev => ({ ...prev, ImageLink: res.data.filename }));
+            setSelectedUncatImg('');
+            setCameraOpen(false);
+        } catch (e: any) {
+            console.error("Failed to capture image from camera:", e);
+            setError(e?.response?.data?.detail || "Failed to capture image from camera");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const loadImages = async (cat?: string) => {
         setLoadingImages(true);
@@ -1190,14 +1214,14 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                                             </div>
                                         )}
 
-                                        <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 ${form.ImageLink || selectedUncatImg ? 'backdrop-blur-sm' : ''}`}>
-                                            <button type="button" onClick={() => setBrowsingMode('uncategorized')} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
+                                        <div className={`absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-8 ${form.ImageLink || selectedUncatImg ? 'backdrop-blur-sm' : ''}`}>
+                                            <button type="button" onClick={() => setCameraOpen(true)} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
                                                 <Camera size={32} />
-                                                <span className="text-[10px] font-bold uppercase">Pending Pool</span>
+                                                <span className="text-[10px] font-bold uppercase">Live Camera</span>
                                             </button>
-                                            <button type="button" onClick={() => { setBrowsingMode('category'); setBrowseCategory(form.Category || 'all'); }} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
+                                            <button type="button" onClick={() => setBrowsingMode('uncategorized')} className="flex flex-col items-center gap-2 text-white hover:scale-110 transition-transform">
                                                 <FolderSync size={32} />
-                                                <span className="text-[10px] font-bold uppercase">Browse Files</span>
+                                                <span className="text-[10px] font-bold uppercase">Browse Images</span>
                                             </button>
                                         </div>
                                         
@@ -1304,6 +1328,15 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                         {isEdit ? 'Update' : 'Add Item'}
                     </button>
                 </div>
+                {cameraOpen && (
+                    <MediaCaptureModal
+                        isOpen={cameraOpen}
+                        type="photo"
+                        onClose={() => setCameraOpen(false)}
+                        onCapture={handleCameraCapture}
+                        title="Capture Asset Photo"
+                    />
+                )}
             </motion.div>
         </div>
     );

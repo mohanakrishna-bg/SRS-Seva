@@ -173,7 +173,17 @@ def browse_images(category: Optional[str] = Query(None)):
     if not category or category.lower() == 'uncategorized':
         target_dir = os.path.join(base_dir, "uncategorized")
     elif category.lower() == 'all':
-        target_dir = base_dir
+        if not os.path.exists(base_dir):
+            return []
+        files = []
+        valid_exts = {".jpg", ".jpeg", ".png", ".webp"}
+        for root, dirs, filenames in os.walk(base_dir):
+            for f in filenames:
+                if not f.startswith('.') and os.path.splitext(f)[1].lower() in valid_exts:
+                    full_path = os.path.join(root, f)
+                    rel_path = os.path.relpath(full_path, base_dir)
+                    files.append(rel_path)
+        return sorted(files)
     else:
         # Normalize category name for folder
         slug = re.sub(r'[^a-z0-9]+', '_', category.strip().lower())
