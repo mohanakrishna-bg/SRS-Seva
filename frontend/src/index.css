@@ -89,11 +89,12 @@ body {
 
   .form-input {
     width: 100%;
-    padding: 0.625rem 0.75rem;
+    padding: 0.75rem 1rem;
+    min-height: 2.75rem; /* 44px touch target height */
     border-radius: 0.75rem;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: var(--text-primary);
     transition: all 0.2s;
   }
@@ -105,6 +106,16 @@ body {
     outline: none;
     border-color: #10b981;
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  }
+
+  /* Global touch target optimizations for mobile devices */
+  @media (max-width: 768px) {
+    input,
+    select,
+    textarea,
+    button:not(.w-8):not(.h-8):not(.p-1):not(.p-2) {
+      min-height: 2.75rem !important; /* 44px touch target height */
+    }
   }
 }
 

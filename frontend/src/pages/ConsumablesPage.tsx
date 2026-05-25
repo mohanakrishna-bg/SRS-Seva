@@ -329,49 +329,51 @@ function AssetRegisterTab() {
     return (
         <div className="space-y-4">
             {/* Toolbar */}
-            <div className="flex flex-wrap gap-3 items-center">
-                <div className="flex-1 min-w-[200px] relative">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex-1 relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" />
                     <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search items..."
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-emerald-500/30" />
                 </div>
 
-                <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
-                    className="px-3 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)]">
-                    <option value="">All Categories</option>
-                    {categories.filter(c => c.ForType === 'consumable').map(c => <option key={c.Id} value={c.Name}>{c.Name}</option>)}
-                </select>
-                <button onClick={() => setShowDeleted(!showDeleted)}
-                    className={`flex items-center gap-1 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-                        showDeleted
-                            ? 'bg-red-500/10 border-red-500/30 text-red-500'
-                            : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)]'
-                    }`}>
-                    {showDeleted ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {showDeleted ? 'Hide Deleted' : 'Show Deleted'}
-                    {showDeleted && deletedItems.length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">{deletedItems.length}</span>
-                    )}
-                </button>
-                <button onClick={() => setSyncPanelOpen(true)}
-                    className="flex items-center gap-1 px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-500 text-sm font-medium hover:bg-blue-500/20 transition-colors">
-                    <FolderSync size={14} /> Sync Photos
-                </button>
-                <button onClick={() => { setEditItem(null); setModalOpen(true); }}
-                    className="flex items-center gap-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20">
-                    <Plus size={16} /> Add Item
-                </button>
-                <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-xs text-[var(--text-secondary)] font-medium">Rows:</span>
-                    <select value={pageSize} onChange={e => {
-                        const newSize = Number(e.target.value);
-                        setPageSize(newSize);
-                        localStorage.setItem('inventory_page_size', String(newSize));
-                        setCurrentPage(1);
-                    }}
-                        className="px-2 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none">
-                        {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
+                    <select value={filterCat} onChange={e => setFilterCat(e.target.value)}
+                        className="px-3 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] flex-1 md:flex-initial">
+                        <option value="">All Categories</option>
+                        {categories.filter(c => c.ForType === 'consumable').map(c => <option key={c.Id} value={c.Name}>{c.Name}</option>)}
                     </select>
+                    <button onClick={() => setShowDeleted(!showDeleted)}
+                        className={`flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors flex-1 md:flex-initial ${
+                            showDeleted
+                                ? 'bg-red-500/10 border-red-500/30 text-red-500'
+                                : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)]'
+                        }`}>
+                        {showDeleted ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {showDeleted ? 'Hide' : 'Show Deleted'}
+                        {showDeleted && deletedItems.length > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">{deletedItems.length}</span>
+                        )}
+                    </button>
+                    <button onClick={() => setSyncPanelOpen(true)}
+                        className="flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-500 text-sm font-medium hover:bg-blue-500/20 transition-colors flex-1 md:flex-initial">
+                        <FolderSync size={14} /> Sync
+                    </button>
+                    <button onClick={() => { setEditItem(null); setModalOpen(true); }}
+                        className="flex items-center justify-center gap-1 px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20 flex-1 md:flex-initial">
+                        <Plus size={16} /> Add Item
+                    </button>
+                    <div className="flex items-center gap-2 ml-auto md:ml-2">
+                        <span className="text-xs text-[var(--text-secondary)] font-medium">Rows:</span>
+                        <select value={pageSize} onChange={e => {
+                            const newSize = Number(e.target.value);
+                            setPageSize(newSize);
+                            localStorage.setItem('inventory_page_size', String(newSize));
+                            setCurrentPage(1);
+                        }}
+                            className="px-2 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none">
+                            {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -384,114 +386,202 @@ function AssetRegisterTab() {
                     <p>No items found</p>
                 </div>
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="bg-[var(--glass-bg)] text-left text-[var(--text-secondary)] text-xs uppercase cursor-default">
-                                <th className="px-4 py-3">#</th>
-                                <th className="px-4 py-3">Image</th>
-                                <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Category</th>
-                                <th className="px-4 py-3">UOM</th>
-                                <th className="px-4 py-3 text-right">Unit Price</th>
-                                <th className="px-4 py-3 text-right">Qty</th>
-                                <th className="px-4 py-3 text-right">Total Value</th>
-                                <th className="px-4 py-3">Source</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedItems.map((item, i) => {
-                                // Adaptive row padding based on page size
-                                const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
-                                return (
-                                <tr key={item.ItemId}
-                                    onClick={() => {
-                                        if (item.NeedsReview) {
-                                            setEditItem(item);
-                                            setModalOpen(true);
-                                        } else {
-                                            setViewItem(item);
-                                        }
-                                    }}
-                                    className={`border-t border-[var(--glass-border)] transition-colors cursor-pointer group ${
-                                        item.IsDeleted
-                                            ? 'bg-red-500/5 opacity-60 hover:opacity-80'
-                                            : item.NeedsReview
-                                                ? 'bg-amber-500/5 hover:bg-amber-500/10'
-                                                : `hover:bg-emerald-500/10 ${i % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`
-                                    }`}>
-                                    <td className={`px-4 ${pyClass} font-mono text-xs text-[var(--text-secondary)] transition-all`}>{item.ItemId}</td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        {getImgSrc(item.ImageLink) ? (
-                                            <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg overflow-hidden border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 relative transition-all`}>
-                                                <img src={getImgSrc(item.ImageLink)!} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" class="text-slate-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><circle cx="7" cy="7" r="7"/></svg>'; }} />
-                                            </div>
-                                        ) : (
-                                            <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center transition-all text-[var(--text-secondary)] opacity-30`}>
-                                                <ImageIcon size={pageSize <= 10 ? 24 : 14} />
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        <div className="flex items-center gap-2">
-                                            <div>
-                                                <p className={`font-bold transition-colors ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'} ${pageSize <= 5 ? 'text-base' : 'text-sm'}`}>{item.Name}</p>
-                                                {item.Description && <p className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)] mt-0.5`}>{item.Description}</p>}
-                                            </div>
-                                            {item.IsDeleted && (
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-red-500/20 text-red-500">Deleted</span>
+                <>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-[var(--glass-bg)] text-left text-[var(--text-secondary)] text-xs uppercase cursor-default">
+                                    <th className="px-4 py-3">#</th>
+                                    <th className="px-4 py-3">Image</th>
+                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">Category</th>
+                                    <th className="px-4 py-3">UOM</th>
+                                    <th className="px-4 py-3 text-right">Unit Price</th>
+                                    <th className="px-4 py-3 text-right">Qty</th>
+                                    <th className="px-4 py-3 text-right">Total Value</th>
+                                    <th className="px-4 py-3">Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedItems.map((item, i) => {
+                                    // Adaptive row padding based on page size
+                                    const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
+                                    return (
+                                    <tr key={item.ItemId}
+                                        onClick={() => {
+                                            if (item.NeedsReview) {
+                                                setEditItem(item);
+                                                setModalOpen(true);
+                                            } else {
+                                                setViewItem(item);
+                                            }
+                                        }}
+                                        className={`border-t border-[var(--glass-border)] transition-colors cursor-pointer group ${
+                                            item.IsDeleted
+                                                ? 'bg-red-500/5 opacity-60 hover:opacity-80'
+                                                : item.NeedsReview
+                                                    ? 'bg-amber-500/5 hover:bg-amber-500/10'
+                                                    : `hover:bg-emerald-500/10 ${i % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`
+                                        }`}>
+                                        <td className={`px-4 ${pyClass} font-mono text-xs text-[var(--text-secondary)] transition-all`}>{item.ItemId}</td>
+                                        <td className={`px-4 ${pyClass} transition-all`}>
+                                            {getImgSrc(item.ImageLink) ? (
+                                                <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg overflow-hidden border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 relative transition-all`}>
+                                                    <img src={getImgSrc(item.ImageLink)!} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" class="text-slate-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><circle cx="7" cy="7" r="7"/></svg>'; }} />
+                                                </div>
+                                            ) : (
+                                                <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center transition-all text-[var(--text-secondary)] opacity-30`}>
+                                                    <ImageIcon size={pageSize <= 10 ? 24 : 14} />
+                                                </div>
                                             )}
+                                        </td>
+                                        <td className={`px-4 ${pyClass} transition-all`}>
+                                            <div className="flex items-center gap-2">
+                                                <div>
+                                                    <p className={`font-bold transition-colors ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'} ${pageSize <= 5 ? 'text-base' : 'text-sm'}`}>{item.Name}</p>
+                                                    {item.Description && <p className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)] mt-0.5`}>{item.Description}</p>}
+                                                </div>
+                                                {item.IsDeleted && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-red-500/20 text-red-500">Deleted</span>
+                                                )}
+                                                {item.NeedsReview && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-500 animate-pulse">ಹೊಸ (New)</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.Category || '—'}</td>
+                                            <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.UOM || '—'}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-primary)] transition-all`}>{fmt(item.UnitPrice)}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.Quantity}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 transition-all`}>{fmt(item.TotalValue)}</td>
+                                        <td className={`px-4 ${pyClass} transition-all`}>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                (item as any).AcquisitionMode === 'donation'
+                                                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                            }`}>
+                                                {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--glass-border)]">
+                                <span className="text-xs text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={16}/></button>
+                                    <div className="flex items-center gap-1 mx-2">
+                                        {Array.from({ length: totalPages }).map((_, i) => {
+                                            const p = i + 1;
+                                            if (totalPages > 6 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
+                                                if (p === 2 || p === totalPages - 1) return <span key={p} className="px-1 opacity-30">...</span>;
+                                                return null;
+                                            }
+                                            return (
+                                                <button key={p} onClick={() => setCurrentPage(p)}
+                                                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === p ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'hover:bg-black/5 text-[var(--text-secondary)]'}`}>
+                                                    {p}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={16}/></button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mobile Grid Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {paginatedItems.map((item) => (
+                            <div 
+                                key={item.ItemId}
+                                onClick={() => {
+                                    if (item.NeedsReview) {
+                                        setEditItem(item);
+                                        setModalOpen(true);
+                                    } else {
+                                        setViewItem(item);
+                                    }
+                                }}
+                                className={`p-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] transition-all active:scale-[0.98] cursor-pointer ${
+                                    item.IsDeleted 
+                                        ? 'bg-red-500/5 opacity-60' 
+                                        : item.NeedsReview 
+                                            ? 'bg-amber-500/5 border-amber-500/20 shadow-lg shadow-amber-500/5' 
+                                            : 'hover:border-emerald-500/30'
+                                }`}
+                            >
+                                <div className="flex gap-4 items-start">
+                                    {/* Thumbnail Image */}
+                                    {getImgSrc(item.ImageLink) ? (
+                                        <div className="w-16 h-16 rounded-xl overflow-hidden border border-[var(--glass-border)] shrink-0 bg-black/5 dark:bg-white/5 relative">
+                                            <img src={getImgSrc(item.ImageLink)!} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-[var(--text-secondary)] opacity-30">
+                                            <ImageIcon size={22} />
+                                        </div>
+                                    )}
+
+                                    {/* Content Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-[10px] font-mono text-[var(--text-secondary)]">#{item.ItemId}</span>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                                (item as any).AcquisitionMode === 'donation'
+                                                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                            }`}>
+                                                {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
+                                            </span>
+                                        </div>
+
+                                        <h4 className={`font-bold truncate text-base mt-0.5 ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)]'}`}>
+                                            {item.Name}
+                                        </h4>
+                                        <p className="text-xs text-[var(--text-secondary)] truncate">{item.Category || 'Uncategorized'}</p>
+
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-black/5 dark:bg-white/5 text-[var(--text-secondary)]">
+                                                UOM: {item.UOM || 'Nos'}
+                                            </span>
                                             {item.NeedsReview && (
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-500 animate-pulse">ಹೊಸ (New)</span>
+                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-500 animate-pulse uppercase">Review</span>
                                             )}
                                         </div>
-                                    </td>
-                                    <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.Category || '—'}</td>
-                                        <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.UOM || '—'}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-primary)] transition-all`}>{fmt(item.UnitPrice)}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.Quantity}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 transition-all`}>{fmt(item.TotalValue)}</td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                            (item as any).AcquisitionMode === 'donation'
-                                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                                        }`}>
-                                            {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
-                                        </span>
-                                    </td>
-                                </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                    
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--glass-border)]">
-                            <span className="text-xs text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
-                            <div className="flex items-center gap-1">
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={16}/></button>
-                                <div className="flex items-center gap-1 mx-2">
-                                    {Array.from({ length: totalPages }).map((_, i) => {
-                                        const p = i + 1;
-                                        if (totalPages > 6 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
-                                            if (p === 2 || p === totalPages - 1) return <span key={p} className="px-1 opacity-30">...</span>;
-                                            return null;
-                                        }
-                                        return (
-                                            <button key={p} onClick={() => setCurrentPage(p)}
-                                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === p ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'hover:bg-black/5 text-[var(--text-secondary)]'}`}>
-                                                {p}
-                                            </button>
-                                        );
-                                    })}
+                                    </div>
                                 </div>
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={16}/></button>
+
+                                <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex justify-between items-center text-xs">
+                                    <div className="text-[var(--text-secondary)]">
+                                        Qty: <span className="font-mono font-bold text-[var(--text-primary)]">{item.Quantity}</span>
+                                    </div>
+                                    <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                                        {fmt(item.TotalValue)}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        ))}
+
+                        {/* Mobile Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-1 py-2 mt-2">
+                                <span className="text-[11px] text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={14}/></button>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={14}/></button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
             )}
 
             {/* Total row */}
@@ -525,10 +615,10 @@ function AssetRegisterTab() {
                 <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setViewItem(null)}>
                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                         onClick={e => e.stopPropagation()}
-                        className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row max-h-[95vh] h-auto">
+                        className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-full max-w-4xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-h-[95vh] h-auto">
                         
                         {/* Image Section */}
-                        <div className="md:w-1/2 relative bg-black/20 flex flex-col items-center justify-center min-h-[300px]">
+                        <div className="w-full md:w-1/2 relative bg-black/20 flex flex-col items-center justify-center h-64 md:h-auto min-h-[220px] md:min-h-[300px] shrink-0">
                             {getImgSrc(viewItem.ImageLink) ? (
                                 <img 
                                     src={getImgSrc(viewItem.ImageLink)!} 
@@ -830,7 +920,7 @@ function ItemFormModal({ item, categories, onClose, onSaved }: {
                             multiline placeholder="e.g. A4 size, 500 sheets per ream" />
                     </FormField>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField label="Category">
                             <select value={form.Category} onChange={e => setForm({ ...form, Category: e.target.value })} className="form-input">
                                 <option value="">Select...</option>
@@ -848,7 +938,7 @@ function ItemFormModal({ item, categories, onClose, onSaved }: {
                         </FormField>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <FormField label="Unit Price (₹)">
                             <input type="number" step="0.01" value={form.UnitPrice} onChange={e => setForm({ ...form, UnitPrice: e.target.value })}
                                 className="form-input font-mono" placeholder="0.00" />
@@ -868,7 +958,7 @@ function ItemFormModal({ item, categories, onClose, onSaved }: {
                             className="form-input font-mono" placeholder="e.g. 4802" />
                     </FormField>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField label="Added on Date">
                             <input value={form.AddedOnDate} onChange={e => setForm({ ...form, AddedOnDate: e.target.value })}
                                 className="form-input" placeholder="DD/MM/YYYY" />

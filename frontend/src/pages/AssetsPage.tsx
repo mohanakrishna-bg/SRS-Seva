@@ -508,124 +508,223 @@ function AssetRegisterTab({
                     <p>No items found</p>
                 </div>
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="bg-[var(--glass-bg)] text-left text-[var(--text-secondary)] text-xs uppercase cursor-default">
-                                <th className="px-4 py-3">#</th>
-                                <th className="px-4 py-3">Image</th>
-                                <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Category</th>
-                                <th className="px-4 py-3">Material</th>
-                                <th className="px-4 py-3 text-right">Weight (g)</th>
-                                <th className="px-4 py-3 text-right">Unit Price</th>
-                                <th className="px-4 py-3 text-right">Qty</th>
-                                <th className="px-4 py-3 text-right">Total Value</th>
-                                <th className="px-4 py-3">Source</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedItems.map((item, i) => {
-                                // Adaptive row padding based on page size
-                                const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
-                                return (
-                                <tr key={item.ItemId}
-                                    onClick={() => {
-                                        if (item.NeedsReview) {
-                                            setEditItem(item);
-                                            setIsAddModalOpen(true);
-                                        } else {
-                                            setViewItem(item);
-                                        }
-                                    }}
-                                    className={`border-t border-[var(--glass-border)] transition-colors cursor-pointer group ${
-                                        item.IsDeleted
-                                            ? 'bg-red-500/5 opacity-60 hover:opacity-80'
-                                            : item.NeedsReview
-                                                ? 'bg-amber-500/5 hover:bg-amber-500/10'
-                                                : `hover:bg-emerald-500/10 ${i % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`
-                                    }`}>
-                                    <td className={`px-4 ${pyClass} font-mono text-xs text-[var(--text-secondary)] transition-all`}>{item.ItemId}</td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        {getImgSrc(item.ImageLink, item.Category) ? (
-                                            <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg overflow-hidden border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 relative transition-all`}>
-                                                <img src={getImgSrc(item.ImageLink, item.Category)!} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" class="text-slate-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><circle cx="7" cy="7" r="7"/></svg>'; }} />
-                                            </div>
-                                        ) : (
-                                            <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center transition-all text-[var(--text-secondary)] opacity-30`}>
-                                                <ImageIcon size={pageSize <= 10 ? 24 : 14} />
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        <div className="flex items-center gap-2">
-                                            <div>
-                                                <p className={`font-bold transition-colors ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'} ${pageSize <= 5 ? 'text-base' : 'text-sm'}`}>{item.Name}</p>
-                                                {item.Description && <p className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)] mt-0.5`}>{item.Description}</p>}
-                                            </div>
-                                            {item.IsDeleted && (
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-red-500/20 text-red-500">Deleted</span>
-                                            )}
-                                            {item.NeedsReview && (
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-500 animate-pulse">ಹೊಸ (New)</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.Category || '—'}</td>
+                <>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)]">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-[var(--glass-bg)] text-left text-[var(--text-secondary)] text-xs uppercase cursor-default">
+                                    <th className="px-4 py-3">#</th>
+                                    <th className="px-4 py-3">Image</th>
+                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">Category</th>
+                                    <th className="px-4 py-3">Material</th>
+                                    <th className="px-4 py-3 text-right">Weight (g)</th>
+                                    <th className="px-4 py-3 text-right">Unit Price</th>
+                                    <th className="px-4 py-3 text-right">Qty</th>
+                                    <th className="px-4 py-3 text-right">Total Value</th>
+                                    <th className="px-4 py-3">Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedItems.map((item, i) => {
+                                    // Adaptive row padding based on page size
+                                    const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
+                                    return (
+                                    <tr key={item.ItemId}
+                                        onClick={() => {
+                                            if (item.NeedsReview) {
+                                                setEditItem(item);
+                                                setIsAddModalOpen(true);
+                                            } else {
+                                                setViewItem(item);
+                                            }
+                                        }}
+                                        className={`border-t border-[var(--glass-border)] transition-colors cursor-pointer group ${
+                                            item.IsDeleted
+                                                ? 'bg-red-500/5 opacity-60 hover:opacity-80'
+                                                : item.NeedsReview
+                                                    ? 'bg-amber-500/5 hover:bg-amber-500/10'
+                                                    : `hover:bg-emerald-500/10 ${i % 2 === 0 ? 'bg-transparent' : 'bg-black/[0.02] dark:bg-white/[0.02]'}`
+                                        }`}>
+                                        <td className={`px-4 ${pyClass} font-mono text-xs text-[var(--text-secondary)] transition-all`}>{item.ItemId}</td>
                                         <td className={`px-4 ${pyClass} transition-all`}>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                                item.Material === 'Gold' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
-                                                item.Material === 'Silver' ? 'bg-slate-300/30 text-slate-600 dark:text-slate-300' :
-                                                'bg-black/5 dark:bg-white/10 text-[var(--text-secondary)]'
+                                            {getImgSrc(item.ImageLink, item.Category) ? (
+                                                <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg overflow-hidden border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 relative transition-all`}>
+                                                    <img src={getImgSrc(item.ImageLink, item.Category)!} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" class="text-slate-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"><circle cx="7" cy="7" r="7"/></svg>'; }} />
+                                                </div>
+                                            ) : (
+                                                <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-10 h-10'} rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center transition-all text-[var(--text-secondary)] opacity-30`}>
+                                                    <ImageIcon size={pageSize <= 10 ? 24 : 14} />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className={`px-4 ${pyClass} transition-all`}>
+                                            <div className="flex items-center gap-2">
+                                                <div>
+                                                    <p className={`font-bold transition-colors ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'} ${pageSize <= 5 ? 'text-base' : 'text-sm'}`}>{item.Name}</p>
+                                                    {item.Description && <p className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)] mt-0.5`}>{item.Description}</p>}
+                                                </div>
+                                                {item.IsDeleted && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-red-500/20 text-red-500">Deleted</span>
+                                                )}
+                                                {item.NeedsReview && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-500 animate-pulse">ಹೊಸ (New)</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className={`px-4 ${pyClass} text-[var(--text-secondary)] transition-all`}>{item.Category || '—'}</td>
+                                            <td className={`px-4 ${pyClass} transition-all`}>
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                    item.Material === 'Gold' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
+                                                    item.Material === 'Silver' ? 'bg-slate-300/30 text-slate-600 dark:text-slate-300' :
+                                                    'bg-black/5 dark:bg-white/10 text-[var(--text-secondary)]'
+                                                }`}>
+                                                    {item.Material || '—'}
+                                                </span>
+                                            </td>
+                                            <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.WeightGrams ?? '—'}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-primary)] transition-all`}>{fmt(item.UnitPrice)}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.Quantity}</td>
+                                        <td className={`px-4 ${pyClass} text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 transition-all`}>{fmt(item.TotalValue)}</td>
+                                        <td className={`px-4 ${pyClass} transition-all`}>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                (item as any).AcquisitionMode === 'donation'
+                                                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
                                             }`}>
-                                                {item.Material || '—'}
+                                                {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
                                             </span>
                                         </td>
-                                        <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.WeightGrams ?? '—'}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-primary)] transition-all`}>{fmt(item.UnitPrice)}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono text-[var(--text-secondary)] transition-all`}>{item.Quantity}</td>
-                                    <td className={`px-4 ${pyClass} text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 transition-all`}>{fmt(item.TotalValue)}</td>
-                                    <td className={`px-4 ${pyClass} transition-all`}>
-                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                            (item as any).AcquisitionMode === 'donation'
-                                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                                        }`}>
-                                            {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
-                                        </span>
-                                    </td>
-                                </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                    
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--glass-border)]">
-                            <span className="text-xs text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
-                            <div className="flex items-center gap-1">
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={16}/></button>
-                                <div className="flex items-center gap-1 mx-2">
-                                    {Array.from({ length: totalPages }).map((_, i) => {
-                                        const p = i + 1;
-                                        if (totalPages > 6 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
-                                            if (p === 2 || p === totalPages - 1) return <span key={p} className="px-1 opacity-30">...</span>;
-                                            return null;
-                                        }
-                                        return (
-                                            <button key={p} onClick={() => setCurrentPage(p)}
-                                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === p ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'hover:bg-black/5 text-[var(--text-secondary)]'}`}>
-                                                {p}
-                                            </button>
-                                        );
-                                    })}
+                                    </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--glass-border)]">
+                                <span className="text-xs text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={16}/></button>
+                                    <div className="flex items-center gap-1 mx-2">
+                                        {Array.from({ length: totalPages }).map((_, i) => {
+                                            const p = i + 1;
+                                            if (totalPages > 6 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
+                                                if (p === 2 || p === totalPages - 1) return <span key={p} className="px-1 opacity-30">...</span>;
+                                                return null;
+                                            }
+                                            return (
+                                                <button key={p} onClick={() => setCurrentPage(p)}
+                                                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === p ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'hover:bg-black/5 text-[var(--text-secondary)]'}`}>
+                                                    {p}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={16}/></button>
                                 </div>
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={16}/></button>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+
+                    {/* Mobile Grid Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {paginatedItems.map((item) => (
+                            <div 
+                                key={item.ItemId}
+                                onClick={() => {
+                                    if (item.NeedsReview) {
+                                        setEditItem(item);
+                                        setIsAddModalOpen(true);
+                                    } else {
+                                        setViewItem(item);
+                                    }
+                                }}
+                                className={`p-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] transition-all active:scale-[0.98] cursor-pointer ${
+                                    item.IsDeleted 
+                                        ? 'bg-red-500/5 opacity-60' 
+                                        : item.NeedsReview 
+                                            ? 'bg-amber-500/5 border-amber-500/20 shadow-lg shadow-amber-500/5' 
+                                            : 'hover:border-emerald-500/30'
+                                }`}
+                            >
+                                <div className="flex gap-4 items-start">
+                                    {/* Asset Image */}
+                                    {getImgSrc(item.ImageLink, item.Category) ? (
+                                        <div className="w-20 h-20 rounded-xl overflow-hidden border border-[var(--glass-border)] shrink-0 bg-black/5 dark:bg-white/5 relative">
+                                            <img src={getImgSrc(item.ImageLink, item.Category)!} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-[var(--text-secondary)] opacity-30">
+                                            <ImageIcon size={28} />
+                                        </div>
+                                    )}
+
+                                    {/* Content Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-[10px] font-mono text-[var(--text-secondary)]">#{item.ItemId}</span>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                                (item as any).AcquisitionMode === 'donation'
+                                                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                            }`}>
+                                                {(item as any).AcquisitionMode === 'donation' ? '🎁 Donation' : '🏷️ Purchase'}
+                                            </span>
+                                        </div>
+
+                                        <h4 className={`font-bold truncate text-base mt-0.5 ${item.IsDeleted ? 'line-through text-red-400' : 'text-[var(--text-primary)]'}`}>
+                                            {item.Name}
+                                        </h4>
+                                        <p className="text-xs text-[var(--text-secondary)] truncate">{item.Category || 'Uncategorized'}</p>
+
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {item.Material && (
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                                    item.Material === 'Gold' ? 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400' :
+                                                    item.Material === 'Silver' ? 'bg-slate-300/30 text-slate-600 dark:text-slate-300' :
+                                                    'bg-black/5 dark:bg-white/10 text-[var(--text-secondary)]'
+                                                }`}>
+                                                    {item.Material}
+                                                </span>
+                                            )}
+                                            {item.WeightGrams && (
+                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] font-mono">
+                                                    {item.WeightGrams}g
+                                                </span>
+                                            )}
+                                            {item.NeedsReview && (
+                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-500 animate-pulse uppercase">Review</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex justify-between items-center text-xs">
+                                    <div className="text-[var(--text-secondary)]">
+                                        Qty: <span className="font-mono font-bold text-[var(--text-primary)]">{item.Quantity}</span>
+                                    </div>
+                                    <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                                        {fmt(item.TotalValue)}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Mobile Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-1 py-2 mt-2">
+                                <span className="text-[11px] text-[var(--text-secondary)] font-medium">Page {currentPage} of {totalPages}</span>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronLeft size={14}/></button>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 transition-colors disabled:opacity-30"><ChevronRight size={14}/></button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
             )}
 
             {/* Total row */}
@@ -669,10 +768,10 @@ function AssetRegisterTab({
                 <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setViewItem(null)}>
                     <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                         onClick={e => e.stopPropagation()}
-                        className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row max-h-[95vh] h-auto">
+                        className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl shadow-2xl w-full max-w-4xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-h-[95vh] h-auto">
                         
                         {/* Image Section */}
-                        <div className="md:w-1/2 relative bg-black/20 flex flex-col items-center justify-center min-h-[300px]">
+                        <div className="w-full md:w-1/2 relative bg-black/20 flex flex-col items-center justify-center h-64 md:h-auto min-h-[220px] md:min-h-[300px] shrink-0">
                             {getImgSrc(viewItem.ImageLink, viewItem.Category) ? (
                                 <img 
                                     src={getImgSrc(viewItem.ImageLink, viewItem.Category)!} 
@@ -1148,7 +1247,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 min-h-[350px] rounded-xl border-2 border-dashed border-[var(--glass-border)] overflow-y-auto p-2 custom-scrollbar">
+                                    <div className="flex-1 min-h-[220px] md:min-h-[350px] rounded-xl border-2 border-dashed border-[var(--glass-border)] overflow-y-auto p-2 custom-scrollbar">
                                         {loadingImages ? (
                                             <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>
                                         ) : browsingFiles.length === 0 ? (
@@ -1200,7 +1299,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 min-h-[350px] rounded-2xl overflow-hidden border-2 border-[var(--glass-border)] bg-black/20 shadow-inner group relative flex items-center justify-center">
+                                    <div className="flex-1 min-h-[220px] md:min-h-[350px] rounded-2xl overflow-hidden border-2 border-[var(--glass-border)] bg-black/20 shadow-inner group relative flex items-center justify-center">
                                         {form.ImageLink || selectedUncatImg ? (
                                             <img 
                                                 src={getPreviewUrl(selectedUncatImg || form.ImageLink, selectedUncatImg ? 'uncategorized' : 'category', form.Category)}
@@ -1269,7 +1368,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                                 multiline placeholder="e.g. Utsava Murthi, 6 inches" />
                         </FormField>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField label="Category *">
                                 <select value={form.Category} onChange={e => setForm({ ...form, Category: e.target.value })} className="form-input">
                                     <option value="">Select...</option>
@@ -1284,7 +1383,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                             </FormField>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormField label="Weight (g)">
                                 <input type="number" step="0.01" value={form.WeightGrams} onChange={e => setForm({ ...form, WeightGrams: e.target.value })}
                                     className="form-input font-mono" placeholder="0.00" />
@@ -1305,7 +1404,7 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField label="Added on">
                                 <input value={form.AddedOnDate} onChange={e => setForm({ ...form, AddedOnDate: e.target.value })}
                                     className="form-input" placeholder="DD/MM/YYYY" />

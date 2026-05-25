@@ -413,10 +413,11 @@ export default function CustomersPage() {
                 </button>
             </div>
 
-            {/* Table */}
-            <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+            {/* Table / Mobile Cards */}
+            <div className="glass-card overflow-hidden border-none bg-transparent dark:bg-transparent shadow-none">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                    <table className="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr className="border-b border-black/10 dark:border-white/10">
                                 <th className="pb-3 pt-3 w-12 pl-4"></th>
@@ -494,14 +495,6 @@ export default function CustomersPage() {
                             ))}
                         </tbody>
                     </table>
-
-                    {paginatedDevotees.length === 0 && !loading && (
-                        <div className="text-center py-16 text-[var(--text-secondary)]">
-                            <Users size={48} className="mx-auto mb-3 opacity-30" />
-                            <p className="font-medium">{searchQuery ? `"${searchQuery}" ಗೆ ಫಲಿತಾಂಶಗಳಿಲ್ಲ` : 'ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ'}</p>
-                        </div>
-                    )}
-
                     {loading && (
                         <div className="text-center py-16 text-[var(--text-secondary)]">
                             <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -509,6 +502,73 @@ export default function CustomersPage() {
                         </div>
                     )}
                 </div>
+
+                {/* Mobile Grid Card View */}
+                <div className="grid grid-cols-1 gap-4 md:hidden">
+                    {paginatedDevotees.map((d) => (
+                        <div
+                            key={d.DevoteeId}
+                            onClick={() => setViewDevotee(d)}
+                            className="p-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                            <div className="flex gap-4 items-center">
+                                {/* Profile Avatar */}
+                                {d.PhotoPath ? (
+                                    <img src={d.PhotoPath} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[var(--glass-border)] shrink-0" />
+                                ) : (
+                                    <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shrink-0">
+                                        <UserCircle2 size={36} />
+                                    </div>
+                                )}
+
+                                {/* Profile Details */}
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-base text-[var(--text-primary)] truncate hover:text-[var(--primary)] transition-colors">
+                                        {d.Name || 'Unnamed'}
+                                    </h4>
+                                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                                        Gotra: <span className="font-medium text-[var(--text-primary)]">{d.Gotra || '—'}</span> • Nakshatra: <span className="font-medium text-[var(--text-primary)]">{d.Nakshatra || '—'}</span>
+                                    </p>
+                                    
+                                    <div className="flex flex-col gap-1 mt-2 text-xs text-[var(--text-secondary)]">
+                                        {d.Phone && (
+                                            <span className="flex items-center gap-1.5 text-[var(--text-primary)]">
+                                                <Phone size={11} className="text-[var(--primary)]" />{d.Phone}
+                                            </span>
+                                        )}
+                                        {d.City && (
+                                            <span className="text-[10px] text-[var(--text-secondary)] font-medium bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full w-fit">
+                                                📍 {d.City} {d.PinCode ? `- ${d.PinCode}` : ''}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex justify-end gap-3" onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => { setEditDevotee(d); setShowForm(true); setViewDevotee(null); }}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-blue-500/10 text-blue-500 text-xs font-bold hover:bg-blue-500/20 transition-all"
+                                >
+                                    <Edit3 size={12} /> Edit
+                                </button>
+                                <button
+                                    onClick={() => handleSoftDelete(d)}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold hover:bg-red-500/20 transition-all"
+                                >
+                                    <Trash2 size={12} /> Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {paginatedDevotees.length === 0 && !loading && (
+                    <div className="text-center py-16 text-[var(--text-secondary)]">
+                        <Users size={48} className="mx-auto mb-3 opacity-30" />
+                        <p className="font-medium">{searchQuery ? `"${searchQuery}" ಗೆ ಫಲಿತಾಂಶಗಳಿಲ್ಲ` : 'ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ'}</p>
+                    </div>
+                )}
 
                 {/* Footer: Pagination + Page Size + Cleanup */}
                 {totalPages >= 1 && (

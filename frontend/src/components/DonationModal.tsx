@@ -593,7 +593,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಲೋಹ (Material)</label>
                                                     <select value={material} onChange={e => setMaterial(e.target.value)}
@@ -790,7 +790,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
 
                                             {paymentMode === 'UPI' && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Gateway <span className="text-red-500">*</span></label>
                                                             <select value={upiDetails.gateway} onChange={e => setUpiDetails({ ...upiDetails, gateway: e.target.value })}
@@ -831,7 +831,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                             {verifyingUpi ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Verify Status
                                                         </button>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">VPA (Optional)</label>
                                                             <input type="text" value={upiDetails.vpa} onChange={e => setUpiDetails({ ...upiDetails, vpa: e.target.value })}
@@ -856,7 +856,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
 
                                             {(paymentMode === 'Cheque' || paymentMode === 'DD') && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Account Number</label>
                                                             <input type="text" value={chqDetails.accNo} onChange={e => setChqDetails({ ...chqDetails, accNo: e.target.value })}
@@ -868,7 +868,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                                 className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm" />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Bank Name <span className="text-red-500">*</span></label>
                                                             <input type="text" value={chqDetails.bank} onChange={e => setChqDetails({ ...chqDetails, bank: e.target.value })}
@@ -880,7 +880,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                                 className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm" />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Number <span className="text-red-500">*</span></label>
                                                             <input type="text" value={chqDetails.number} onChange={e => { setChqDetails({ ...chqDetails, number: e.target.value }); setPaymentRef(e.target.value); }}
@@ -897,7 +897,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
 
                                             {paymentMode === 'Netbanking' && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Sender Bank Name <span className="text-red-500">*</span></label>
                                                             <input type="text" value={netDetails.bank} onChange={e => setNetDetails({ ...netDetails, bank: e.target.value })}

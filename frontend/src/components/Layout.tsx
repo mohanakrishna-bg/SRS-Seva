@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { ClipboardList, Moon, Sun, Camera, Mic } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
 import MediaCaptureModal from './MediaCaptureModal';
 import RegistrationModal from './RegistrationModal';
@@ -32,6 +33,7 @@ export default function Layout() {
     
     const [showReceiptGenerator, setShowReceiptGenerator] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const { showToast } = useToast();
 
@@ -81,7 +83,7 @@ export default function Layout() {
     };
 
     return (
-        <div className="min-h-screen relative flex flex-col bg-[var(--bg-dark)]">
+        <div className="min-h-screen relative flex flex-col bg-[var(--bg-dark)] pb-24 lg:pb-0">
             {bgImage && (
                 <>
                     <div
@@ -104,7 +106,7 @@ export default function Layout() {
 
             <div className="flex flex-1 relative max-w-6xl mx-auto w-full px-4 md:px-8 py-2 md:py-6 gap-6">
                 {/* Global Navigation Sidebar */}
-                <aside className="w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20">
+                <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20">
                     <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`} end>
                         <span className="flex items-center justify-center w-5 h-5">🏠</span>
                         ಮುಖಪುಟ (Home)
@@ -236,6 +238,88 @@ export default function Layout() {
                     onCapture={handleMediaCapture}
                 />
             )}
+
+            {/* Mobile Bottom Navigation Bar */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--glass-card-bg)] border-t border-[var(--glass-border)] backdrop-blur-xl shadow-2xl px-4 py-2 flex items-center justify-around h-16 safe-bottom">
+                <NavLink to="/" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-[var(--text-secondary)]'}`} end>
+                    <span className="text-xl">🏠</span>
+                    <span>Home</span>
+                </NavLink>
+
+                <NavLink to="/assets" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
+                    <span className="text-xl">🏛️</span>
+                    <span>Assets</span>
+                </NavLink>
+
+                <button onClick={() => setRegModalOpen(true)} className="flex flex-col items-center justify-center flex-1 text-[10px] font-bold text-orange-600 dark:text-orange-400">
+                    <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/20 transform -translate-y-4 border-4 border-[var(--bg-dark)] text-xl font-bold">+</span>
+                    <span className="-mt-3">Book Seva</span>
+                </button>
+
+                <NavLink to="/consumables" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
+                    <span className="text-xl">📦</span>
+                    <span>Consumables</span>
+                </NavLink>
+
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isMobileMenuOpen ? 'text-[var(--primary)]' : 'text-[var(--text-secondary)]'}`}>
+                    <span className="text-xl">{isMobileMenuOpen ? '✕' : '⚙️'}</span>
+                    <span>{isMobileMenuOpen ? 'Close' : 'More'}</span>
+                </button>
+            </nav>
+
+            {/* Mobile More Menu Popover Drawer */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 100 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 100 }}
+                        className="lg:hidden fixed bottom-20 left-4 right-4 z-30 bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-4 backdrop-blur-2xl shadow-2xl flex flex-col gap-3"
+                    >
+                        <div className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--glass-border)] pb-2 mb-1">
+                            ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳು (More Options)
+                        </div>
+
+                        <button 
+                            onClick={() => { setDonModalOpen(true); setIsMobileMenuOpen(false); }} 
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold transition-all text-left"
+                        >
+                            <span className="text-lg">🎁</span>
+                            ದಾನ ನೋಂದಣಿ (Donation)
+                        </button>
+
+                        <NavLink 
+                            to="/accounting" 
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
+                        >
+                            <span className="text-lg">📊</span>
+                            ಲೆಕ್ಕಪತ್ರ (Accounting)
+                        </NavLink>
+
+                        <NavLink 
+                            to="/manage" 
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-amber-500/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
+                        >
+                            <ClipboardList size={18} />
+                            ನಿರ್ವಹಣೆ (Manage)
+                        </NavLink>
+
+                        <div className="border-t border-[var(--glass-border)] pt-3 flex gap-2">
+                            <button onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-secondary)]">
+                                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+                            </button>
+                            <button onClick={() => { setMediaModal({ isOpen: true, type: 'photo' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 text-xs font-bold text-emerald-600">
+                                <Camera size={16} /> Photo
+                            </button>
+                            <button onClick={() => { setMediaModal({ isOpen: true, type: 'audio' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-rose-500/10 text-xs font-bold text-rose-600">
+                                <Mic size={16} /> Audio
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

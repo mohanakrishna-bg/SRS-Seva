@@ -703,7 +703,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
                                     {paymentMode === 'UPI' && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 mt-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Gateway <span className="text-red-500">*</span></label>
                                                     <select
@@ -765,7 +765,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">VPA (Optional)</label>
                                                     <input 
@@ -804,7 +804,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
                                     {(paymentMode === 'Cheque' || paymentMode === 'DD') && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 mt-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Account Number</label>
                                                     <input 
@@ -824,8 +824,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1">
                                                         <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Bank Name <span className="text-red-500">*</span></label>
                                                         <input 
@@ -845,7 +845,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     <div className="space-y-1">
                                                         <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Number <span className="text-red-500">*</span></label>
                                                         <input 
@@ -874,7 +874,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
                                     {paymentMode === 'Netbanking' && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 mt-4">
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Sender Bank Name <span className="text-red-500">*</span></label>
                                                     <input 
