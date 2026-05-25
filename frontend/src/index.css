@@ -146,3 +146,24 @@ li[class*="_Active_"] {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Shadcn / Standard Tailwind CSS global theme compatibility overrides */
+.bg-card {
+  background-color: var(--glass-card-bg) !important;
+}
+.bg-background {
+  background-color: var(--bg-dark) !important;
+}
+.bg-muted, .bg-muted\/20, .bg-muted\/50, .bg-secondary\/20 {
+  background-color: var(--glass-bg) !important;
+}
+.text-muted-foreground {
+  color: var(--text-secondary) !important;
+}
+.border-input, .border-muted, .border-border {
+  border-color: var(--glass-border) !important;
+}
+.divide-muted > :not([hidden]) ~ :not([hidden]),
+.divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--glass-border) !important;
+}

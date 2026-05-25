@@ -80,8 +80,8 @@ const CollectionDashboard: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Date filter header */}
-            <div className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-xl px-5 py-4">
-                <div className="flex items-center gap-2 text-white/60">
+            <div className="flex items-center justify-between gap-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl px-5 py-4">
+                <div className="flex items-center gap-2 text-[var(--text-secondary)]">
                     <CalendarDays size={16} />
                     <span className="text-sm font-medium">Viewing date</span>
                 </div>
@@ -89,7 +89,7 @@ const CollectionDashboard: React.FC = () => {
                     type="date"
                     value={dateInput}
                     onChange={handleDateChange}
-                    className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-1.5 text-sm [color-scheme:dark] focus:outline-none focus:border-[#FF9933]/60"
+                    className="bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] dark:[color-scheme:dark] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]"
                 />
             </div>
 
@@ -100,35 +100,35 @@ const CollectionDashboard: React.FC = () => {
                     return (
                         <div
                             key={mode}
-                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm"
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm"
                         >
-                            <span className="text-white/40">{modeIcon(mode)}</span>
-                            <span className="text-white/50">{mode}:</span>
-                            <span className="text-white font-semibold tabular-nums">
+                            <span className="text-[var(--text-secondary)]/60">{modeIcon(mode)}</span>
+                            <span className="text-[var(--text-secondary)]">{mode}:</span>
+                            <span className="text-[var(--text-primary)] font-semibold tabular-nums">
                                 ₹{info.total.toFixed(2)}
                             </span>
-                            <span className="text-white/30 text-xs">({info.count})</span>
+                            <span className="text-[var(--text-secondary)]/60 text-xs">({info.count})</span>
                         </div>
                     );
                 })}
             </div>
 
             {/* Daily Ledger Table */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="sticky top-0 bg-slate-900/80 backdrop-blur-sm">
-                                <th className="px-4 py-3 text-left text-white/50 text-xs uppercase tracking-wider font-medium">Seva</th>
-                                <th className="px-4 py-3 text-left text-white/50 text-xs uppercase tracking-wider font-medium">Mode</th>
-                                <th className="px-4 py-3 text-right text-white/50 text-xs uppercase tracking-wider font-medium">Count</th>
-                                <th className="px-4 py-3 text-right text-white/50 text-xs uppercase tracking-wider font-medium">Amount</th>
+                            <tr className="sticky top-0 bg-[var(--glass-card-bg)] border-b border-[var(--glass-border)] backdrop-blur-sm">
+                                <th className="px-4 py-3 text-left text-[var(--text-secondary)] text-xs uppercase tracking-wider font-medium">Seva</th>
+                                <th className="px-4 py-3 text-left text-[var(--text-secondary)] text-xs uppercase tracking-wider font-medium">Mode</th>
+                                <th className="px-4 py-3 text-right text-[var(--text-secondary)] text-xs uppercase tracking-wider font-medium">Count</th>
+                                <th className="px-4 py-3 text-right text-[var(--text-secondary)] text-xs uppercase tracking-wider font-medium">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading && (
                                 <tr>
-                                    <td colSpan={4} className="px-4 py-12 text-center text-white/30 text-sm">
+                                    <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-secondary)]/50 text-sm">
                                         Loading…
                                     </td>
                                 </tr>
@@ -136,28 +136,28 @@ const CollectionDashboard: React.FC = () => {
                             {!loading && (!summary?.items || summary.items.length === 0) && (
                                 <tr>
                                     <td colSpan={4}>
-                                        <p className="text-center text-white/30 py-16">No transactions today</p>
+                                        <p className="text-center text-[var(--text-secondary)]/50 py-16">No transactions today</p>
                                     </td>
                                 </tr>
                             )}
                             {!loading && summary?.items?.map((item, i) => (
                                 <tr
                                     key={i}
-                                    className="hover:bg-white/5 transition-colors border-b border-white/5"
+                                    className="hover:bg-[var(--glass-bg)] transition-colors border-b border-[var(--glass-border)]/50"
                                 >
-                                    <td className="px-4 py-3 text-white/80 font-medium">
+                                    <td className="px-4 py-3 text-[var(--text-primary)] font-medium">
                                         {item.SevaCode || 'General'}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="flex items-center gap-1.5 text-white/60">
+                                        <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
                                             {modeIcon(item.PaymentMode)}
                                             {item.PaymentMode}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-right text-white/50 tabular-nums">
+                                    <td className="px-4 py-3 text-right text-[var(--text-secondary)] tabular-nums">
                                         {item.Count}
                                     </td>
-                                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-[#00E676]">
+                                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                                         ₹{item.TotalAmount.toFixed(2)}
                                     </td>
                                 </tr>
@@ -165,11 +165,11 @@ const CollectionDashboard: React.FC = () => {
                         </tbody>
                         {!loading && grandTotal > 0 && (
                             <tfoot>
-                                <tr className="bg-[#FF9933]/10 border-t border-[#FF9933]/30">
-                                    <td colSpan={3} className="px-4 py-3 text-[#FF9933] font-bold text-sm">
+                                <tr className="bg-[var(--primary)]/10 border-t border-[var(--primary)]/30">
+                                    <td colSpan={3} className="px-4 py-3 text-[var(--primary)] font-bold text-sm">
                                         Total Collection
                                     </td>
-                                    <td className="px-4 py-3 text-right font-bold tabular-nums text-[#FF9933] text-base">
+                                    <td className="px-4 py-3 text-right font-bold tabular-nums text-[var(--primary)] text-base">
                                         ₹{grandTotal.toFixed(2)}
                                     </td>
                                 </tr>

@@ -27,15 +27,15 @@ const SummaryCard = ({
     color: string;
     subtitle?: string;
 }) => (
-    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col gap-3">
+    <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-            <span className="text-white/50 text-sm font-medium">{label}</span>
+            <span className="text-[var(--text-secondary)] text-sm font-medium">{label}</span>
             <span style={{ color }} className="opacity-70">{icon}</span>
         </div>
         <div className="font-heading text-3xl font-bold tabular-nums" style={{ color }}>
             {value}
         </div>
-        {subtitle && <p className="text-white/30 text-xs">{subtitle}</p>}
+        {subtitle && <p className="text-[var(--text-secondary)]/70 text-xs">{subtitle}</p>}
     </div>
 );
 
@@ -205,13 +205,13 @@ const AccountingPage: React.FC = () => {
             <ActionModal />
 
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#1A0F02] to-[#121212] rounded-2xl border border-white/10 p-8">
+            <div className="bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-8">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="font-heading text-3xl font-bold text-white tracking-tight">
+                        <h1 className="font-heading text-3xl font-bold text-[var(--text-primary)] tracking-tight">
                             ಹಣಕಾಸು ನಿರ್ವಹಣೆ
                         </h1>
-                        <p className="text-[#E6CDA9]/70 mt-1 text-sm">
+                        <p className="text-[var(--text-secondary)]/80 mt-1 text-sm">
                             Financial Management · Receipt Generation · Daily Ledger
                         </p>
                     </div>
@@ -219,14 +219,14 @@ const AccountingPage: React.FC = () => {
                         <button
                             onClick={handleSimulate}
                             disabled={loading}
-                            className="px-3 py-1.5 bg-white/10 text-white/70 text-sm font-medium rounded-lg hover:bg-white/20 disabled:opacity-50 transition-colors"
+                            className="px-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm font-medium rounded-lg hover:bg-[var(--primary)] hover:text-white disabled:opacity-50 transition-all"
                         >
                             {loading ? 'Working...' : 'Simulate'}
                         </button>
                         <button
                             onClick={triggerCleanup}
                             disabled={loading}
-                            className="px-3 py-1.5 bg-red-500/20 text-red-300 text-sm font-medium rounded-lg hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+                            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all"
                         >
                             {loading ? 'Working...' : 'Cleanup'}
                         </button>
@@ -267,7 +267,7 @@ const AccountingPage: React.FC = () => {
             </div>
 
             {/* Pill-style Tab Nav */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex gap-1 overflow-x-auto">
+            <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-1 flex gap-1 overflow-x-auto">
                 {[
                     { to: '/accounting/dashboard', icon: <LayoutDashboard size={15} />, label: 'Dashboard' },
                     { to: '/accounting/journal', icon: <BookOpen size={15} />, label: 'Journal' },
@@ -280,8 +280,8 @@ const AccountingPage: React.FC = () => {
                         className={({ isActive }) =>
                             `flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                                 isActive
-                                    ? 'bg-[#FF9933]/20 text-[#FF9933] border border-[#FF9933]/30'
-                                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                                    ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30'
+                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'
                             }`
                         }
                     >
