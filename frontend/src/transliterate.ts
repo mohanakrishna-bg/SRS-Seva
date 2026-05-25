@@ -121,3 +121,23 @@ export function transliterateKnToEn(text: string): string {
 export function isKannada(text: string): boolean {
     return /[\u0C80-\u0CFF]/.test(text);
 }
+
+/**
+ * Convert Kannada numerals (೦-೯) to English numerals (0-9).
+ */
+export function convertKnNumeralsToEn(text: string): string {
+    if (!text) return text;
+    const mapping: Record<string, string> = {
+        '೦': '0',
+        '೧': '1',
+        '೨': '2',
+        '೩': '3',
+        '೪': '4',
+        '೫': '5',
+        '೬': '6',
+        '೭': '7',
+        '೮': '8',
+        '೯': '9'
+    };
+    return text.replace(/[೦-೯]/g, (char) => mapping[char] || char);
+}

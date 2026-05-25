@@ -3,6 +3,7 @@ import Modal from './Modal';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
 import { sevaApi } from '../api';
+import { convertKnNumeralsToEn } from '../transliterate';
 
 export interface SpecialEventFormData {
     SevaCode: string;
@@ -165,7 +166,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                             <input
                                 type="number"
                                 value={form.Amount}
-                                onChange={(e) => handleChange('Amount', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => handleChange('Amount', parseFloat(convertKnNumeralsToEn(e.target.value)) || 0)}
                                 placeholder="0.00"
                                 className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                             />

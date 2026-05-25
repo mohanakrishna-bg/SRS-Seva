@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
+import { convertKnNumeralsToEn } from '../transliterate';
 
 interface SevaFormData {
     SevaCode: string;
@@ -108,7 +109,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             <input
                                 type="number"
                                 value={form.Amount}
-                                onChange={(e) => handleChange('Amount', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => handleChange('Amount', parseFloat(convertKnNumeralsToEn(e.target.value)) || 0)}
                                 placeholder="0.00"
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
@@ -124,7 +125,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             <input
                                 type="number"
                                 value={form.TPQty}
-                                onChange={(e) => handleChange('TPQty', parseInt(e.target.value) || 0)}
+                                onChange={(e) => handleChange('TPQty', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
@@ -137,7 +138,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             <input
                                 type="number"
                                 value={form.PrasadaAddonLimit}
-                                onChange={(e) => handleChange('PrasadaAddonLimit', parseInt(e.target.value) || 0)}
+                                onChange={(e) => handleChange('PrasadaAddonLimit', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>

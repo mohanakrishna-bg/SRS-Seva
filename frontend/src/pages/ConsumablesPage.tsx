@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { convertKnNumeralsToEn } from '../transliterate';
 import MediaCaptureModal from '../components/MediaCaptureModal';
 
 const isHttpUrl = (str: string) => {
@@ -940,21 +941,21 @@ function ItemFormModal({ item, categories, onClose, onSaved }: {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <FormField label="Unit Price (₹)">
-                            <input type="number" step="0.01" value={form.UnitPrice} onChange={e => setForm({ ...form, UnitPrice: e.target.value })}
+                            <input type="number" step="0.01" value={form.UnitPrice} onChange={e => setForm({ ...form, UnitPrice: convertKnNumeralsToEn(e.target.value) })}
                                 className="form-input font-mono" placeholder="0.00" />
                         </FormField>
                         <FormField label="Quantity">
-                            <input type="number" min="1" value={form.Quantity} onChange={e => setForm({ ...form, Quantity: e.target.value })}
+                            <input type="number" min="1" value={form.Quantity} onChange={e => setForm({ ...form, Quantity: convertKnNumeralsToEn(e.target.value) })}
                                 className="form-input font-mono" />
                         </FormField>
                         <FormField label="GST %">
-                            <input type="number" step="0.1" value={form.GSTRate} onChange={e => setForm({ ...form, GSTRate: e.target.value })}
+                            <input type="number" step="0.1" value={form.GSTRate} onChange={e => setForm({ ...form, GSTRate: convertKnNumeralsToEn(e.target.value) })}
                                 className="form-input font-mono" placeholder="0.0" />
                         </FormField>
                     </div>
 
                     <FormField label="HSN Code">
-                        <input value={form.HSNCode} onChange={e => setForm({ ...form, HSNCode: e.target.value })}
+                        <input value={form.HSNCode} onChange={e => setForm({ ...form, HSNCode: convertKnNumeralsToEn(e.target.value) })}
                             className="form-input font-mono" placeholder="e.g. 4802" />
                     </FormField>
 

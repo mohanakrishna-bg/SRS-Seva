@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { convertKnNumeralsToEn } from '../transliterate';
 import MediaCaptureModal from '../components/MediaCaptureModal';
 
 const isHttpUrl = (str: string) => {
@@ -264,7 +265,7 @@ function DashboardTab({ onDrillDown }: { onDrillDown: (f: { material?: string; c
                                     </div>
                                     {editRate?.id === mat.Id ? (
                                         <div className="flex gap-1 mt-1">
-                                            <input type="number" value={editRate.rate} onChange={e => setEditRate({ ...editRate, rate: e.target.value })}
+                                            <input type="number" value={editRate.rate} onChange={e => setEditRate({ ...editRate, rate: convertKnNumeralsToEn(e.target.value) })}
                                                 className="w-24 px-2 py-1 rounded bg-white dark:bg-black/30 border border-[var(--glass-border)] text-xs font-mono" autoFocus />
                                             <button onClick={() => handleSaveRate(mat)} className="text-emerald-500 text-xs font-bold">✓</button>
                                             <button onClick={() => setEditRate(null)} className="text-red-400 text-xs font-bold">✕</button>
@@ -1385,15 +1386,15 @@ function ItemFormModal({ item, categories, materials, onClose, onSaved }: {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormField label="Weight (g)">
-                                <input type="number" step="0.01" value={form.WeightGrams} onChange={e => setForm({ ...form, WeightGrams: e.target.value })}
+                                <input type="number" step="0.01" value={form.WeightGrams} onChange={e => setForm({ ...form, WeightGrams: convertKnNumeralsToEn(e.target.value) })}
                                     className="form-input font-mono" placeholder="0.00" />
                             </FormField>
                             <FormField label="Unit Price (₹)">
-                                <input type="number" step="0.01" value={form.UnitPrice} onChange={e => setForm({ ...form, UnitPrice: e.target.value })}
+                                <input type="number" step="0.01" value={form.UnitPrice} onChange={e => setForm({ ...form, UnitPrice: convertKnNumeralsToEn(e.target.value) })}
                                     className="form-input font-mono" placeholder={autoPrice ? autoPrice.toFixed(2) : '0.00'} />
                             </FormField>
                             <FormField label="Quantity">
-                                <input type="number" min="1" value={form.Quantity} onChange={e => setForm({ ...form, Quantity: e.target.value })}
+                                <input type="number" min="1" value={form.Quantity} onChange={e => setForm({ ...form, Quantity: convertKnNumeralsToEn(e.target.value) })}
                                     className="form-input font-mono" />
                             </FormField>
                         </div>

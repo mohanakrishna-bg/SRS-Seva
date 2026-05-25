@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { transliterateToKannada } from '../transliterate';
+import { transliterateToKannada, convertKnNumeralsToEn } from '../transliterate';
 import { X, Search, User, CreditCard, Receipt, Check, Loader2, Info, Camera } from 'lucide-react';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
@@ -526,7 +526,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಫೋನ್ ನಂಬರ್ <span className="text-red-500">*</span></label>
-                                            <input type="tel" value={customer.Phone} onChange={(e) => setCustomer({ ...customer, Phone: e.target.value })} placeholder="9999999999" className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" />
+                                            <input type="tel" value={customer.Phone} onChange={(e) => setCustomer({ ...customer, Phone: convertKnNumeralsToEn(e.target.value) })} placeholder="9999999999" className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" />
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಗೋತ್ರ</label>
@@ -636,7 +636,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                             <input
                                                                 type="number" min="0" max="20"
                                                                 value={familyMembers}
-                                                                onChange={(e) => setFamilyMembers(parseInt(e.target.value) || 0)}
+                                                                onChange={(e) => setFamilyMembers(parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
                                                                 className="w-24 px-3 py-2 text-center rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
                                                             />
                                                         </div>
@@ -645,7 +645,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                             <div className="relative w-32">
                                                                 <select
                                                                     value={foodServiceRateStr}
-                                                                    onChange={(e) => setFoodServiceRateStr(e.target.value)}
+                                                                    onChange={(e) => setFoodServiceRateStr(convertKnNumeralsToEn(e.target.value))}
                                                                     className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
                                                                 >
                                                                     {defaultFoodRates.map((rate: number) => (
@@ -725,8 +725,9 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                         type="text"
                                                         value={upiDetails.transactionId}
                                                         onChange={(e) => {
-                                                            setUpiDetails({ ...upiDetails, transactionId: e.target.value });
-                                                            setPaymentRef(e.target.value);
+                                                            const cleaned = convertKnNumeralsToEn(e.target.value);
+                                                            setUpiDetails({ ...upiDetails, transactionId: cleaned });
+                                                            setPaymentRef(cleaned);
                                                             if (upiStatus.status !== 'idle') setUpiStatus({ status: 'idle', message: '' });
                                                         }}
                                                         className={`w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border text-sm font-mono ${
@@ -810,7 +811,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                     <input 
                                                         type="text" 
                                                         value={chqDetails.accNo} 
-                                                        onChange={(e) => setChqDetails({...chqDetails, accNo: e.target.value})}
+                                                        onChange={(e) => setChqDetails({...chqDetails, accNo: convertKnNumeralsToEn(e.target.value)})}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm"
                                                     />
                                                 </div>
@@ -852,8 +853,9 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                             type="text" 
                                                             value={chqDetails.number} 
                                                             onChange={(e) => {
-                                                                setChqDetails({...chqDetails, number: e.target.value});
-                                                                setPaymentRef(e.target.value);
+                                                                const cleaned = convertKnNumeralsToEn(e.target.value);
+                                                                setChqDetails({...chqDetails, number: cleaned});
+                                                                setPaymentRef(cleaned);
                                                             }}
                                                             className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm font-mono"
                                                         />
@@ -900,8 +902,9 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                     type="text" 
                                                     value={netDetails.utr} 
                                                     onChange={(e) => {
-                                                        setNetDetails({...netDetails, utr: e.target.value});
-                                                        setPaymentRef(e.target.value);
+                                                        const cleaned = convertKnNumeralsToEn(e.target.value);
+                                                        setNetDetails({...netDetails, utr: cleaned});
+                                                        setPaymentRef(cleaned);
                                                     }}
                                                     className="w-full px-3 py-4 rounded-xl bg-white dark:bg-black/20 border border-[var(--glass-border)] text-lg font-mono tracking-widest text-center"
                                                     placeholder="UTR-0000..."

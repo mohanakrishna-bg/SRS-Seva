@@ -1,7 +1,7 @@
 import { useState, useEffect, useId, useRef } from 'react';
 import { ReactTransliterate } from 'react-transliterate';
 import 'react-transliterate/dist/index.css';
-import { transliterateToKannada } from '../transliterate';
+import { transliterateToKannada, convertKnNumeralsToEn } from '../transliterate';
 import { useInputContext } from '../context/InputContext';
 
 interface TransliteratedInputProps {
@@ -64,7 +64,8 @@ export default function TransliteratedInput({
                     newPos = newValue.length;
                 }
 
-                onChange(newValue);
+                const cleanedValue = activeLang === 'kn' ? convertKnNumeralsToEn(newValue) : newValue;
+                onChange(cleanedValue);
                 setCursorPos(newPos);
                 
                 // Keep focus
@@ -129,7 +130,8 @@ export default function TransliteratedInput({
             
             // Reconstruct value
             const newValue = value.slice(0, startIndex) + finalTransliterated + value.slice(endIndex);
-            onChange(newValue);
+            const cleanedValue = activeLang === 'kn' ? convertKnNumeralsToEn(newValue) : newValue;
+            onChange(cleanedValue);
             
             // Keep focus and fix cursor
             const newPos = startIndex + finalTransliterated.length;
@@ -160,7 +162,7 @@ export default function TransliteratedInput({
                 {activeLang === 'kn' && !disableTransliteration ? (
                     <ReactTransliterate
                         value={value}
-                        onChangeText={onChange}
+                        onChangeText={(txt) => onChange(activeLang === 'kn' ? convertKnNumeralsToEn(txt) : txt)}
                         lang="kn"
                         containerClassName="w-full"
                         renderComponent={(props) => {
@@ -197,7 +199,7 @@ export default function TransliteratedInput({
                         <textarea
                             ref={inputRef as React.Ref<HTMLTextAreaElement>}
                             value={value}
-                            onChange={(e) => onChange(e.target.value)}
+                            onChange={(e) => onChange(activeLang === 'kn' ? convertKnNumeralsToEn(e.target.value) : e.target.value)}
                             {...renderInputProps}
                             onBlur={handleBlur}
                             onFocus={handleFocus}
@@ -210,7 +212,7 @@ export default function TransliteratedInput({
                         <input
                             ref={inputRef as React.Ref<HTMLInputElement>}
                             value={value}
-                            onChange={(e) => onChange(e.target.value)}
+                            onChange={(e) => onChange(activeLang === 'kn' ? convertKnNumeralsToEn(e.target.value) : e.target.value)}
                             {...renderInputProps}
                             onBlur={handleBlur}
                             onFocus={handleFocus}

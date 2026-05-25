@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { transliterateToKannada } from '../transliterate';
+import { transliterateToKannada, convertKnNumeralsToEn } from '../transliterate';
 import { X, Search, User, Gift, Receipt, Check, Loader2, Heart, Camera, CreditCard } from 'lucide-react';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
@@ -445,7 +445,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಫೋನ್ ನಂಬರ್ <span className="text-red-500">*</span></label>
-                                            <input type="tel" value={customer.Phone} onChange={e => setCustomer({ ...customer, Phone: e.target.value })} placeholder="9999999999"
+                                            <input type="tel" value={customer.Phone} onChange={e => setCustomer({ ...customer, Phone: convertKnNumeralsToEn(e.target.value) })} placeholder="9999999999"
                                                 className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-rose-500" />
                                         </div>
                                         <div className="space-y-1">
@@ -543,12 +543,12 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಮೊತ್ತ (Amount ₹) <span className="text-red-500">*</span></label>
-                                                    <input type="number" step="0.01" value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)} placeholder="e.g., 5000"
+                                                    <input type="number" step="0.01" value={estimatedValue} onChange={e => setEstimatedValue(convertKnNumeralsToEn(e.target.value))} placeholder="e.g., 5000"
                                                         className="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] font-mono text-lg focus:outline-none focus:border-emerald-500" />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">PAN ಸಂಖ್ಯೆ (80G) <span className="text-red-500">*</span></label>
-                                                    <input type="text" value={panNumber} onChange={e => setPanNumber(e.target.value.toUpperCase())} placeholder="ABCDE1234F" maxLength={10}
+                                                    <input type="text" value={panNumber} onChange={e => setPanNumber(convertKnNumeralsToEn(e.target.value.toUpperCase()))} placeholder="ABCDE1234F" maxLength={10}
                                                         className="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] font-mono focus:outline-none focus:border-emerald-500" />
                                                     <p className="text-[10px] text-[var(--text-secondary)] italic">80G ತೆರಿಗೆ ಕಡಿತ ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಅಗತ್ಯ (Required for 80G tax certificate)</p>
                                                 </div>
@@ -604,14 +604,14 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ತೂಕ (Weight grams)</label>
-                                                    <input type="number" step="0.01" value={weightGrams} onChange={e => setWeightGrams(e.target.value)} placeholder="e.g., 25.5"
+                                                    <input type="number" step="0.01" value={weightGrams} onChange={e => setWeightGrams(convertKnNumeralsToEn(e.target.value))} placeholder="e.g., 25.5"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಸಂಖ್ಯೆ (Qty)</label>
-                                                    <input type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)}
+                                                    <input type="number" min="1" value={quantity} onChange={e => setQuantity(convertKnNumeralsToEn(e.target.value))}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                                 <div className="space-y-1">
@@ -668,7 +668,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಪ್ರಮಾಣ (Quantity) <span className="text-red-500">*</span></label>
                                                     <div className="flex gap-2">
-                                                        <input type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)}
+                                                        <input type="number" min="1" value={quantity} onChange={e => setQuantity(convertKnNumeralsToEn(e.target.value))}
                                                             className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
                                                         <select value={uom} onChange={e => setUom(e.target.value)}
                                                             className="w-28 px-2 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] text-xs focus:outline-none focus:border-sky-500">
@@ -678,7 +678,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಅಂದಾಜು ಮೌಲ್ಯ (Est. Value ₹)</label>
-                                                    <input type="number" step="0.01" value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)} placeholder="0.00"
+                                                    <input type="number" step="0.01" value={estimatedValue} onChange={e => setEstimatedValue(convertKnNumeralsToEn(e.target.value))} placeholder="0.00"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
                                                 </div>
                                             </div>
@@ -807,8 +807,9 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Transaction ID / RRN (12 digits) <span className="text-red-500">*</span></label>
                                                             <input type="text" value={upiDetails.transactionId}
                                                                 onChange={e => {
-                                                                    setUpiDetails({ ...upiDetails, transactionId: e.target.value });
-                                                                    setPaymentRef(e.target.value);
+                                                                    const cleaned = convertKnNumeralsToEn(e.target.value);
+                                                                    setUpiDetails({ ...upiDetails, transactionId: cleaned });
+                                                                    setPaymentRef(cleaned);
                                                                     if (upiStatus.status !== 'idle') setUpiStatus({ status: 'idle', message: '' });
                                                                 }}
                                                                 className={`w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border text-sm font-mono ${
@@ -859,7 +860,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Account Number</label>
-                                                            <input type="text" value={chqDetails.accNo} onChange={e => setChqDetails({ ...chqDetails, accNo: e.target.value })}
+                                                            <input type="text" value={chqDetails.accNo} onChange={e => setChqDetails({ ...chqDetails, accNo: convertKnNumeralsToEn(e.target.value) })}
                                                                 className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm" />
                                                         </div>
                                                         <div className="space-y-1">
@@ -883,7 +884,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Number <span className="text-red-500">*</span></label>
-                                                            <input type="text" value={chqDetails.number} onChange={e => { setChqDetails({ ...chqDetails, number: e.target.value }); setPaymentRef(e.target.value); }}
+                                                            <input type="text" value={chqDetails.number} onChange={e => { const cleaned = convertKnNumeralsToEn(e.target.value); setChqDetails({ ...chqDetails, number: cleaned }); setPaymentRef(cleaned); }}
                                                                 className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-sm font-mono" />
                                                         </div>
                                                         <div className="space-y-1">
@@ -911,7 +912,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">UTR Number <span className="text-red-500">*</span></label>
-                                                        <input type="text" value={netDetails.utr} onChange={e => { setNetDetails({ ...netDetails, utr: e.target.value }); setPaymentRef(e.target.value); }}
+                                                        <input type="text" value={netDetails.utr} onChange={e => { const cleaned = convertKnNumeralsToEn(e.target.value); setNetDetails({ ...netDetails, utr: cleaned }); setPaymentRef(cleaned); }}
                                                             className="w-full px-3 py-3 rounded-xl bg-white dark:bg-black/20 border border-[var(--glass-border)] text-base font-mono tracking-widest text-center" placeholder="UTR-0000..." />
                                                     </div>
                                                 </motion.div>
