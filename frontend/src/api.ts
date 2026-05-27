@@ -135,7 +135,11 @@ export const accountingApi = {
     createBankAccount: (data: any) => api.post('/accounting/bank-accounts', data),
     getBankTransactions: (params?: any) => api.get('/accounting/bank-transactions', { params }),
     createBankTransaction: (data: any) => api.post('/accounting/bank-transactions', data),
-    reconcileTransaction: (id: number) => api.post(`/accounting/bank-transactions/${id}/reconcile`),
+    reconcileTransaction: (id: number, status: string = 'Reconciled') => api.post(`/accounting/bank-transactions/${id}/reconcile?status=${status}`),
+    getExpenseAccounts: () => api.get('/accounting/accounts/expenses'),
+    saveExpenseVoucher: (data: any) => api.post('/accounting/expenses', data),
+    closeDay: (date: string) => api.post('/accounting/close-day', { Date: date }),
+    getLedgerDrilldown: (accountId: string | number) => api.get(`/accounting/ledger/${accountId}`),
 };
 
 export const reportsApi = {

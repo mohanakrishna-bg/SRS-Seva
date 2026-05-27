@@ -553,10 +553,19 @@ def close_day(closed: schemas.ClosedDayCreate, db: Session = Depends(database.ge
     db.refresh(db_closed)
     return db_closed
 
-@router.get("/ledger/{account_id}")
-def get_ledger_drilldown(account_id: int, db: Session = Depends(database.get_db)):
+@router.get("/ledger/{account_key}")
+def get_ledger_drilldown(account_key: str, db: Session = Depends(database.get_db)):
+    # Resolve by numeric ID or string code
+    if account_key.isdigit():
+        acc = db.query(accounting.AccountHead).filter(accounting.AccountHead.Id == int(account_key)).first()
+    else:
+        acc = db.query(accounting.AccountHead).filter(accounting.AccountHead.Code == account_key).first()
+
+    if not acc:
+        raise HTTPException(status_code=404, detail="Account head not found")
+
     lines = db.query(accounting.JournalLine).filter(
-        accounting.JournalLine.AccountId == account_id
+        accounting.JournalLine.AccountId == acc.Id
     ).join(accounting.JournalEntry).order_by(
         accounting.JournalEntry.EntryDate.asc(),
         accounting.JournalLine.Id.asc()

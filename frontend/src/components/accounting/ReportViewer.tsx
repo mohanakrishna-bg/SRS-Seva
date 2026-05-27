@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { reportsApi } from '../../api';
 
 const ReportViewer = () => {
     const [reportType, setReportType] = useState('income_expenditure');
     const [reportData, setReportData] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+
+    const openDrilldown = (code: string, name: string) => {
+        window.dispatchEvent(new CustomEvent('open-ledger-drilldown', { detail: { id: code, name } }));
+    };
 
     const generateReport = async () => {
         setLoading(true);
@@ -59,7 +63,11 @@ const ReportViewer = () => {
                             <table className="w-full text-sm">
                                 <tbody>
                                     {reportData.Expenditure?.map((e:any, i:number) => (
-                                        <tr key={i} className="hover:bg-muted/50 cursor-pointer text-primary transition-colors">
+                                        <tr 
+                                            key={i} 
+                                            className="hover:bg-muted/50 cursor-pointer text-primary transition-colors"
+                                            onClick={() => openDrilldown(e.AccountCode, e.AccountName)}
+                                        >
                                             <td className="py-2 hover:underline decoration-1 underline-offset-2">{e.AccountName}</td>
                                             <td className="py-2 text-right">₹{e.Amount.toFixed(2)}</td>
                                         </tr>
@@ -87,7 +95,11 @@ const ReportViewer = () => {
                             <table className="w-full text-sm">
                                 <tbody>
                                     {reportData.Income?.map((inc:any, i:number) => (
-                                        <tr key={i} className="hover:bg-muted/50 cursor-pointer text-primary transition-colors">
+                                        <tr 
+                                            key={i} 
+                                            className="hover:bg-muted/50 cursor-pointer text-primary transition-colors"
+                                            onClick={() => openDrilldown(inc.AccountCode, inc.AccountName)}
+                                        >
                                             <td className="py-2 hover:underline decoration-1 underline-offset-2">{inc.AccountName}</td>
                                             <td className="py-2 text-right">₹{inc.Amount.toFixed(2)}</td>
                                         </tr>

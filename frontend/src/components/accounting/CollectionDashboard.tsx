@@ -85,12 +85,20 @@ const CollectionDashboard: React.FC = () => {
                     <CalendarDays size={16} />
                     <span className="text-sm font-medium">Viewing date</span>
                 </div>
-                <input
-                    type="date"
-                    value={dateInput}
-                    onChange={handleDateChange}
-                    className="bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] dark:[color-scheme:dark] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]"
-                />
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => window.open('/api/accounting/reports/export?type=ledger')}
+                        className="px-3 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                    >
+                        Export Daily Ledger (CSV)
+                    </button>
+                    <input
+                        type="date"
+                        value={dateInput}
+                        onChange={handleDateChange}
+                        className="bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] dark:[color-scheme:dark] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]"
+                    />
+                </div>
             </div>
 
             {/* Payment mode breakdown pills */}
