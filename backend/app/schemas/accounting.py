@@ -101,6 +101,19 @@ class ClosedDay(ClosedDayBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+# ─── Expense Voucher ───
+class ExpenseVoucherCreate(BaseModel):
+    PayeeName: str
+    Date: str  # YYYY-MM-DD
+    ExpenseAccountId: int
+    Amount: float
+    SourceAccountId: int  # Cash account or Bank account ID
+    Reference: Optional[str] = None
+    Narration: Optional[str] = None
+    ImageLink: Optional[str] = None
+
+
+
 
 # ─── Report Schemas ───
 class CollectionSummaryItem(BaseModel):
