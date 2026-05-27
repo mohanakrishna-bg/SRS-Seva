@@ -78,6 +78,7 @@ class BankTransactionBase(BaseModel):
     Reference: Optional[str] = None
     Narration: Optional[str] = None
     IsReconciled: bool = False
+    Status: str = "Pending"  # 'Pending', 'Reconciled', 'Bounced'
     JournalEntryId: Optional[int] = None
 
 class BankTransactionCreate(BankTransactionBase):
@@ -86,6 +87,19 @@ class BankTransactionCreate(BankTransactionBase):
 class BankTransaction(BankTransactionBase):
     Id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+# ─── Closed Day ───
+class ClosedDayBase(BaseModel):
+    Date: str  # YYYY-MM-DD
+
+class ClosedDayCreate(ClosedDayBase):
+    pass
+
+class ClosedDay(ClosedDayBase):
+    ClosedAt: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 # ─── Report Schemas ───
@@ -133,5 +147,7 @@ class BankReconResponse(BaseModel):
     BalanceAsPerBooks: float
     UnreconciledDeposits: List[BankReconItem]
     UnreconciledWithdrawals: List[BankReconItem]
+    UnreconciledBounced: List[BankReconItem] = []
     BalanceAsPerBank: float
+
 

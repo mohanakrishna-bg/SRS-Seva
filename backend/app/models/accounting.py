@@ -64,8 +64,16 @@ class BankTransaction(Base):
     Reference = Column(String, nullable=True)
     Narration = Column(Text, nullable=True)
     IsReconciled = Column(Boolean, default=False)
+    Status = Column(String, default="Pending")  # 'Pending', 'Reconciled', 'Bounced'
     IsTest = Column(Boolean, default=True)
     JournalEntryId = Column(Integer, ForeignKey("JournalEntry.Id"), nullable=True)
 
     bank_account = relationship("BankAccount")
     journal_entry = relationship("JournalEntry")
+
+
+class ClosedDay(Base):
+    __tablename__ = "ClosedDay"
+    Date = Column(String, primary_key=True, index=True)  # YYYY-MM-DD
+    ClosedAt = Column(DateTime, default=datetime.datetime.utcnow)
+

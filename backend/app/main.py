@@ -431,6 +431,16 @@ def list_registrations(
 
 @app.post("/api/registrations", response_model=schemas.SevaRegistration)
 def create_registration(reg: schemas.SevaRegistrationCreate, db: Session = Depends(database.get_db)):
+    # Day Close lock check
+    from app.api.accounting import check_date_locked
+    import datetime as dt
+    try:
+        reg_dt = dt.datetime.strptime(reg.RegistrationDate, "%d%m%y")
+        formatted_date = reg_dt.strftime("%Y-%m-%d")
+    except Exception:
+        formatted_date = reg.RegistrationDate
+    check_date_locked(formatted_date, db)
+
     db_reg = models.SevaRegistration(**reg.model_dump())
     try:
         db.add(db_reg)
@@ -442,6 +452,9 @@ def create_registration(reg: schemas.SevaRegistrationCreate, db: Session = Depen
 
         db.commit()
         db.refresh(db_reg)
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -539,11 +552,28 @@ def get_daily_summary(
             total_income += amt
             total_registrations += cnt
 
+        # Get expenses for this date
+        import datetime as dt
+        try:
+            date_dt = dt.datetime.strptime(date, "%d%m%y")
+            formatted_date = date_dt.strftime("%Y-%m-%d")
+        except Exception:
+            formatted_date = date
+
+        from app.models import accounting
+        expenses = db.query(func.sum(accounting.JournalLine.Debit)).join(accounting.JournalEntry).filter(
+            accounting.JournalEntry.EntryDate == formatted_date,
+            accounting.JournalLine.Debit > 0.0,
+            accounting.JournalLine.AccountId.in_(
+                db.query(accounting.AccountHead.Id).filter(accounting.AccountHead.Type == "Expense")
+            )
+        ).scalar() or 0.0
+
         return {
             "date": date,
             "total_registrations": total_registrations,
             "total_income": total_income,
-            "total_expense": 0.0,
+            "total_expense": expenses,
             "payment_breakdown": payment_breakdown,
         }
     except Exception as e:

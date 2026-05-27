@@ -7,8 +7,29 @@ from datetime import datetime
 from app import database
 from app.models import accounting
 from app.schemas import accounting as schemas
+from app.core.auth import get_current_user
+from app.models.models import User
 
 router = APIRouter(prefix="/api/accounting", tags=["accounting"])
+
+def check_date_locked(entry_date: str, db: Session):
+    is_locked = db.query(accounting.ClosedDay).filter(accounting.ClosedDay.Date == entry_date).first()
+    if is_locked:
+        raise HTTPException(
+            status_code=403,
+            detail="Transaction Locked: This date's books have been signed off. Modifications are disabled."
+        )
+
+def check_edit_grace_period(created_at, current_user: User):
+    if current_user and current_user.role != "admin":
+        import datetime as dt
+        created_datetime = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S") if isinstance(created_at, str) else created_at
+        if datetime.utcnow() - created_datetime > dt.timedelta(hours=2):
+            raise HTTPException(
+                status_code=403,
+                detail="Transaction Locked: Rolling 2-hour edit grace period has expired. Please contact an Administrator to unlock this transaction."
+            )
+
 
 # ─── Accounts ───
 
@@ -82,6 +103,9 @@ def get_journal(id: int, db: Session = Depends(database.get_db)):
 
 @router.post("/journal", response_model=schemas.JournalEntry)
 def create_journal(entry: schemas.JournalEntryCreate, db: Session = Depends(database.get_db)):
+    # Day Close lock check
+    check_date_locked(entry.EntryDate, db)
+
     # Validate double entry balance
     total_debit = sum(line.Debit for line in entry.lines)
     total_credit = sum(line.Credit for line in entry.lines)
@@ -164,31 +188,68 @@ def list_bank_transactions(
 
 @router.post("/bank-transactions", response_model=schemas.BankTransaction)
 def create_bank_transaction(txn: schemas.BankTransactionCreate, db: Session = Depends(database.get_db)):
+    # Day Close lock check
+    check_date_locked(txn.TransactionDate, db)
+
     bank_acc = db.query(accounting.BankAccount).filter(accounting.BankAccount.Id == txn.BankAccountId).first()
     if not bank_acc:
         raise HTTPException(status_code=404, detail="Bank account not found")
 
-    if txn.Type in ['Deposit', 'Online']:
-        bank_acc.CurrentBalance += txn.Amount
-    elif txn.Type in ['Withdrawal', 'Transfer']:
-        bank_acc.CurrentBalance -= txn.Amount
+    is_reconciled = (txn.Status == "Reconciled" or txn.IsReconciled)
+    if is_reconciled:
+        if txn.Type in ['Deposit', 'Online']:
+            bank_acc.CurrentBalance += txn.Amount
+        elif txn.Type in ['Withdrawal', 'Transfer']:
+            bank_acc.CurrentBalance -= txn.Amount
 
-    db_txn = accounting.BankTransaction(**txn.model_dump())
+    db_txn = accounting.BankTransaction(
+        BankAccountId=txn.BankAccountId,
+        TransactionDate=txn.TransactionDate,
+        Type=txn.Type,
+        Mode=txn.Mode,
+        Amount=txn.Amount,
+        Reference=txn.Reference,
+        Narration=txn.Narration,
+        IsReconciled=is_reconciled,
+        Status=txn.Status,
+        JournalEntryId=txn.JournalEntryId
+    )
     db.add(db_txn)
-    
     db.commit()
     db.refresh(db_txn)
     return db_txn
 
 @router.post("/bank-transactions/{id}/reconcile")
-def reconcile_transaction(id: int, db: Session = Depends(database.get_db)):
+def reconcile_transaction(id: int, status: str = "Reconciled", db: Session = Depends(database.get_db)):
     txn = db.query(accounting.BankTransaction).filter(accounting.BankTransaction.Id == id).first()
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    txn.IsReconciled = not txn.IsReconciled
+    # Day Close lock check
+    check_date_locked(txn.TransactionDate, db)
+
+    bank_acc = db.query(accounting.BankAccount).filter(accounting.BankAccount.Id == txn.BankAccountId).first()
+    if not bank_acc:
+        raise HTTPException(status_code=404, detail="Bank account not found")
+
+    # Reverse previous balance mutations if status was Reconciled
+    if txn.Status == "Reconciled":
+        if txn.Type in ['Deposit', 'Online']:
+            bank_acc.CurrentBalance -= txn.Amount
+        elif txn.Type in ['Withdrawal', 'Transfer']:
+            bank_acc.CurrentBalance += txn.Amount
+
+    # Apply new balance mutations if new status is Reconciled
+    if status == "Reconciled":
+        if txn.Type in ['Deposit', 'Online']:
+            bank_acc.CurrentBalance += txn.Amount
+        elif txn.Type in ['Withdrawal', 'Transfer']:
+            bank_acc.CurrentBalance -= txn.Amount
+
+    txn.Status = status
+    txn.IsReconciled = (status == "Reconciled")
     db.commit()
-    return {"status": "success", "is_reconciled": txn.IsReconciled}
+    return {"status": "success", "is_reconciled": txn.IsReconciled, "transaction_status": txn.Status}
 
 # ─── Reports ───
 
@@ -306,6 +367,7 @@ def get_bank_reconciliation(
 
     deposits = []
     withdrawals = []
+    bounced = []
     unreconciled_dep_amt = 0.0
     unreconciled_with_amt = 0.0
 
@@ -316,7 +378,9 @@ def get_bank_reconciliation(
             Amount=txn.Amount,
             Type=txn.Type
         )
-        if txn.Type in ['Deposit', 'Online']:
+        if txn.Status == "Bounced":
+            bounced.append(item)
+        elif txn.Type in ['Deposit', 'Online']:
             deposits.append(item)
             unreconciled_dep_amt += txn.Amount
         else:
@@ -330,6 +394,7 @@ def get_bank_reconciliation(
         BalanceAsPerBooks=bank.CurrentBalance,
         UnreconciledDeposits=deposits,
         UnreconciledWithdrawals=withdrawals,
+        UnreconciledBounced=bounced,
         BalanceAsPerBank=balance_as_per_bank
     )
 
@@ -415,9 +480,160 @@ def get_12a_report(fy: str):
 def get_80g_report(fy: str):
     return {"message": "80G donation receipts export will be generated here.", "fy": fy}
 
+@router.get("/accounts/expenses", response_model=List[schemas.AccountHead])
+def list_expense_accounts(db: Session = Depends(database.get_db)):
+    return db.query(accounting.AccountHead).filter(
+        accounting.AccountHead.Type == "Expense",
+        accounting.AccountHead.IsActive == True
+    ).all()
+
+@router.post("/expenses")
+def create_expense_voucher(voucher: schemas.ExpenseVoucherCreate, db: Session = Depends(database.get_db)):
+    # Day Close lock check
+    check_date_locked(voucher.Date, db)
+    
+    if voucher.Amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+
+    # Balanced Double entry: Debit Expense Head, Credit Source Head (Cash/Bank Asset)
+    db_entry = accounting.JournalEntry(
+        EntryDate=voucher.Date,
+        Narration=voucher.Narration,
+        SourceModule="Inventory",
+        SourceRefId=voucher.Reference
+    )
+    db.add(db_entry)
+    db.flush()
+
+    # 1. Debit selected expense account
+    jl_debit = accounting.JournalLine(
+        JournalEntryId=db_entry.Id,
+        AccountId=voucher.ExpenseAccountId,
+        Debit=voucher.Amount,
+        Credit=0.0
+    )
+    # 2. Credit source asset account (Cash drawer or Bank account)
+    jl_credit = accounting.JournalLine(
+        JournalEntryId=db_entry.Id,
+        AccountId=voucher.SourceAccountId,
+        Debit=0.0,
+        Credit=voucher.Amount
+    )
+    db.add_all([jl_debit, jl_credit])
+
+    # If Source Account is a Bank Asset, automatically create matching BankTransaction
+    source_acc = db.query(accounting.AccountHead).filter(accounting.AccountHead.Id == voucher.SourceAccountId).first()
+    if source_acc and source_acc.Code == "A002":
+        # Find active BankAccount
+        bank_acc = db.query(accounting.BankAccount).filter(accounting.BankAccount.IsActive == True).first()
+        if bank_acc:
+            db_txn = accounting.BankTransaction(
+                BankAccountId=bank_acc.Id,
+                TransactionDate=voucher.Date,
+                Type="Withdrawal",
+                Mode="NEFT",  # default Mode
+                Amount=voucher.Amount,
+                Reference=voucher.Reference,
+                Narration=voucher.Narration,
+                IsReconciled=False,
+                Status="Pending",
+                JournalEntryId=db_entry.Id
+            )
+            db.add(db_txn)
+
+    db.commit()
+    db.refresh(db_entry)
+    return {"status": "success", "journal_entry_id": db_entry.Id}
+
+@router.post("/close-day", response_model=schemas.ClosedDay)
+def close_day(closed: schemas.ClosedDayCreate, db: Session = Depends(database.get_db)):
+    db_closed = accounting.ClosedDay(Date=closed.Date)
+    db.add(db_closed)
+    db.commit()
+    db.refresh(db_closed)
+    return db_closed
+
+@router.get("/ledger/{account_id}")
+def get_ledger_drilldown(account_id: int, db: Session = Depends(database.get_db)):
+    lines = db.query(accounting.JournalLine).filter(
+        accounting.JournalLine.AccountId == account_id
+    ).join(accounting.JournalEntry).order_by(
+        accounting.JournalEntry.EntryDate.asc(),
+        accounting.JournalLine.Id.asc()
+    ).all()
+    
+    response_data = []
+    running_balance = 0.0
+    for line in lines:
+        entry = line.journal_entry
+        running_balance += line.Debit - line.Credit
+        response_data.append({
+            "Id": line.Id,
+            "Date": entry.EntryDate,
+            "Narration": entry.Narration,
+            "SourceModule": entry.SourceModule,
+            "SourceRefId": entry.SourceRefId,
+            "Debit": line.Debit,
+            "Credit": line.Credit,
+            "Balance": running_balance
+        })
+    return response_data
+
+import csv
+import io
+from fastapi.responses import StreamingResponse
+
 @router.get("/reports/export")
-def export_report(type: str, format: str):
-    return {"message": f"Exporting {type} in {format} format."}
+def export_report(type: str, db: Session = Depends(database.get_db)):
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    if type == "ledger":
+        writer.writerow(["Date", "Account Code", "Account Name", "Debit", "Credit", "Narration"])
+        lines = db.query(accounting.JournalLine).join(accounting.JournalEntry).join(accounting.AccountHead).order_by(accounting.JournalEntry.EntryDate.desc()).all()
+        for line in lines:
+            writer.writerow([
+                line.journal_entry.EntryDate,
+                line.account.Code,
+                line.account.Name,
+                line.Debit,
+                line.Credit,
+                line.journal_entry.Narration
+            ])
+    elif type == "bank":
+        writer.writerow(["Date", "Bank Account", "Type", "Mode", "Amount", "Reference", "Status", "Narration"])
+        txns = db.query(accounting.BankTransaction).join(accounting.BankAccount).order_by(accounting.BankTransaction.TransactionDate.desc()).all()
+        for txn in txns:
+            writer.writerow([
+                txn.TransactionDate,
+                txn.bank_account.AccountName,
+                txn.Type,
+                txn.Mode,
+                txn.Amount,
+                txn.Reference,
+                txn.Status,
+                txn.Narration
+            ])
+    else:
+        # Default journal export
+        writer.writerow(["Date", "Journal ID", "Narration", "Source Module", "Source Ref"])
+        entries = db.query(accounting.JournalEntry).order_by(accounting.JournalEntry.EntryDate.desc()).all()
+        for entry in entries:
+            writer.writerow([
+                entry.EntryDate,
+                entry.Id,
+                entry.Narration,
+                entry.SourceModule,
+                entry.SourceRefId
+            ])
+
+    output.seek(0)
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={type}_report.csv"}
+    )
+
 
 # ─── Shared Utilities ───
 
