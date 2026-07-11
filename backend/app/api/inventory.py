@@ -15,6 +15,9 @@ import re
 import zipfile
 import tempfile
 import subprocess
+import csv
+import io
+from fastapi.responses import StreamingResponse
 
 from app import database
 from app.models.inventory import (
@@ -797,3 +800,72 @@ def get_donation(donation_id: int, db: Session = Depends(get_db)):
     if not don:
         raise HTTPException(404, "Donation not found")
     return don
+
+
+# ─── Reports ───
+
+@router.get("/reports/export")
+def export_inventory_report(
+    item_type: Optional[str] = "asset",
+    category: Optional[str] = None,
+    material: Optional[str] = None,
+    search: Optional[str] = None,
+    include_deleted: bool = False,
+    db: Session = Depends(get_db)
+):
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Write CSV Header
+    writer.writerow([
+        "Item ID", "Name", "Description", "Category", 
+        "Material", "Weight (g)", "Unit Price (INR)", "Quantity", 
+        "Total Value (INR)", "UOM", "Acquisition Mode", "Added On", 
+        "Needs Review", "Is Deleted"
+    ])
+
+    # Fetch and filter items
+    q = db.query(InventoryItem)
+    if not include_deleted:
+        q = q.filter(InventoryItem.IsDeleted == False)
+    if item_type:
+        q = q.filter(InventoryItem.ItemType == item_type)
+    if category:
+        q = q.filter(InventoryItem.Category == category)
+    if material:
+        q = q.filter(InventoryItem.Material == material)
+    if search:
+        q = q.filter(InventoryItem.Name.ilike(f"%{search}%"))
+
+    items = q.order_by(InventoryItem.ItemId).all()
+
+    # Write rows
+    for item in items:
+        writer.writerow([
+            item.ItemId,
+            item.Name,
+            item.Description or "",
+            item.Category or "",
+            item.Material or "",
+            item.WeightGrams if item.WeightGrams is not None else "",
+            item.UnitPrice,
+            item.Quantity,
+            item.TotalValue,
+            item.UOM or "Nos",
+            getattr(item, 'AcquisitionMode', 'purchase'),
+            item.AddedOnDate or "",
+            "Yes" if item.NeedsReview else "No",
+            "Yes" if item.IsDeleted else "No"
+        ])
+
+    output.seek(0)
+    
+    label = "fixed_assets" if item_type == "asset" else "consumables"
+    today_str = datetime.date.today().strftime('%Y%m%d')
+    filename = f"{label}_report_{today_str}.csv"
+    
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

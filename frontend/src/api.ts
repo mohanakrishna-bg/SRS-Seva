@@ -71,7 +71,10 @@ export const registrationApi = {
         api.get(`/registrations?skip=${skip}&limit=${limit}`),
     create: (data: any) => api.post('/registrations', data),
     byDevotee: (id: number) => api.get(`/registrations/by-devotee/${id}`),
+    byDate: (date: string, dateType: string = "SevaDate") => api.get(`/registrations/by-date/${date}?date_type=${dateType}`),
     fulfil: (id: number, isFulfilled: boolean) => api.put(`/registrations/${id}/fulfil?is_fulfilled=${isFulfilled}`),
+    cancel: (id: number, data: { refund_amount: number; refund_mode: string }) => api.put(`/registrations/${id}/cancel`, data),
+    modify: (id: number, data: any) => api.put(`/registrations/${id}/modify`, data),
 };
 
 // ─── Lookup API ───
@@ -96,6 +99,25 @@ export const authApi = {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
     },
+    me: () => api.get('/me'),
+    changePassword: (currentPassword: string, newPassword: string) =>
+        api.post('/change-password', { current_password: currentPassword, new_password: newPassword }),
+};
+
+// ─── Users API (Admin) ───
+export const usersApi = {
+    list: (role?: string) => api.get('/users/', { params: role ? { role } : {} }),
+    get: (id: number) => api.get(`/users/${id}`),
+    create: (data: { username: string; password: string; role: string; display_name?: string; modules?: Record<string, string> | null }) =>
+        api.post('/users/', data),
+    update: (id: number, data: any) => api.put(`/users/${id}`, data),
+    delete: (id: number) => api.delete(`/users/${id}`),
+    resetPassword: (id: number, newPassword: string) =>
+        api.post(`/users/${id}/reset-password?new_password=${encodeURIComponent(newPassword)}`),
+    getRoles: () => api.get('/users/roles/available'),
+    getPermissionMatrix: () => api.get('/users/permissions/matrix'),
+    getAuditLog: (targetUserId?: number, limit?: number) =>
+        api.get('/users/audit-log', { params: { target_user_id: targetUserId, limit } }),
 };
 
 // ─── Legacy (backward compat) ───
@@ -203,10 +225,28 @@ export const inventoryApi = {
     summary: (params?: { item_type?: string }) => api.get('/inventory/summary', { params }),
     // Wipe Test Data
     wipeTestData: () => api.delete('/inventory/test-data'),
+    // Reports Export
+    exportReport: (params?: { item_type?: string; category?: string; material?: string; search?: string; include_deleted?: boolean }) => {
+        const qs = new URLSearchParams(params as any).toString();
+        return `${API_BASE}/inventory/reports/export?${qs}`;
+    },
     // Donations
     createDonation: (data: any) => api.post('/inventory/donations', data),
     listDonations: (params?: any) => api.get('/inventory/donations', { params }),
     getDonation: (id: number) => api.get(`/inventory/donations/${id}`),
+    // Image Sync
+    syncConfig: () => api.get('/inventory/sync/config'),
+    updateSyncConfig: (data: any) => api.put('/inventory/sync/config', data),
+    syncInbox: () => api.get('/inventory/sync/inbox'),
+    runSync: (data: any) => api.post('/inventory/sync/run', data),
+    syncUpload: (files: File[] | FileList) => {
+        const formData = new FormData();
+        Array.from(files).forEach(f => formData.append('files', f));
+        return api.post('/inventory/sync/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+    syncCheckpoints: () => api.get('/inventory/sync/checkpoints'),
 };
 
 // ─── Settings API ───

@@ -7,22 +7,48 @@ import re
 # ─── Auth ───
 class UserBase(BaseModel):
     username: str
-    role: str
+    role: str = "clerk"
+    display_name: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
+    modules: Optional[Dict[str, str]] = None
+
+class UserUpdate(BaseModel):
+    """For admin updating existing users — all fields optional."""
+    username: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    display_name: Optional[str] = None
+    is_active: Optional[bool] = None
+    modules: Optional[Dict[str, str]] = None
 
 class User(UserBase):
     id: int
+    is_active: bool = True
+    modules: Optional[Dict[str, str]] = None
+    must_change_password: bool = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     class Config:
         from_attributes = True
+
+class UserWithModules(User):
+    """Extended user response that includes accessible modules list for frontend."""
+    accessible_modules: List[Dict[str, str]] = []
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user: Optional["UserWithModules"] = None  # Include user info in login response
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    role: Optional[str] = None
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
 
 
 # ─── Devotee ───
@@ -157,6 +183,7 @@ class SevaRegistrationBase(BaseModel):
     Remarks: Optional[str] = None
     GrandTotal: Optional[float] = 0.0
     IsFulfilled: Optional[bool] = False
+    IsCancelled: Optional[bool] = False
 
     @field_validator("Rate", "Amount", "GrandTotal", mode="before")
     @classmethod
@@ -177,6 +204,15 @@ class SevaRegistrationBase(BaseModel):
 
 class SevaRegistrationCreate(SevaRegistrationBase):
     pass
+
+class SevaRegistrationModify(BaseModel):
+    DevoteeId: Optional[int] = None
+    SevaDate: Optional[str] = None
+    Remarks: Optional[str] = None
+
+class SevaRegistrationCancel(BaseModel):
+    refund_amount: Optional[float] = 0.0
+    refund_mode: Optional[str] = "Cash"
 
 class SevaRegistration(SevaRegistrationBase):
     RegistrationId: int

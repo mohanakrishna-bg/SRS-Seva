@@ -152,12 +152,12 @@ const AccountingPage: React.FC = () => {
         setLoading(true);
         try {
             await accountingApi.closeDay(lockDate);
-            toast.show("Day closed and daily ledger locked successfully.", "success");
+            toast.showToast("success", "Day closed and daily ledger locked successfully.");
             setShowCloseDialog(false);
             fetchSummary();
         } catch (err: any) {
             console.error(err);
-            toast.show(err.response?.data?.detail || "Failed to lockbooks for selected date.", "error");
+            toast.showToast(err.response?.data?.detail || "Failed to lockbooks for selected date.", "error");
         } finally {
             setLoading(false);
         }

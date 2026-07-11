@@ -22,15 +22,7 @@ interface ReceiptData {
     paymentModeEn?: string;
 }
 
-interface OrgSettings {
-    orgName?: string;
-    orgNameEn?: string;
-    address?: string;
-    addressEn?: string;
-    phone?: string;
-    whatsapp?: string;
-    logoImage?: string;
-}
+// Removed OrgSettings interface
 
 interface ReceiptGeneratorProps {
     isOpen: boolean;

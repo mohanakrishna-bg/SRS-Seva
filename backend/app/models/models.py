@@ -10,7 +10,25 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String, default="staff")  # admin, staff, viewer
+    role = Column(String, default="clerk")  # admin, accountant, clerk, storekeeper, viewer
+    is_active = Column(Boolean, default=True)
+    display_name = Column(String, nullable=True)  # Friendly name for UI display
+    modules = Column(JSON, nullable=True)  # Fine-grained per-module overrides: {"accounting": "read", "assets": "full"}
+    must_change_password = Column(Boolean, default=True)  # Force password change on first login
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class UserAuditLog(Base):
+    """Audit trail for user management changes (role, permissions, status)."""
+    __tablename__ = "user_audit_log"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+    admin_username = Column(String, nullable=False)  # Who made the change
+    target_username = Column(String, nullable=False)  # Whose account was changed
+    target_user_id = Column(Integer, nullable=True)
+    action = Column(String, nullable=False)  # create, update_role, update_permissions, activate, deactivate, delete, reset_password
+    details = Column(JSON, nullable=True)  # {field: {old: ..., new: ...}}
 
 
 # ─── Master: Devotee ───
@@ -90,6 +108,7 @@ class SevaRegistration(Base):
     GrandTotal = Column(Float, default=0.0)            # INR, 2 decimal
     IsTest = Column(Boolean, default=True)
     IsFulfilled = Column(Boolean, default=False)
+    IsCancelled = Column(Boolean, default=False)
     CreatedAt = Column(DateTime, default=datetime.datetime.utcnow)
 
     devotee = relationship("Devotee", back_populates="registrations")

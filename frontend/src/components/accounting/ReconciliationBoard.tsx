@@ -5,7 +5,7 @@ import { Check, X, AlertTriangle, RefreshCw, Landmark } from 'lucide-react';
 interface BankTransaction {
     Id: number;
     BankAccountId: number;
-    TransactionDate: str;
+    TransactionDate: string;
     Type: string;
     Mode: string;
     Amount: number;

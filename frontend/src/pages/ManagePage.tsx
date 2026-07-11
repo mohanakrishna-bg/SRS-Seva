@@ -1,16 +1,18 @@
 import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, HeartHandshake, Sparkles, Settings } from 'lucide-react';
+import { Users, HeartHandshake, Sparkles, Settings, UserCog } from 'lucide-react';
 import CustomersPage from './CustomersPage';
 import SevasPage from './SevasPage';
 import SpecialEventsPage from './SpecialEventsPage';
 import SettingsPage from './SettingsPage';
+import UserAdminTab from '../components/UserAdminTab';
 
 const tabs = [
     { id: 'customers', label: 'ಭಕ್ತರು', icon: Users },
     { id: 'sevas', label: 'ಸೇವೆಗಳು', icon: HeartHandshake },
     { id: 'events', label: 'ವಿಶೇಷ ಘಟನೆಗಳು', icon: Sparkles },
     { id: 'settings', label: 'ಸೆಟ್ಟಿಂಗ್ಸ್', icon: Settings },
+    { id: 'users', label: 'ಬಳಕೆದಾರರು', icon: UserCog },
 ];
 
 export default function ManagePage() {
@@ -46,6 +48,7 @@ export default function ManagePage() {
                     <Route path="sevas" element={<SevasPage />} />
                     <Route path="events" element={<SpecialEventsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route path="users" element={<UserAdminTab />} />
                     <Route path="" element={<Navigate to="customers" replace />} />
                 </Routes>
             </motion.div>

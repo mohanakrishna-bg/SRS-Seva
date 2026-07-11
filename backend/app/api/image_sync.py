@@ -63,7 +63,39 @@ def humanize_filename(filename: str) -> str:
 
 
 def convert_heic_to_jpg(src_path: str, dest_path: str) -> bool:
-    """Convert HEIC/HEIF to JPEG using macOS sips."""
+    """Convert HEIC/HEIF to JPEG using pillow_heif, Linux tools (heif-convert/ImageMagick), or macOS sips."""
+    # Method 1: pillow_heif + PIL
+    try:
+        from PIL import Image
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+        img = Image.open(src_path)
+        img.convert("RGB").save(dest_path, "JPEG")
+        return True
+    except Exception:
+        pass
+
+    # Method 2: heif-convert (Linux libheif-examples)
+    try:
+        res = subprocess.run(
+            ["heif-convert", src_path, dest_path],
+            capture_output=True, check=True
+        )
+        if os.path.exists(dest_path):
+            return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # Method 3: ImageMagick (magick or convert)
+    for cmd in [["magick", src_path, dest_path], ["convert", src_path, dest_path]]:
+        try:
+            subprocess.run(cmd, capture_output=True, check=True)
+            if os.path.exists(dest_path):
+                return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
+
+    # Method 4: macOS sips
     try:
         subprocess.run(
             ["sips", "-s", "format", "jpeg", src_path, "--out", dest_path],
@@ -71,7 +103,10 @@ def convert_heic_to_jpg(src_path: str, dest_path: str) -> bool:
         )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return False
+        pass
+
+    return False
+
 
 
 def get_config(db: Session) -> dict:

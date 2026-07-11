@@ -10,7 +10,7 @@ import { useToast } from '../components/Toast';
 import TransliteratedInput from '../components/TransliteratedInput';
 import GlobalInputToolbar from '../components/GlobalInputToolbar';
 
-const SETTINGS_KEY = 'seva_org_settings';
+// const SETTINGS_KEY = 'seva_org_settings';
 const MAX_IMAGE_SIZE = 500 * 1024;
 
 interface OrgSettings {
@@ -33,6 +33,7 @@ interface OrgSettings {
     standardSchedule?: { id: number; title: string; time: string; period: 'AM' | 'PM' }[];
 }
 
+/*
 const defaultSettings: OrgSettings = {
     orgName: 'ಶ್ರೀ ಮಠ ಆಡಳಿತ',
     orgNameEn: 'Shri Matha Admin',
@@ -51,6 +52,7 @@ const defaultSettings: OrgSettings = {
         { id: 6, title: 'ರಾತ್ರಿ ಮಂಗಳಾರತಿ', time: '8:00', period: 'PM' },
     ]
 };
+*/
 
 function downsizeImage(dataUrl: string, maxBytes: number): Promise<string> {
     return new Promise((resolve, reject) => {

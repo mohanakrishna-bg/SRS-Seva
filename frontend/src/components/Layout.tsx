@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { ClipboardList, Moon, Sun, Camera, Mic } from 'lucide-react';
+import { ClipboardList, Moon, Sun, Camera, Mic, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
 import MediaCaptureModal from './MediaCaptureModal';
@@ -10,6 +10,8 @@ import ReceiptGenerator from './ReceiptGenerator';
 import { useToast } from './Toast';
 
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
+import CommandPalette from './ui/CommandPalette';
 
 export type LayoutContextType = {
     openRegModal: (eventName?: string, eventCode?: string) => void;
@@ -19,6 +21,7 @@ export type LayoutContextType = {
 
 export default function Layout() {
     const { settings } = useSettings();
+    const { can, user, logout } = useAuth();
     const bgImage = settings.bgImage;
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
         return (localStorage.getItem('seva_theme') as 'light' | 'dark') || 'light';
@@ -33,6 +36,7 @@ export default function Layout() {
     
     const [showReceiptGenerator, setShowReceiptGenerator] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
+    const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const { showToast } = useToast();
@@ -62,7 +66,7 @@ export default function Layout() {
                     const writable = await handle.createWritable();
                     await writable.write(file);
                     await writable.close();
-                    showToast('success', `${file.name} ಸ್ಥಳೀಯವಾಗಿ ಉಳಿಸಲಾಗಿದೆ (Saved locally)`);
+                    showToast('success', `${file.name} ಸ್ಥಳೀಯವಾಗಿ ಉಳಿಸಲಾಗಿದೆ`);
                 } catch (err: any) {
                     if (err.name !== 'AbortError') throw err;
                 }
@@ -73,13 +77,38 @@ export default function Layout() {
                 a.download = file.name;
                 a.click();
                 URL.revokeObjectURL(url);
-                showToast('success', `${file.name} ಡೌನ್ಲೋಡ್ ಮಾಡಲಾಗಿದೆ (Downloaded)`);
+                showToast('success', `${file.name} ಡೌನ್ಲೋಡ್ ಮಾಡಲಾಗಿದೆ`);
             }
         } catch (error) {
             console.error('Local save failed:', error);
-            showToast('error', 'ಫೈಲ್ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ (Failed to save locally)');
+            showToast('error', 'ಫೈಲ್ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
         }
         setMediaModal({ ...mediaModal, isOpen: false });
+    };
+
+    // Command Palette Shortcut (Ctrl+K / Cmd+K)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setCommandPaletteOpen((prev) => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    const layoutContext: LayoutContextType = {
+        openRegModal: (name?: string, code?: string) => {
+            setPrefillSevaName(name);
+            setPrefillEventCode(code);
+            setRegModalOpen(true);
+        },
+        openDonModal: () => setDonModalOpen(true),
+        openReceiptModal: (data: any) => {
+            setReceiptData(data);
+            setShowReceiptGenerator(true);
+        }
     };
 
     return (
@@ -109,40 +138,79 @@ export default function Layout() {
                 <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20">
                     <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`} end>
                         <span className="flex items-center justify-center w-5 h-5">🏠</span>
-                        ಮುಖಪುಟ (Home)
+                        ಮುಖಪುಟ
                     </NavLink>
 
-                    <button onClick={() => setRegModalOpen(true)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold transition-all text-left text-[var(--text-secondary)]">
-                        <ClipboardList size={20} />
-                        ಸೇವಾ ಬುಕಿಂಗ್
-                    </button>
+                    {can('seva') && (
+                        <NavLink to="/seva" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                            <ClipboardList size={20} />
+                            ಸೇವಾ ಸೇವೆಗಳು
+                        </NavLink>
+                    )}
 
-                    <NavLink to="/accounting" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
-                        <span className="flex items-center justify-center w-5 h-5">📊</span>
-                        ಲೆಕ್ಕಪತ್ರ
-                    </NavLink>
+                    {can('accounting') && (
+                        <NavLink to="/accounting" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                            <span className="flex items-center justify-center w-5 h-5">📊</span>
+                            ಲೆಕ್ಕಪತ್ರ
+                        </NavLink>
+                    )}
 
-                    <NavLink to="/assets" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
-                        <span className="flex items-center justify-center w-5 h-5">🏛️</span>
-                        ಆಸ್ತಿಗಳು
-                    </NavLink>
+                    {can('assets') && (
+                        <NavLink to="/assets" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                            <span className="flex items-center justify-center w-5 h-5">🏛️</span>
+                            ಆಸ್ತಿಗಳು
+                        </NavLink>
+                    )}
 
-                    <NavLink to="/consumables" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
-                        <span className="flex items-center justify-center w-5 h-5">📦</span>
-                        ಬಳಕೆ ವಸ್ತುಗಳು
-                    </NavLink>
+                    {can('consumables') && (
+                        <NavLink to="/consumables" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                            <span className="flex items-center justify-center w-5 h-5">📦</span>
+                            ಬಳಕೆ ವಸ್ತುಗಳು
+                        </NavLink>
+                    )}
 
-                    <button onClick={() => setDonModalOpen(true)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold transition-all text-left text-[var(--text-secondary)]">
-                        <span className="flex items-center justify-center w-5 h-5">🎁</span>
-                        ದಾನ ನೋಂದಣಿ
-                    </button>
+                    {can('donations') && (
+                        <button onClick={() => setDonModalOpen(true)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold transition-all text-left text-[var(--text-secondary)]">
+                            <span className="flex items-center justify-center w-5 h-5">🎁</span>
+                            ದಾನ ನೋಂದಣಿ
+                        </button>
+                    )}
 
-                    <NavLink to="/manage" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
-                        <ClipboardList size={20} />
-                        ನಿರ್ವಹಣೆ
-                    </NavLink>
+                    {can('settings') && (
+                        <NavLink to="/manage" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                            <ClipboardList size={20} />
+                            ನಿರ್ವಹಣೆ
+                        </NavLink>
+                    )}
 
-                    <div className="mt-auto">
+                    <div className="mt-auto space-y-3">
+                        {/* User Badge */}
+                        {user && (
+                            <div className="border-t border-[var(--glass-border)] pt-3">
+                                <div className="flex items-center gap-2.5 px-2">
+                                    <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                        <span className="text-sm font-bold text-[var(--primary)]">
+                                            {(user.display_name || user.username).charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                                            {user.display_name || user.username}
+                                        </p>
+                                        <p className="text-[10px] text-[var(--text-secondary)] capitalize">
+                                            {user.role}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={logout}
+                                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                                        title="ಲಾಗ್ ಔಟ್"
+                                    >
+                                        <LogOut size={15} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                         <div className="flex gap-2">
                             <button onClick={toggleTheme} className="flex-1 flex justify-center p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all" title="Theme">
                                 {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -159,20 +227,16 @@ export default function Layout() {
 
                 {/* Routable Main Content Area */}
                 <main className="flex-1 relative z-10 w-full min-w-0">
-                    <Outlet context={{ 
-                        openRegModal: (name?: string, code?: string) => {
-                            setPrefillSevaName(name);
-                            setPrefillEventCode(code);
-                            setRegModalOpen(true);
-                        },
-                        openDonModal: () => setDonModalOpen(true),
-                        openReceiptModal: (data: any) => {
-                            setReceiptData(data);
-                            setShowReceiptGenerator(true);
-                        }
-                    } satisfies LayoutContextType} />
+                    <Outlet context={layoutContext} />
                 </main>
             </div>
+
+            {/* Global UI Overlays */}
+            <CommandPalette 
+                isOpen={commandPaletteOpen} 
+                onClose={() => setCommandPaletteOpen(false)} 
+                layoutContext={layoutContext} 
+            />
 
             {/* Global Modals */}
             <RegistrationModal
@@ -216,7 +280,7 @@ export default function Layout() {
                         gotraEn: data.customer.SgotraEn,
                         nakshatra: data.customer.SNakshatra,
                         nakshatraEn: data.customer.SNakshatraEn,
-                        sevaDescription: data.donation.ItemName || 'ದಾನ (Donation)',
+                        sevaDescription: data.donation.ItemName || 'ದಾನ',
                         amount: data.donation.EstimatedValue || 0,
                         paymentMode: data.donation.PaymentMode || 'Cash'
                     });
@@ -243,27 +307,27 @@ export default function Layout() {
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--glass-card-bg)] border-t border-[var(--glass-border)] backdrop-blur-xl shadow-2xl px-4 py-2 flex items-center justify-around h-16 safe-bottom">
                 <NavLink to="/" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-[var(--text-secondary)]'}`} end>
                     <span className="text-xl">🏠</span>
-                    <span>Home</span>
+                    <span>ಮುಖಪುಟ</span>
                 </NavLink>
 
                 <NavLink to="/assets" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
                     <span className="text-xl">🏛️</span>
-                    <span>Assets</span>
+                    <span>ಆಸ್ತಿಗಳು</span>
                 </NavLink>
 
                 <button onClick={() => setRegModalOpen(true)} className="flex flex-col items-center justify-center flex-1 text-[10px] font-bold text-orange-600 dark:text-orange-400">
                     <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/20 transform -translate-y-4 border-4 border-[var(--bg-dark)] text-xl font-bold">+</span>
-                    <span className="-mt-3">Book Seva</span>
+                    <span className="-mt-3">ಸೇವೆ ಬುಕ್ ಮಾಡಿ</span>
                 </button>
 
                 <NavLink to="/consumables" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
                     <span className="text-xl">📦</span>
-                    <span>Consumables</span>
+                    <span>ಬಳಕೆ ವಸ್ತುಗಳು</span>
                 </NavLink>
 
                 <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isMobileMenuOpen ? 'text-[var(--primary)]' : 'text-[var(--text-secondary)]'}`}>
                     <span className="text-xl">{isMobileMenuOpen ? '✕' : '⚙️'}</span>
-                    <span>{isMobileMenuOpen ? 'Close' : 'More'}</span>
+                    <span>{isMobileMenuOpen ? 'ಮುಚ್ಚು' : 'ಹೆಚ್ಚು'}</span>
                 </button>
             </nav>
 
@@ -277,7 +341,7 @@ export default function Layout() {
                         className="lg:hidden fixed bottom-20 left-4 right-4 z-30 bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-4 backdrop-blur-2xl shadow-2xl flex flex-col gap-3"
                     >
                         <div className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--glass-border)] pb-2 mb-1">
-                            ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳು (More Options)
+                            ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳು
                         </div>
 
                         <button 
@@ -285,7 +349,7 @@ export default function Layout() {
                             className="flex items-center gap-3 p-3 rounded-xl hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold transition-all text-left"
                         >
                             <span className="text-lg">🎁</span>
-                            ದಾನ ನೋಂದಣಿ (Donation)
+                            ದಾನ ನೋಂದಣಿ
                         </button>
 
                         <NavLink 
@@ -294,7 +358,7 @@ export default function Layout() {
                             className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
                         >
                             <span className="text-lg">📊</span>
-                            ಲೆಕ್ಕಪತ್ರ (Accounting)
+                            ಲೆಕ್ಕಪತ್ರ
                         </NavLink>
 
                         <NavLink 
@@ -303,19 +367,46 @@ export default function Layout() {
                             className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-amber-500/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
                         >
                             <ClipboardList size={18} />
-                            ನಿರ್ವಹಣೆ (Manage)
+                            ನಿರ್ವಹಣೆ
                         </NavLink>
 
-                        <div className="border-t border-[var(--glass-border)] pt-3 flex gap-2">
-                            <button onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-secondary)]">
-                                {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-                            </button>
-                            <button onClick={() => { setMediaModal({ isOpen: true, type: 'photo' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 text-xs font-bold text-emerald-600">
-                                <Camera size={16} /> Photo
-                            </button>
-                            <button onClick={() => { setMediaModal({ isOpen: true, type: 'audio' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-rose-500/10 text-xs font-bold text-rose-600">
-                                <Mic size={16} /> Audio
-                            </button>
+                        <div className="border-t border-[var(--glass-border)] pt-3 space-y-3">
+                            {/* User Badge — Mobile */}
+                            {user && (
+                                <div className="flex items-center gap-2.5 px-1">
+                                    <div className="w-7 h-7 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                        <span className="text-xs font-bold text-[var(--primary)]">
+                                            {(user.display_name || user.username).charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                                            {user.display_name || user.username}
+                                        </p>
+                                        <p className="text-[10px] text-[var(--text-secondary)] capitalize">
+                                            {user.role}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-xs font-bold text-red-500 hover:bg-red-500/20 transition-colors"
+                                    >
+                                        <LogOut size={13} />
+                                        ಲಾಗ್ ಔಟ್
+                                    </button>
+                                </div>
+                            )}
+                            <div className="flex gap-2">
+                                <button onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-secondary)]">
+                                    {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+                                </button>
+                                <button onClick={() => { setMediaModal({ isOpen: true, type: 'photo' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 text-xs font-bold text-emerald-600">
+                                    <Camera size={16} /> Photo
+                                </button>
+                                <button onClick={() => { setMediaModal({ isOpen: true, type: 'audio' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-rose-500/10 text-xs font-bold text-rose-600">
+                                    <Mic size={16} /> Audio
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}

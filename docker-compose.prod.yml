@@ -1,0 +1,58 @@
+# SRS-Seva — Docker Compose for Production
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+
+services:
+  # ─── PostgreSQL Database ───
+  postgres:
+    image: postgres:16-alpine
+    container_name: seva-postgres
+    environment:
+      POSTGRES_DB: seva
+      POSTGRES_USER: seva_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-seva_prod_secure_password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seva_app -d seva"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── FastAPI Backend ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: seva-backend
+    environment:
+      DATABASE_URL: postgresql://seva_app:${DB_PASSWORD:-seva_prod_secure_password}@postgres:5432/seva
+      SECRET_KEY: ${JWT_SECRET:-please-change-me-in-production}
+      MODULE_FILTER: ""  # Empty = all modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: always
+
+  # ─── Nginx Frontend ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: seva-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  pgdata:
+    driver: local

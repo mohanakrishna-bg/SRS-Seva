@@ -139,7 +139,7 @@ export const PaymentVoucherForm: React.FC = () => {
     // Helper to render indented hierarchical list of accounts
     const renderHierarchy = (accounts: AccountHead[]) => {
         const rootAccounts = accounts.filter(acc => acc.ParentId === null);
-        const rendered: JSX.Element[] = [];
+        const rendered: React.ReactNode[] = [];
 
         const traverse = (acc: AccountHead, depth: number) => {
             const indent = '.'.repeat(depth * 2);

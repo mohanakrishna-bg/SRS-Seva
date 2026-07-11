@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { accountingApi } from '../../api';
-import { X, Calendar, FileText, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface LedgerLine {
     Id: number;
@@ -94,7 +94,7 @@ export const LedgerDrilldown: React.FC<LedgerDrilldownProps> = ({ accountId, acc
                                 </thead>
                                 <tbody className="divide-y divide-white/5 text-xs">
                                     {lines.map(line => {
-                                        const isDebit = line.Debit > 0;
+                                        // isDebit removed
                                         return (
                                             <tr key={line.Id} className="hover:bg-white/5 transition-colors">
                                                 <td className="py-3 px-4 text-white/70 font-semibold tabular-nums">
