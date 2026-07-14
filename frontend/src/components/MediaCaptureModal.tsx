@@ -16,7 +16,7 @@ export default function MediaCaptureModal({
     onClose,
     type,
     onCapture,
-    title = type === 'photo' ? 'ಕ್ಯಾಮೆರಾ (Camera)' : 'ರೇಕಾರ್ಡಿಂಗ್ (Audio)',
+    title = type === 'photo' ? 'ಕ್ಯಾಮೆರಾ' : 'ರೇಕಾರ್ಡಿಂಗ್',
 }: MediaCaptureModalProps) {
     const webcamRef = useRef<Webcam>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);

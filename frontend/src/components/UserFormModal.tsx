@@ -112,7 +112,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
             }
             onSuccess();
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ (Failed to save)');
+            setError(err.response?.data?.detail || 'ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsSubmitting(false);
         }
@@ -163,7 +163,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                        ಬಳಕೆದಾರಹೆಸರು (Username) *
+                                        ಬಳಕೆದಾರಹೆಸರು *
                                     </label>
                                     <input
                                         type="text"
@@ -175,7 +175,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                        ಪ್ರದರ್ಶನ ಹೆಸರು (Display Name)
+                                        ಪ್ರದರ್ಶನ ಹೆಸರು
                                     </label>
                                     <input
                                         type="text"
@@ -189,7 +189,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                        ಪಾತ್ರ (Role) *
+                                        ಪಾತ್ರ *
                                     </label>
                                     <select
                                         value={role}
@@ -203,7 +203,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                        ಗುಪ್ತಪದ (Password) {isEditing ? '(ಹೊಸದಿದ್ದರೆ ಮಾತ್ರ)' : '*'}
+                                        ಗುಪ್ತಪದ {isEditing ? '(ಹೊಸದಿದ್ದರೆ ಮಾತ್ರ)' : '*'}
                                     </label>
                                     <input
                                         type="text"
@@ -225,7 +225,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                                         className="w-4 h-4 rounded text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--glass-border)] bg-[var(--bg-light)]"
                                     />
                                     <label htmlFor="isActive" className="text-sm font-medium text-[var(--text-primary)]">
-                                        ಸಕ್ರಿಯವಾಗಿದೆ (Is Active)
+                                        ಸಕ್ರಿಯವಾಗಿದೆ
                                     </label>
                                 </div>
                             )}
@@ -254,7 +254,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                             onClick={onClose}
                             className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                         >
-                            ರದ್ದು (Cancel)
+                            ರದ್ದು
                         </button>
                         <button
                             type="submit"
@@ -263,7 +263,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                             className="px-4 py-2 rounded-xl text-xs font-bold bg-[var(--primary)] hover:brightness-110 text-white shadow-md disabled:opacity-50 transition-colors flex items-center gap-2"
                         >
                             <Save size={14} />
-                            {isSubmitting ? 'ಉಳಿಸಲಾಗುತ್ತಿದೆ...' : 'ಉಳಿಸಿ (Save)'}
+                            {isSubmitting ? 'ಉಳಿಸಲಾಗುತ್ತಿದೆ...' : 'ಉಳಿಸಿ'}
                         </button>
                     </div>
                 </motion.div>

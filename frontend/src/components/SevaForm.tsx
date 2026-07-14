@@ -60,7 +60,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                     {/* Description - Kannada (Transliteratable) */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            ಸೇವೆಯ ವಿವರಣೆ (Description - Kannada)
+                            ಸೇವೆಯ ವಿವರಣೆ
                         </label>
                         <TransliteratedInput
                             value={form.Description}
@@ -89,7 +89,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         {/* Seva Code - Only for new or show as read-only for edit */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಸೇವಾ ಕೋಡ್ (Seva Code)
+                                ಸೇವಾ ಕೋಡ್
                             </label>
                             <input
                                 type="text"
@@ -104,7 +104,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         {/* Amount */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಶುಲ್ಕ (Amount)
+                                ಶುಲ್ಕ
                             </label>
                             <input
                                 type="number"
@@ -120,7 +120,7 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         {/* TP Qty */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಪ್ರಸಾದ ಸಂಖ್ಯೆ (TP Qty)
+                                ಪ್ರಸಾದ ಸಂಖ್ಯೆ
                             </label>
                             <input
                                 type="number"
@@ -151,13 +151,13 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         onClick={onClose}
                         className="px-5 py-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors text-sm"
                     >
-                        ರದ್ದುಮಾಡಿ (Cancel)
+                        ರದ್ದುಮಾಡಿ
                     </button>
                     <button
                         type="submit"
                         className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white font-semibold text-sm shadow-lg hover:shadow-orange-500/25 transition-shadow"
                     >
-                        {isEdit ? 'ನವೀಕರಿಸಿ (Update)' : 'ಸೇರಿಸಿ (Add)'}
+                        {isEdit ? 'ನವೀಕರಿಸಿ' : 'ಸೇರಿಸಿ'}
                     </button>
                 </div>
             </form>

@@ -96,7 +96,7 @@ export default function UserAdminTab() {
             setError('');
         } catch (err) {
             console.error('Failed to fetch users:', err);
-            setError('ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ (Failed to load users)');
+            setError('ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsLoading(false);
         }
@@ -120,7 +120,7 @@ export default function UserAdminTab() {
 
     const handleDelete = async (id: number, username: string) => {
         if (currentUser?.id === id) {
-            alert('ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ (Cannot delete your own account)');
+            alert('ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ');
             return;
         }
         if (window.confirm(`'${username}' ಬಳಕೆದಾರರನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?`)) {
@@ -128,7 +128,7 @@ export default function UserAdminTab() {
                 await usersApi.delete(id);
                 fetchUsers();
             } catch (err: any) {
-                alert(err.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ (Failed to delete)');
+                alert(err.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
             }
         }
     };
@@ -142,7 +142,7 @@ export default function UserAdminTab() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-lg font-bold text-[var(--text-primary)]">ಬಳಕೆದಾರರ ನಿರ್ವಹಣೆ (User Administration)</h2>
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">ಬಳಕೆದಾರರ ನಿರ್ವಹಣೆ</h2>
                     <p className="text-xs text-[var(--text-secondary)] mt-1">ಬಳಕೆದಾರರ ಖಾತೆಗಳು ಮತ್ತು ಪಾತ್ರಗಳನ್ನು ನಿರ್ವಹಿಸಿ.</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -176,12 +176,12 @@ export default function UserAdminTab() {
                     <table className="w-full text-left text-sm">
                         <thead className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)]">
                             <tr>
-                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಬಳಕೆದಾರಹೆಸರು (Username)</th>
-                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಪ್ರದರ್ಶನ ಹೆಸರು (Name)</th>
-                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಪಾತ್ರ (Role)</th>
+                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಬಳಕೆದಾರಹೆಸರು</th>
+                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಪ್ರದರ್ಶನ ಹೆಸರು</th>
+                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಪಾತ್ರ</th>
                                 <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">Access</th>
-                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಸ್ಥಿತಿ (Status)</th>
-                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider text-right">ಕ್ರಿಯೆಗಳು (Actions)</th>
+                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider">ಸ್ಥಿತಿ</th>
+                                <th className="px-4 py-3 font-semibold text-[var(--text-secondary)] text-xs uppercase tracking-wider text-right">ಕ್ರಿಯೆಗಳು</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--glass-border)]">
@@ -264,7 +264,7 @@ export default function UserAdminTab() {
                                             <td className="px-4 py-3">
                                                 <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${user.is_active ? 'text-emerald-500' : 'text-red-500'}`}>
                                                     <Circle size={8} fill="currentColor" />
-                                                    {user.is_active ? 'ಸಕ್ರಿಯ (Active)' : 'ನಿಷ್ಕ್ರಿಯ (Inactive)'}
+                                                    {user.is_active ? 'ಸಕ್ರಿಯ' : 'ನಿಷ್ಕ್ರಿಯ'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-right">
@@ -272,14 +272,14 @@ export default function UserAdminTab() {
                                                     <button
                                                         onClick={() => setFormModalState({ isOpen: true, user })}
                                                         className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                                                        title="ಸಂಪಾದಿಸಿ (Edit)"
+                                                        title="ಸಂಪಾದಿಸಿ"
                                                     >
                                                         <Pencil size={15} />
                                                     </button>
                                                     <button
                                                         onClick={() => setResetModalState({ isOpen: true, userId: user.id, username: user.username })}
                                                         className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
-                                                        title="ಗುಪ್ತಪದ ಮರುಹೊಂದಿಸಿ (Reset Password)"
+                                                        title="ಗುಪ್ತಪದ ಮರುಹೊಂದಿಸಿ"
                                                     >
                                                         <KeyRound size={15} />
                                                     </button>
@@ -287,7 +287,7 @@ export default function UserAdminTab() {
                                                         onClick={() => handleDelete(user.id, user.username)}
                                                         disabled={currentUser?.id === user.id}
                                                         className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-30 transition-colors"
-                                                        title="ಅಳಿಸಿ (Delete)"
+                                                        title="ಅಳಿಸಿ"
                                                     >
                                                         <Trash2 size={15} />
                                                     </button>

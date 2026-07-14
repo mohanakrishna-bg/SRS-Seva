@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     # File Uploads
     UPLOAD_DIR: str = "uploads"
+    RECEIPTS_DIR: str = "receipts"
 
     # CORS
     CORS_ORIGINS: list[str] = ["*"]

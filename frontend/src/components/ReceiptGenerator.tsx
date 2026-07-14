@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Printer, MessageCircle, X, Download, Languages } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -18,6 +19,8 @@ interface ReceiptData {
     sevaDescription: string;
     sevaDescriptionEn?: string;
     amount: number;
+    sevaAmount?: number;
+    hastodakaAmount?: number;
     paymentMode: string;
     paymentModeEn?: string;
 }
@@ -69,6 +72,54 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
     const [kannadaData, setKannadaData] = useState<ReceiptData | null>(null);
     const [showSendMenu, setShowSendMenu] = useState(false);
     const receiptRef = useRef<HTMLDivElement>(null);
+    const [savedLocally, setSavedLocally] = useState(false);
+
+    useEffect(() => {
+        setSavedLocally(false);
+    }, [receiptData]);
+
+    useEffect(() => {
+        if (!isOpen || !receiptData || !kannadaData || savedLocally) return;
+        
+        const autoSaveReceipt = async () => {
+            setTimeout(async () => {
+                if (!receiptRef.current) return;
+                try {
+                    const canvas = await html2canvas(receiptRef.current, { scale: 3, backgroundColor: '#ffffff' });
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    const pdfWidth = 80;
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: [pdfWidth, pdfHeight]
+                    });
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    const pdfBlob = pdf.output('blob');
+                    
+                    const formData = new FormData();
+                    formData.append('file', pdfBlob, `Receipt-${receiptData.voucherNo}.pdf`);
+                    
+                    const response = await fetch(`/api/registrations/receipt/save?voucher_no=${receiptData.voucherNo}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        setSavedLocally(true);
+                        console.log("Receipt saved locally automatically.");
+                    } else {
+                        console.error("Failed to auto-save receipt locally.");
+                    }
+                } catch (err) {
+                    console.error("Auto-save receipt error:", err);
+                }
+            }, 500);
+        };
+        autoSaveReceipt();
+    }, [isOpen, receiptData, kannadaData, savedLocally]);
 
     // Default Org names if none specified
     const orgNameKn = settings.orgName || 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
@@ -150,6 +201,9 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         nakshatra: lang === 'en' ? 'Nakshatra' : 'ನಕ್ಷತ್ರ',
         seva: lang === 'en' ? 'Seva' : 'ಸೇವೆ',
         amount: lang === 'en' ? 'Amount' : 'ಮೊತ್ತ',
+        sevaAmount: lang === 'en' ? 'Seva Amount' : 'ಸೇವಾ ಮೊತ್ತ',
+        hastodakaAmount: lang === 'en' ? 'Hastodaka' : 'ಹಸ್ತೋದಕ',
+        totalAmount: lang === 'en' ? 'Total' : 'ಒಟ್ಟು',
         payment: lang === 'en' ? 'Payment' : 'ಪಾವತಿ',
         greeting: lang === 'en' ? '🙏 Harih Om 🙏' : '🙏 ಹರಿಃ ಓಂ 🙏'
     };
@@ -256,14 +310,14 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         setShowSendMenu(false);
     };
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                    className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
                     onClick={onClose}
                 >
                     <motion.div
@@ -278,13 +332,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold">ರಸೀದಿ</h3>
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setLang(lang === 'kn' ? 'en' : 'kn')}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-saffron)]/10 text-[var(--accent-saffron)] hover:bg-[var(--accent-saffron)] hover:text-white transition-colors text-sm font-medium border border-[var(--accent-saffron)]/30"
-                                >
-                                    <Languages size={14} />
-                                    {lang === 'kn' ? 'Switch to English' : 'ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ'}
-                                </button>
+
                                 <button
                                     onClick={onClose}
                                     className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-400"
@@ -340,10 +388,27 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                     <span className="text-gray-500">{labels.seva}</span>
                                     <span className="text-gray-900 font-bold max-w-[60%] text-right leading-tight">{currentData.sevaDescription}</span>
                                 </div>
-                                <div className="flex justify-between items-baseline mt-2 pt-1 border-t border-gray-100">
-                                    <span className="text-gray-500">{labels.amount}</span>
-                                    <span className="text-xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
-                                </div>
+                                {currentData.sevaAmount != null && currentData.hastodakaAmount != null && currentData.hastodakaAmount > 0 ? (
+                                    <>
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-gray-500 text-xs">{labels.sevaAmount}</span>
+                                            <span className="text-gray-700">₹{currentData.sevaAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500 text-xs">{labels.hastodakaAmount}</span>
+                                            <span className="text-gray-700">₹{currentData.hastodakaAmount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between items-baseline mt-1 pt-1 border-t border-gray-100">
+                                            <span className="text-gray-500">{labels.totalAmount}</span>
+                                            <span className="text-xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex justify-between items-baseline mt-2 pt-1 border-t border-gray-100">
+                                        <span className="text-gray-500">{labels.amount}</span>
+                                        <span className="text-xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">{labels.payment}</span>
                                     <span className="text-gray-900">{currentData.paymentMode}</span>
@@ -356,7 +421,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={handlePrint}
                                 disabled={generating || !kannadaData}
@@ -365,14 +430,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 <Printer size={20} className="text-blue-400" />
                                 <span className="text-xs font-medium">{lang === 'kn' ? 'ಮುದ್ರಿಸಿ' : 'Print'}</span>
                             </button>
-                            <button
-                                onClick={handleDownload}
-                                disabled={generating || !kannadaData}
-                                className="flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 border border-emerald-500/30 hover:border-emerald-400/50 transition-all text-sm disabled:opacity-50"
-                            >
-                                <Download size={20} className="text-emerald-400" />
-                                <span className="text-xs font-medium">{lang === 'kn' ? 'ಡೌನ್ಲೋಡ್' : 'Download'}</span>
-                            </button>
+
                             {showSendMenu ? (
                                 <div className="flex flex-col gap-1.5 justify-center h-full">
                                     <button
@@ -410,6 +468,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                     </motion.div>
                 </motion.div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

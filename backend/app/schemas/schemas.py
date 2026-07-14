@@ -209,14 +209,31 @@ class SevaRegistrationModify(BaseModel):
     DevoteeId: Optional[int] = None
     SevaDate: Optional[str] = None
     Remarks: Optional[str] = None
+    # ── Hastodaka increase fields ──
+    PrasadaCount: Optional[int] = None
+    OptTheerthaPrasada: Optional[bool] = None
+    AdditionalAmount: Optional[float] = None
+    AdditionalPaymentMode: Optional[str] = None
 
 class SevaRegistrationCancel(BaseModel):
     refund_amount: Optional[float] = 0.0
     refund_mode: Optional[str] = "Cash"
 
+class SevaRef(BaseModel):
+    """Lightweight Seva reference for embedding in registration responses."""
+    SevaCode: str
+    Description: Optional[str] = None
+    DescriptionEn: Optional[str] = None
+    Amount: Optional[float] = None
+    TPQty: Optional[int] = 0
+    class Config:
+        from_attributes = True
+
 class SevaRegistration(SevaRegistrationBase):
     RegistrationId: int
     CreatedAt: Optional[datetime] = None
+    devotee: Optional[Devotee] = None
+    seva: Optional[SevaRef] = None
     class Config:
         from_attributes = True
 

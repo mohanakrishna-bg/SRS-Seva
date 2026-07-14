@@ -158,7 +158,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
             })));
             setSearchResults(tkData);
         } catch {
-            showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲವಾಗಿದೆ (Search failed)');
+            showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsSearching(false);
         }
@@ -178,17 +178,17 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
     };
 
     const validateDonor = () => {
-        if (!customer.Name.trim()) { showToast('error', 'ದಾನಿಯ ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ (Donor name is required)'); return false; }
-        if (!customer.Phone.trim()) { showToast('error', 'ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ (Phone is required)'); return false; }
+        if (!customer.Name.trim()) { showToast('error', 'ದಾನಿಯ ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
+        if (!customer.Phone.trim()) { showToast('error', 'ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
         return true;
     };
 
     const validateItem = () => {
         if (donationKind === 'monetary') {
-            if (!estimatedValue || parseFloat(estimatedValue) <= 0) { showToast('error', 'ಮೊತ್ತ ಕಡ್ಡಾಯವಾಗಿದೆ (Amount is required for monetary donations)'); return false; }
-            if (!panNumber.trim()) { showToast('error', 'PAN ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ (PAN Number is required for monetary donations)'); return false; }
+            if (!estimatedValue || parseFloat(estimatedValue) <= 0) { showToast('error', 'ಮೊತ್ತ ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
+            if (!panNumber.trim()) { showToast('error', 'PAN ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
         } else {
-            if (!itemName.trim()) { showToast('error', 'ವಸ್ತುವಿನ ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ (Item name is required)'); return false; }
+            if (!itemName.trim()) { showToast('error', 'ವಸ್ತುವಿನ ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
         }
         return true;
     };
@@ -218,11 +218,11 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                 if (!upiDetails.gateway) { showToast('error', 'Payment Gateway is required'); return; }
                 if (!upiDetails.transactionId) { showToast('error', 'Transaction ID is required'); return; }
                 if (upiStatus.status === 'failure') {
-                    showToast('error', 'ವಹಿವಾಟು ವಿಫಲವಾಗಿದೆ, ದಯವಿಟ್ಟು ಪರೀಕ್ಷಿಸಿ (Transaction failed verification, please check)');
+                    showToast('error', 'ವಹಿವಾಟು ವಿಫಲವಾಗಿದೆ, ದಯವಿಟ್ಟು ಪರೀಕ್ಷಿಸಿ');
                     return;
                 }
                 if (upiStatus.status === 'idle') {
-                    const proceed = confirm('ವಹಿವಾಟನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ. ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಬೇಕೆ? (Transaction not verified. Proceed anyway?)');
+                    const proceed = confirm('ವಹಿವಾಟನ್ನು ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ. ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಬೇಕೆ?');
                     if (!proceed) return;
                 }
             } else if (paymentMode === 'Cheque' || paymentMode === 'DD') {
@@ -283,7 +283,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                 ) : null,
             };
             const donRes = await inventoryApi.createDonation(donationPayload);
-            showToast('success', 'ದಾನ ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಯಿತು! (Donation Registered)');
+            showToast('success', 'ದಾನ ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಯಿತು!');
 
             const gotraMatch = GOTRAS.find(g => g.kn === customer.Sgotra || g.en === customer.Sgotra);
             const nakshatraMatch = NAKSHATRAS.find(n => n.kn === customer.SNakshatra || n.en === customer.SNakshatra);
@@ -298,7 +298,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
             });
         } catch (err: any) {
             console.error('Donation error:', err?.response?.data || err);
-            showToast('error', 'ದಾನ ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ (Donation Failed)');
+            showToast('error', 'ದಾನ ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ');
         } finally {
             setLoading(false);
         }
@@ -323,7 +323,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
             else showToast('error', message);
         } catch (err: any) {
             setUpiStatus({ status: 'failure', message: 'Verification Error' });
-            showToast('error', 'ವಹಿವಾಟು ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ (Verification Failed)');
+            showToast('error', 'ವಹಿವಾಟು ಪರಿಶೀಲನೆ ವಿಫಲವಾಗಿದೆ');
         } finally {
             setVerifyingUpi(false);
         }
@@ -388,7 +388,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                             {step === Step.Donor && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col">
                                     <h3 className="text-base font-bold text-[var(--text-primary)] mb-2.5 flex items-center gap-2">
-                                        <Search className="text-rose-500" size={18} /> ದಾನಿ ಹುಡುಕಾಟ (Donor Search)
+                                        <Search className="text-rose-500" size={18} /> ದಾನಿ ಹುಡುಕಾಟ
                                     </h3>
 
                                     {isNewCustomer ? (
@@ -474,7 +474,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                             {step === Step.Item && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col space-y-4">
                                     <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-2">
-                                        <Gift className="text-rose-500" size={18} /> ದಾನ ವಿವರಗಳು (Donation Details)
+                                        <Gift className="text-rose-500" size={18} /> ದಾನ ವಿವರಗಳು
                                     </h3>
 
                                     {/* Donor context */}
@@ -490,7 +490,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
 
                                     {/* ── Donation Kind Radio Selector ── */}
                                     <div className="space-y-2">
-                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">ದಾನ ವಿಧ (Donation Type)</label>
+                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">ದಾನ ವಿಧ</label>
                                         <div className="grid grid-cols-3 gap-3">
                                             {([
                                                 { key: 'monetary', icon: '💰', label: 'ಹಣಕಾಸು', labelEn: 'Monetary', color: 'emerald', desc: 'Cash / UPI / Cheque' },
@@ -547,20 +547,20 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                         className="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] font-mono text-lg focus:outline-none focus:border-emerald-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">PAN ಸಂಖ್ಯೆ (80G) <span className="text-red-500">*</span></label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">PAN ಸಂಖ್ಯೆ <span className="text-red-500">*</span></label>
                                                     <input type="text" value={panNumber} onChange={e => setPanNumber(convertKnNumeralsToEn(e.target.value.toUpperCase()))} placeholder="ABCDE1234F" maxLength={10}
                                                         className="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] font-mono focus:outline-none focus:border-emerald-500" />
-                                                    <p className="text-[10px] text-[var(--text-secondary)] italic">80G ತೆರಿಗೆ ಕಡಿತ ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಅಗತ್ಯ (Required for 80G tax certificate)</p>
+                                                    <p className="text-[10px] text-[var(--text-secondary)] italic">80G ತೆರಿಗೆ ಕಡಿತ ಪ್ರಮಾಣಪತ್ರಕ್ಕೆ ಅಗತ್ಯ</p>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಉದ್ದೇಶ (Purpose)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಉದ್ದೇಶ</label>
                                                     <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="e.g., Temple Renovation, Annadana"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-emerald-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ (Remarks)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ</label>
                                                     <input type="text" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Any notes"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-emerald-500" />
                                                 </div>
@@ -568,7 +568,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             {/* Value preview */}
                                             {estimatedValue && parseFloat(estimatedValue) > 0 && (
                                                 <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 dark:from-emerald-900/10 dark:to-emerald-900/5 border border-emerald-500/30 rounded-xl p-4 flex justify-between items-center">
-                                                    <span className="font-medium text-emerald-700 dark:text-emerald-400 uppercase text-sm">ದಾನ ಮೊತ್ತ (Donation Amount)</span>
+                                                    <span className="font-medium text-emerald-700 dark:text-emerald-400 uppercase text-sm">ದಾನ ಮೊತ್ತ</span>
                                                     <span className="text-2xl font-black text-emerald-600">{fmt(parseFloat(estimatedValue))}</span>
                                                 </div>
                                             )}
@@ -580,12 +580,12 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 border-t border-amber-500/20 pt-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಸ್ತು ಹೆಸರು (Item Name) <span className="text-red-500">*</span></label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಸ್ತು ಹೆಸರು <span className="text-red-500">*</span></label>
                                                     <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="e.g., Silver Lamp, Brass Bell"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವರ್ಗ (Category)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವರ್ಗ</label>
                                                     <select value={category} onChange={e => setCategory(e.target.value)}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500">
                                                         <option value="">-- Select --</option>
@@ -595,7 +595,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಲೋಹ (Material)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಲೋಹ</label>
                                                     <select value={material} onChange={e => setMaterial(e.target.value)}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500">
                                                         <option value="">-- None --</option>
@@ -603,14 +603,14 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ತೂಕ (Weight grams)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ತೂಕ</label>
                                                     <input type="number" step="0.01" value={weightGrams} onChange={e => setWeightGrams(convertKnNumeralsToEn(e.target.value))} placeholder="e.g., 25.5"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಸಂಖ್ಯೆ (Qty)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಸಂಖ್ಯೆ</label>
                                                     <input type="number" min="1" value={quantity} onChange={e => setQuantity(convertKnNumeralsToEn(e.target.value))}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
@@ -626,12 +626,12 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಿವರಣೆ (Description)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಿವರಣೆ</label>
                                                     <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional details"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ (Remarks)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ</label>
                                                     <input type="text" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Any notes"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
@@ -639,7 +639,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             {/* Value preview */}
                                             {(itemName || getDisplayValue() > 0) && (
                                                 <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-900/5 border border-amber-500/30 rounded-xl p-4 flex justify-between items-center mt-auto">
-                                                    <span className="font-medium text-amber-700 dark:text-amber-400 uppercase text-sm">ಅಂದಾಜು ಮೌಲ್ಯ (Estimated Value)</span>
+                                                    <span className="font-medium text-amber-700 dark:text-amber-400 uppercase text-sm">ಅಂದಾಜು ಮೌಲ್ಯ</span>
                                                     <span className="text-2xl font-black text-amber-600">{fmt(getDisplayValue() * (parseInt(quantity) || 1))}</span>
                                                 </div>
                                             )}
@@ -651,12 +651,12 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 border-t border-sky-500/20 pt-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಸ್ತು ಹೆಸರು (Item Name) <span className="text-red-500">*</span></label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಸ್ತು ಹೆಸರು <span className="text-red-500">*</span></label>
                                                     <input type="text" value={itemName} onChange={e => setItemName(e.target.value)} placeholder="e.g., Rice, Ghee, Flowers"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವರ್ಗ (Category)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವರ್ಗ</label>
                                                     <select value={category} onChange={e => setCategory(e.target.value)}
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500">
                                                         <option value="">-- Select --</option>
@@ -666,7 +666,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಪ್ರಮಾಣ (Quantity) <span className="text-red-500">*</span></label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಪ್ರಮಾಣ <span className="text-red-500">*</span></label>
                                                     <div className="flex gap-2">
                                                         <input type="number" min="1" value={quantity} onChange={e => setQuantity(convertKnNumeralsToEn(e.target.value))}
                                                             className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
@@ -684,12 +684,12 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಿವರಣೆ (Description)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ವಿವರಣೆ</label>
                                                     <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional details"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ (Remarks)</label>
+                                                    <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಟಿಪ್ಪಣಿ</label>
                                                     <input type="text" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Any notes"
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-sky-500" />
                                                 </div>
@@ -697,7 +697,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             {/* Value preview */}
                                             {(itemName || getDisplayValue() > 0) && (
                                                 <div className="bg-gradient-to-r from-sky-50 to-sky-100/50 dark:from-sky-900/10 dark:to-sky-900/5 border border-sky-500/30 rounded-xl p-4 flex justify-between items-center mt-auto">
-                                                    <span className="font-medium text-sky-700 dark:text-sky-400 uppercase text-sm">ಅಂದಾಜು ಮೌಲ್ಯ (Estimated Value)</span>
+                                                    <span className="font-medium text-sky-700 dark:text-sky-400 uppercase text-sm">ಅಂದಾಜು ಮೌಲ್ಯ</span>
                                                     <span className="text-2xl font-black text-sky-600">{fmt(getDisplayValue() * (parseInt(quantity) || 1))}</span>
                                                 </div>
                                             )}
@@ -710,39 +710,39 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                             {step === Step.Confirm && (
                                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col space-y-4">
                                     <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-2">
-                                        <Check className="text-rose-500" size={18} /> ಖಚಿತಪಡಿಸಿ (Confirmation)
+                                        <Check className="text-rose-500" size={18} /> ಖಚಿತಪಡಿಸಿ
                                     </h3>
 
                                     <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-5 space-y-4 text-sm">
                                         <div className="grid grid-cols-2 gap-y-3 gap-x-6">
                                             <div>
-                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ದಾನಿ (Donor)</p>
+                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ದಾನಿ</p>
                                                 <p className="font-bold text-[var(--text-primary)]">{customer.Name}</p>
                                                 <p className="text-xs text-[var(--text-secondary)]">{customer.Phone}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ದಿನಾಂಕ (Date)</p>
+                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ದಿನಾಂಕ</p>
                                                 <p className="font-bold text-[var(--text-primary)]">{donationDate}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ವಸ್ತು (Item)</p>
+                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ವಸ್ತು</p>
                                                 <p className="font-bold text-[var(--text-primary)]">{itemName}</p>
                                                 {description && <p className="text-xs text-[var(--text-secondary)]">{description}</p>}
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ವರ್ಗ (Type)</p>
+                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ವರ್ಗ</p>
                                                 <p className="font-bold text-[var(--text-primary)] capitalize">
                                                     {donationKind === 'monetary' ? '💰 Monetary' : donationKind === 'asset' ? '🏛️ Asset' : '📦 Consumable'}
                                                 </p>
                                             </div>
                                             {material && (
                                                 <div>
-                                                    <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ಲೋಹ (Material)</p>
+                                                    <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ಲೋಹ</p>
                                                     <p className="font-bold text-[var(--text-primary)]">{material}{weightGrams ? ` — ${weightGrams}g` : ''}</p>
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ಸಂಖ್ಯೆ (Qty)</p>
+                                                <p className="text-[10px] uppercase text-[var(--text-secondary)] font-bold mb-0.5">ಸಂಖ್ಯೆ</p>
                                                 <p className="font-bold text-[var(--text-primary)]">{quantity} {uom}</p>
                                             </div>
                                             {panNumber && (
@@ -769,7 +769,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                     {donationKind === 'monetary' && (
                                         <div className="mt-4 pt-4 border-t border-[var(--glass-border)] space-y-4">
                                             <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
-                                                <CreditCard className="text-emerald-500" size={16} /> ಪಾವತಿ ವಿಧಾನ (Payment Mode)
+                                                <CreditCard className="text-emerald-500" size={16} /> ಪಾವತಿ ವಿಧಾನ
                                             </h4>
                                             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                                 {['Cash', 'UPI', 'Cheque', 'DD', 'Netbanking'].map((mode) => (

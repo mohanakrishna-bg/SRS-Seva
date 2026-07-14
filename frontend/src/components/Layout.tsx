@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { ClipboardList, Moon, Sun, Camera, Mic, LogOut } from 'lucide-react';
+import { ClipboardList, Moon, Sun, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
 import MediaCaptureModal from './MediaCaptureModal';
@@ -44,8 +44,10 @@ export default function Layout() {
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('dark');
         } else {
             document.documentElement.removeAttribute('data-theme');
+            document.documentElement.classList.remove('dark');
         }
         localStorage.setItem('seva_theme', theme);
     }, [theme]);
@@ -131,6 +133,16 @@ export default function Layout() {
             
             <div className="px-4 py-4 md:px-8 pb-0 relative z-20 max-w-6xl mx-auto w-full">
                 <Header />
+                {/* Theme Switcher in the top right corner */}
+                <div className="absolute top-6 right-6 md:right-10 hidden lg:block z-50">
+                    <button 
+                        onClick={toggleTheme} 
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10 transition-all shadow-sm backdrop-blur-md cursor-pointer"
+                    >
+                        {theme === 'light' ? <Moon size={14} className="text-[var(--primary)]" /> : <Sun size={14} className="text-[var(--primary)]" />}
+                        <span>{theme === 'light' ? 'ಕತ್ತಲೆ' : 'ಬೆಳಕು'}</span>
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-1 relative max-w-6xl mx-auto w-full px-4 md:px-8 py-2 md:py-6 gap-6">
@@ -144,7 +156,7 @@ export default function Layout() {
                     {can('seva') && (
                         <NavLink to="/seva" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <ClipboardList size={20} />
-                            ಸೇವಾ ಸೇವೆಗಳು
+                            ಸೇವಾ ಸಂಬಂಧಿತ ಕ್ರಿಯೆಗಳು
                         </NavLink>
                     )}
 
@@ -211,17 +223,6 @@ export default function Layout() {
                                 </div>
                             </div>
                         )}
-                        <div className="flex gap-2">
-                            <button onClick={toggleTheme} className="flex-1 flex justify-center p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all" title="Theme">
-                                {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-                            </button>
-                            <button onClick={() => setMediaModal({ isOpen: true, type: 'photo' })} className="flex-1 flex justify-center p-3 rounded-xl hover:bg-emerald-500/10 text-[var(--text-secondary)] hover:text-emerald-600 transition-all">
-                                <Camera size={18} />
-                            </button>
-                            <button onClick={() => setMediaModal({ isOpen: true, type: 'audio' })} className="flex-1 flex justify-center p-3 rounded-xl hover:bg-rose-500/10 text-[var(--text-secondary)] hover:text-rose-600 transition-all">
-                                <Mic size={18} />
-                            </button>
-                        </div>
                     </div>
                 </aside>
 
@@ -253,16 +254,19 @@ export default function Layout() {
                     setPrefillSevaName(undefined);
                     setPrefillEventCode(undefined);
                     setReceiptData({
-                        voucherNo: data.invoice.VoucherNo,
-                        date: data.invoice.RegistrationDate || data.invoice.Date,
-                        customerName: data.customer.Name,
-                        gotra: data.customer.Gotra || data.customer.Sgotra,
-                        nakshatra: data.customer.Nakshatra || data.customer.SNakshatra,
-                        sevaDescription: data.item.Description,
-                        amount: data.invoice.GrandTotal || data.invoice.TotalAmount,
-                        paymentMode: data.invoice.PaymentMode || data.invoice.Payment_Mode
+                        voucherNo: data.invoice.VoucherNo || data.invoice.RegistrationId?.toString() || 'VCH-XXX',
+                        date: data.invoice.RegistrationDate || data.invoice.Date || new Date().toISOString(),
+                        customerName: data.customer.Name || 'Unknown',
+                        gotra: data.customer.Gotra || data.customer.Sgotra || '',
+                        nakshatra: data.customer.Nakshatra || data.customer.SNakshatra || '',
+                        sevaDescription: data.item?.Description || 'Seva Registration',
+                        amount: data.invoice.GrandTotal ?? data.invoice.TotalAmount ?? data.invoice.Amount ?? data.item?.Amount ?? 0,
+                        sevaAmount: data.invoice.Amount ?? data.item?.Amount ?? 0,
+                        hastodakaAmount: ((data.invoice.GrandTotal ?? 0) - (data.invoice.Amount ?? 0)) > 0 ? (data.invoice.GrandTotal ?? 0) - (data.invoice.Amount ?? 0) : undefined,
+                        paymentMode: data.invoice.PaymentMode || data.invoice.Payment_Mode || 'Cash'
                     });
                     setShowReceiptGenerator(true);
+                    window.dispatchEvent(new Event('registration_created'));
                 }}
             />
 
@@ -396,15 +400,13 @@ export default function Layout() {
                                     </button>
                                 </div>
                             )}
-                            <div className="flex gap-2">
-                                <button onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-secondary)]">
-                                    {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-                                </button>
-                                <button onClick={() => { setMediaModal({ isOpen: true, type: 'photo' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 text-xs font-bold text-emerald-600">
-                                    <Camera size={16} /> Photo
-                                </button>
-                                <button onClick={() => { setMediaModal({ isOpen: true, type: 'audio' }); setIsMobileMenuOpen(false); }} className="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-rose-500/10 text-xs font-bold text-rose-600">
-                                    <Mic size={16} /> Audio
+                            <div className="flex flex-col gap-2">
+                                <button 
+                                    onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} 
+                                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-primary)]"
+                                >
+                                    {theme === 'light' ? <Moon size={16} className="text-[var(--primary)]" /> : <Sun size={16} className="text-[var(--primary)]" />}
+                                    <span>{theme === 'light' ? 'ಕತ್ತಲೆ' : 'ಬೆಳಕು'}</span>
                                 </button>
                             </div>
                         </div>

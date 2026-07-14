@@ -77,7 +77,7 @@ export const ReconciliationBoard: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
                 <div className="flex items-center gap-3">
                     <Landmark className="w-6 h-6 text-[#FF9933]" />
-                    <h3 className="font-heading text-lg font-bold text-white">ಬ್ಯಾಂಕ್ ಹೊಂದಾಣಿಕೆ ಮಂಡಳಿ (Bank Reconciliation Board)</h3>
+                    <h3 className="font-heading text-lg font-bold text-white">ಬ್ಯಾಂಕ್ ಹೊಂದಾಣಿಕೆ ಮಂಡಳಿ</h3>
                 </div>
 
                 <div className="flex items-center gap-3">

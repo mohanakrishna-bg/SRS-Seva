@@ -122,7 +122,7 @@ export default function InventoryModal({
                 {/* Modal Header */}
                 <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--glass-border)] bg-black/10 dark:bg-white/5">
                     <h2 className="text-lg font-bold text-[var(--text-primary)]">
-                        {isEdit ? 'ಸಂಪಾದಿಸಿ (Edit Item)' : 'ಹೊಸ ಸೇರ್ಪಡೆ (Add New Item)'}
+                        {isEdit ? 'ಸಂಪಾದಿಸಿ' : 'ಹೊಸ ಸೇರ್ಪಡೆ'}
                     </h2>
                     <button onClick={onClose} className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)]">
                         <X size={18} />

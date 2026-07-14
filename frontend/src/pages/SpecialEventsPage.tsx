@@ -49,7 +49,7 @@ export default function SpecialEventsPage() {
                 }));
             setEvents(mapped);
         } catch {
-            showToast('error', 'ಘಟನೆಗಳ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ (Failed to load events)');
+            showToast('error', 'ಘಟನೆಗಳ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
         } finally {
             setLoading(false);
         }
@@ -74,13 +74,13 @@ export default function SpecialEventsPage() {
     };
 
     const handleDeleteEvent = async (s: SpecialEventFormData) => {
-        if (!confirm(`${s.Description} ಅಳಿಸಬೇಕೇ? (Are you sure you want to delete this event?)`)) return;
+        if (!confirm(`${s.Description} ಅಳಿಸಬೇಕೇ?`)) return;
         try {
             await sevaApi.delete(s.SevaCode);
             showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
             fetchEvents();
         } catch {
-            showToast('error', 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ (Delete failed)');
+            showToast('error', 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
         }
     };
 
@@ -167,7 +167,7 @@ export default function SpecialEventsPage() {
             <div className="flex flex-col sm:flex-row justify-between gap-3 items-center bg-[var(--glass-bg)] border border-[var(--glass-border)] p-2 rounded-2xl">
                 <SearchBar
                     onSearch={setSearchQuery}
-                    placeholder="ಕೋಡ್ ಅಥವಾ ಹೆಸರಿನಿಂದ ಹುಡುಕಿ... (Search code or name)"
+                    placeholder="ಕೋಡ್ ಅಥವಾ ಹೆಸರಿನಿಂದ ಹುಡುಕಿ..."
                 />
                 <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
                     <button
@@ -198,7 +198,7 @@ export default function SpecialEventsPage() {
             {filteredAndSorted.length === 0 ? (
                 <div className="text-center py-16 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
                     <Sparkles size={48} className="mx-auto text-[var(--text-secondary)] opacity-20 mb-4" />
-                    <p className="text-[var(--text-secondary)] font-medium">ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆ ಕಂಡುಬಂದಿಲ್ಲ (No special events found)</p>
+                    <p className="text-[var(--text-secondary)] font-medium">ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆ ಕಂಡುಬಂದಿಲ್ಲ</p>
                 </div>
             ) : viewMode === 'grid' ? (
                 // GRID VIEW
@@ -343,7 +343,7 @@ export default function SpecialEventsPage() {
                 onSubmit={handleSaveEvent}
                 initialData={editEvent || undefined}
                 isEdit={!!editEvent}
-                title={editEvent ? 'ಘಟನೆ ತಿದ್ದುಪಡಿ ಮಾಡಿ (Edit Event)' : 'ಹೊಸ ವಿಶೇಷ ಘಟನೆ ಸೇರಿಸಿ (Add Event)'}
+                title={editEvent ? 'ಘಟನೆ ತಿದ್ದುಪಡಿ ಮಾಡಿ' : 'ಹೊಸ ವಿಶೇಷ ಘಟನೆ ಸೇರಿಸಿ'}
             />
         </div>
     );

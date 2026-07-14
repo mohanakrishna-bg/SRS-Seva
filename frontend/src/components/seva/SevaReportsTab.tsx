@@ -27,7 +27,7 @@ export default function SevaReportsTab() {
             setSummary(res.data);
         } catch (error: any) {
             console.error('Failed to fetch summary:', error);
-            showToast('error', 'ವರದಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ (Failed to fetch report)');
+            showToast('error', 'ವರದಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsLoading(false);
         }
@@ -61,7 +61,7 @@ export default function SevaReportsTab() {
                     onClick={handlePrint}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white font-bold rounded-xl transition-colors shadow-lg shadow-[var(--primary)]/20 hover:bg-[var(--primary-hover)]"
                 >
-                    <Printer size={18} /> ಮುದ್ರಿಸಿ (Print Report)
+                    <Printer size={18} /> ಮುದ್ರಿಸಿ
                 </button>
             </div>
 
@@ -69,11 +69,11 @@ export default function SevaReportsTab() {
             <div className="flex-1 overflow-y-auto print:overflow-visible">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-48 text-[var(--text-secondary)]">
-                        ಲೋಡ್ ಆಗುತ್ತಿದೆ... (Loading...)
+                        ಲೋಡ್ ಆಗುತ್ತಿದೆ...
                     </div>
                 ) : !summary ? (
                     <div className="flex items-center justify-center h-48 text-[var(--text-secondary)]">
-                        ಯಾವುದೇ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ (No data available)
+                        ಯಾವುದೇ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ
                     </div>
                 ) : (
                     <div className="max-w-4xl mx-auto space-y-8 pb-8 print:p-0">
@@ -81,8 +81,8 @@ export default function SevaReportsTab() {
                         {/* Print Header */}
                         <div className="hidden print:block text-center mb-8 border-b-2 border-black pb-4">
                             <h1 className="text-2xl font-bold">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</h1>
-                            <h2 className="text-xl">ದೈನಂದಿನ ಸೇವಾ ವರದಿ (Daily Seva Report)</h2>
-                            <p className="mt-2 font-mono">ದಿನಾಂಕ (Date): {selectedDate}</p>
+                            <h2 className="text-xl">ದೈನಂದಿನ ಸೇವಾ ವರದಿ</h2>
+                            <p className="mt-2 font-mono">ದಿನಾಂಕ: {selectedDate}</p>
                         </div>
 
                         {/* Top KPI Cards */}
@@ -92,7 +92,7 @@ export default function SevaReportsTab() {
                                     <FileText size={24} />
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಒಟ್ಟು ಸೇವೆಗಳು (Total Registrations)</div>
+                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಒಟ್ಟು ಸೇವೆಗಳು</div>
                                     <div className="text-3xl font-bold text-[var(--text-primary)]">{summary.total_registrations}</div>
                                 </div>
                             </div>
@@ -102,7 +102,7 @@ export default function SevaReportsTab() {
                                     <Activity size={24} />
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಆದಾಯ (Total Income)</div>
+                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಆದಾಯ</div>
                                     <div className="text-3xl font-bold text-emerald-500">₹{summary.total_income}</div>
                                 </div>
                             </div>
@@ -112,7 +112,7 @@ export default function SevaReportsTab() {
                                     <PieChart size={24} />
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ವೆಚ್ಚ (Total Expense)</div>
+                                    <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ವೆಚ್ಚ</div>
                                     <div className="text-3xl font-bold text-red-500">₹{summary.total_expense}</div>
                                 </div>
                             </div>
@@ -123,16 +123,16 @@ export default function SevaReportsTab() {
                             <div className="p-4 border-b border-[var(--glass-border)] bg-black/5 dark:bg-white/5 print:bg-gray-100">
                                 <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2">
                                     <PieChart size={18} className="text-[var(--primary)]" />
-                                    ಪಾವತಿ ವಿವರ (Payment Breakdown)
+                                    ಪಾವತಿ ವಿವರ
                                 </h3>
                             </div>
                             <div className="p-0">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-black/5 dark:bg-white/5 print:bg-gray-50 border-b border-[var(--glass-border)] print:border-gray-300 text-xs uppercase tracking-wider text-[var(--text-secondary)]">
-                                            <th className="px-6 py-3 font-bold">ವಿಧಾನ (Mode)</th>
-                                            <th className="px-6 py-3 font-bold text-right">ಎಣಿಕೆ (Count)</th>
-                                            <th className="px-6 py-3 font-bold text-right">ಮೊತ್ತ (Amount)</th>
+                                            <th className="px-6 py-3 font-bold">ವಿಧಾನ</th>
+                                            <th className="px-6 py-3 font-bold text-right">ಎಣಿಕೆ</th>
+                                            <th className="px-6 py-3 font-bold text-right">ಮೊತ್ತ</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-300">
@@ -146,7 +146,7 @@ export default function SevaReportsTab() {
                                         {Object.keys(summary.payment_breakdown || {}).length === 0 && (
                                             <tr>
                                                 <td colSpan={3} className="px-6 py-8 text-center text-[var(--text-secondary)]">
-                                                    ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಪಾವತಿಗಳಿಲ್ಲ (No payments for this date)
+                                                    ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಪಾವತಿಗಳಿಲ್ಲ
                                                 </td>
                                             </tr>
                                         )}
@@ -154,7 +154,7 @@ export default function SevaReportsTab() {
                                     {Object.keys(summary.payment_breakdown || {}).length > 0 && (
                                         <tfoot className="border-t-2 border-[var(--glass-border)] print:border-gray-400 bg-black/5 dark:bg-white/5 print:bg-gray-100">
                                             <tr>
-                                                <td className="px-6 py-4 font-bold text-[var(--text-primary)] text-right" colSpan={2}>ಒಟ್ಟು (Total):</td>
+                                                <td className="px-6 py-4 font-bold text-[var(--text-primary)] text-right" colSpan={2}>ಒಟ್ಟು:</td>
                                                 <td className="px-6 py-4 text-right font-bold text-emerald-600 text-lg">₹{summary.total_income}</td>
                                             </tr>
                                         </tfoot>

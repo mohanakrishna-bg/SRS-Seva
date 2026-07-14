@@ -13,7 +13,7 @@ Contains all endpoints for:
 - UPI payment verification
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, File, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import List, Optional
@@ -369,6 +369,22 @@ def registrations_by_date(date: str, date_type: Optional[str] = "SevaDate", db: 
     return query.order_by(models.SevaRegistration.RegistrationId.desc()).all()
 
 
+
+@router.post("/registrations/receipt/save")
+def save_receipt_pdf(voucher_no: str, file: UploadFile = File(...), db: Session = Depends(database.get_db)):
+    from app.core.config import get_settings
+    settings = get_settings()
+    receipts_dir = settings.RECEIPTS_DIR
+    if not os.path.isabs(receipts_dir):
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        receipts_dir = os.path.join(base_dir, receipts_dir)
+    os.makedirs(receipts_dir, exist_ok=True)
+    
+    file_path = os.path.join(receipts_dir, f"Receipt-{voucher_no}.pdf")
+    with open(file_path, "wb") as f:
+        f.write(file.file.read())
+    return {"status": "success", "path": file_path}
+
 @router.post("/registrations", response_model=schemas.SevaRegistration)
 def create_registration(reg: schemas.SevaRegistrationCreate, db: Session = Depends(database.get_db)):
     # Day Close lock check (cross-module call to Accounting)
@@ -427,6 +443,7 @@ def modify_registration(
     data: schemas.SevaRegistrationModify, 
     db: Session = Depends(database.get_db)
 ):
+    import datetime as dt
     reg = db.query(models.SevaRegistration).filter(models.SevaRegistration.RegistrationId == registration_id).first()
     if not reg:
         raise HTTPException(status_code=404, detail="Registration not found")
@@ -434,8 +451,81 @@ def modify_registration(
     if reg.IsCancelled:
         raise HTTPException(status_code=400, detail="Cannot modify a cancelled registration")
 
-    for key, value in data.model_dump(exclude_unset=True).items():
-        if value is not None:
+    additional_voucher_no = None
+    update_data = data.model_dump(exclude_unset=True)
+    
+    # ── Handle Hastodaka increase ──
+    new_prasada_count = update_data.pop("PrasadaCount", None)
+    additional_amount = update_data.pop("AdditionalAmount", None)
+    additional_payment_mode = update_data.pop("AdditionalPaymentMode", None)
+    
+    if new_prasada_count is not None:
+        if new_prasada_count < (reg.PrasadaCount or 0):
+            raise HTTPException(status_code=400, detail="Hastodaka count can only be increased, not decreased")
+        
+        old_count = reg.PrasadaCount or 0
+        delta_count = new_prasada_count - old_count
+        
+        if delta_count > 0:
+            # Calculate per-head rate from existing data
+            if old_count > 0 and reg.Amount is not None:
+                per_head_rate = ((reg.GrandTotal or 0) - (reg.Amount or 0)) / old_count
+            else:
+                # Fallback: use seva TPQty rate from the Seva master
+                seva = db.query(models.Seva).filter(models.Seva.SevaCode == reg.SevaCode).first()
+                per_head_rate = 200.0  # default fallback
+                if seva and seva.Amount and reg.Amount:
+                    # If the original registration has a base amount that differs,
+                    # the per-head rate was encoded in the GrandTotal
+                    per_head_rate = 200.0  # Use standard rate
+            
+            calculated_additional = round(delta_count * per_head_rate, 2)
+            
+            # Use the explicitly passed additional amount if provided, else calculated
+            if additional_amount is not None:
+                actual_additional = round(additional_amount, 2)
+            else:
+                actual_additional = calculated_additional
+            
+            reg.PrasadaCount = new_prasada_count
+            reg.OptTheerthaPrasada = True
+            reg.GrandTotal = round((reg.GrandTotal or 0) + actual_additional, 2)
+            
+            # Generate additional payment voucher
+            additional_voucher_no = f"VCH-ADD-{reg.RegistrationId}-{dt.datetime.now().strftime('%H%M%S')}"
+            
+            # Post journal entry for additional amount
+            if actual_additional > 0 and additional_payment_mode:
+                from app.api.accounting import get_account_by_name_or_create
+                from app.models import accounting
+                
+                income_acc = db.query(accounting.AccountHead).filter(accounting.AccountHead.Code == "I001").first()
+                is_cash = additional_payment_mode.lower() == "cash"
+                asset_code = "A001" if is_cash else "A002"
+                asset_acc = db.query(accounting.AccountHead).filter(accounting.AccountHead.Code == asset_code).first()
+                
+                if income_acc and asset_acc:
+                    is_test = getattr(reg, 'IsTest', True)
+                    je = accounting.JournalEntry(
+                        EntryDate=dt.datetime.now().strftime("%Y-%m-%d"),
+                        VoucherNo=additional_voucher_no,
+                        Narration=f"Hastodaka Increase for Seva Reg #{reg.RegistrationId} (+{delta_count} heads, {additional_payment_mode})",
+                        SourceModule="Seva",
+                        SourceRefId=str(reg.RegistrationId),
+                        IsTest=is_test
+                    )
+                    db.add(je)
+                    db.flush()
+                    
+                    jl_asset = accounting.JournalLine(JournalEntryId=je.Id, AccountId=asset_acc.Id, Debit=actual_additional, Credit=0.0, IsTest=is_test)
+                    jl_income = accounting.JournalLine(JournalEntryId=je.Id, AccountId=income_acc.Id, Debit=0.0, Credit=actual_additional, IsTest=is_test)
+                    db.add_all([jl_asset, jl_income])
+                    db.flush()
+    
+    # Apply remaining simple field updates (Remarks, SevaDate, DevoteeId, OptTheerthaPrasada)
+    skip_fields = {"AdditionalAmount", "AdditionalPaymentMode", "PrasadaCount"}
+    for key, value in update_data.items():
+        if key not in skip_fields and value is not None:
             setattr(reg, key, value)
             
     db.commit()

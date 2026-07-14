@@ -28,15 +28,15 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onEdit, 
     if (!devotee) return null;
 
     const details = [
-        { label: 'ಹೆಸರು (Name)', value: devotee.Name, icon: UserCircle2 },
-        { label: 'ಫೋನ್ (Phone)', value: devotee.Phone, icon: Phone },
-        { label: 'ವಾಟ್ಸ್ಆಪ್ (WhatsApp)', value: devotee.WhatsApp_Phone, icon: Phone },
-        { label: 'ಇಮೇಲ್ (Email)', value: devotee.Email, icon: Mail },
-        { label: 'ಗೋತ್ರ (Gotra)', value: devotee.Gotra },
-        { label: 'ನಕ್ಷತ್ರ (Nakshatra)', value: devotee.Nakshatra },
-        { label: 'ನಗರ (City)', value: devotee.City, icon: MapPin },
-        { label: 'ಪಿನ್ ಕೋಡ್ (PIN Code)', value: devotee.PinCode },
-        { label: 'ವಿಳಾಸ (Address)', value: devotee.Address, icon: MapPin, full: true },
+        { label: 'ಹೆಸರು', value: devotee.Name, icon: UserCircle2 },
+        { label: 'ಫೋನ್', value: devotee.Phone, icon: Phone },
+        { label: 'ವಾಟ್ಸ್ಆಪ್', value: devotee.WhatsApp_Phone, icon: Phone },
+        { label: 'ಇಮೇಲ್', value: devotee.Email, icon: Mail },
+        { label: 'ಗೋತ್ರ', value: devotee.Gotra },
+        { label: 'ನಕ್ಷತ್ರ', value: devotee.Nakshatra },
+        { label: 'ನಗರ', value: devotee.City, icon: MapPin },
+        { label: 'ಪಿನ್ ಕೋಡ್', value: devotee.PinCode },
+        { label: 'ವಿಳಾಸ', value: devotee.Address, icon: MapPin, full: true },
     ].filter(d => d.value);
 
     return (
@@ -94,20 +94,20 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onEdit, 
                                     onClick={() => onEdit(devotee)}
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 transition-all"
                                 >
-                                    <Edit3 size={16} /> ಬದಲಿಸಿ (Edit)
+                                    <Edit3 size={16} /> ಬದಲಿಸಿ
                                 </button>
                                 <button
                                     onClick={() => onDelete(devotee)}
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 transition-all"
                                 >
-                                    <Trash2 size={16} /> ಅಳಿಸಿ (Delete)
+                                    <Trash2 size={16} /> ಅಳಿಸಿ
                                 </button>
                             </div>
                             <button
                                 onClick={() => onBookSeva(devotee)}
                                 className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all"
                             >
-                                <Receipt size={16} /> ಸೇವಾ ಬುಕಿಂಗ್ (Book Seva)
+                                <Receipt size={16} /> ಸೇವಾ ಬುಕಿಂಗ್
                             </button>
                         </div>
                     </motion.div>

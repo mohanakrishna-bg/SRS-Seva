@@ -159,7 +159,7 @@ export const PaymentVoucherForm: React.FC = () => {
     return (
         <div className="glass-card max-w-4xl mx-auto my-6 p-8 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-2xl">
             <div className="border-b border-white/10 pb-4 mb-6">
-                <h2 className="font-heading text-2xl font-bold text-white tracking-tight">ಪಾವತಿ ವೋಚರ್ ನಮೂದು (Payment Voucher Entry)</h2>
+                <h2 className="font-heading text-2xl font-bold text-white tracking-tight">ಪಾವತಿ ವೋಚರ್ ನಮೂದು</h2>
                 <p className="text-sm text-[#7a5c3e] dark:text-[#e67e22]/70 mt-1">
                     Log operational expenditures and automatically post balanced double-entry ledger items.
                 </p>

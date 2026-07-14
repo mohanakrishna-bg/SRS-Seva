@@ -357,7 +357,7 @@ export default function SettingsPage() {
                 <div className="glass-card lg:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-[var(--primary)] text-xl">🏦</span>
-                        <h3 className="font-bold text-lg">ಬ್ಯಾಂಕಿಂಗ್ ಮತ್ತು ಆರ್ಥಿಕ ಮಾಹಿತಿ (Banking & Financial)</h3>
+                        <h3 className="font-bold text-lg">ಬ್ಯಾಂಕಿಂಗ್ ಮತ್ತು ಆರ್ಥಿಕ ಮಾಹಿತಿ</h3>
                     </div>
                     <div className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                         </div>
                         {/* QR Code Upload */}
                         <div className="mt-6 border-t border-black/10 dark:border-white/10 pt-4">
-                            {renderImageSection('upiQrCode', 'ಯುಪಿಐ ಕ್ಯೂಆರ್ ಕೋಡ್ (UPI QR Code)', useRef<HTMLInputElement>(null), 'w-20 h-20')}
+                            {renderImageSection('upiQrCode', 'ಯುಪಿಐ ಕ್ಯೂಆರ್ ಕೋಡ್', useRef<HTMLInputElement>(null), 'w-20 h-20')}
                         </div>
                     </div>
                     <div className="mt-4 flex justify-end">
@@ -395,10 +395,10 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <Clock size={20} className="text-[var(--primary)]" />
-                            <h3 className="font-bold text-lg">ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ (Daily Routine)</h3>
+                            <h3 className="font-bold text-lg">ದೈನಂದಿನ ವೇಳಾಪಟ್ಟಿ</h3>
                         </div>
                         <button onClick={addScheduleItem} className="flex items-center gap-1 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 px-3 py-1.5 rounded-lg transition-colors font-medium">
-                            <Plus size={16} /> ಸೇರಿಸಿ (Add)
+                            <Plus size={16} /> ಸೇರಿಸಿ
                         </button>
                     </div>
                     

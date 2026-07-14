@@ -262,7 +262,7 @@ const AccountingPage: React.FC = () => {
                     <div className="glass-card w-full max-w-sm border border-white/10 rounded-2xl bg-[#2c1810] dark:bg-slate-900 shadow-2xl p-6">
                         <h3 className="font-heading text-lg font-bold text-white mb-2 flex items-center gap-2">
                             <Lock className="w-5 h-5 text-[#FF9933]" />
-                            ಪುಸ್ತಕಗಳನ್ನು ಮುಚ್ಚಿ (Close Daily Books)
+                            ಪುಸ್ತಕಗಳನ್ನು ಮುಚ್ಚಿ
                         </h3>
                         <p className="text-xs text-white/50 mb-4 leading-relaxed">
                             Select a date to close daily books. Once locked, counter staff can no longer book sevas or log expenses for that date.

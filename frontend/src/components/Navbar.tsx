@@ -7,9 +7,9 @@ interface NavbarProps {
 }
 
 const navItems = [
-    { id: 'Home', label: 'ಕೇಂದ್ರ', icon: Home, tooltip: 'ಹೋಮ್ (Home)' },
-    { id: 'Manage', label: 'ನಿರ್ವಹಣೆ', icon: ClipboardList, tooltip: 'ನಿರ್ವಹಣೆ (Manage)' },
-    { id: 'Settings', label: 'ಸೆಟ್ಟಿಂಗ್ಸ್', icon: Settings, tooltip: 'ಸೆಟ್ಟಿಂಗ್ಸ್ (Settings)' },
+    { id: 'Home', label: 'ಕೇಂದ್ರ', icon: Home, tooltip: 'ಹೋಮ್' },
+    { id: 'Manage', label: 'ನಿರ್ವಹಣೆ', icon: ClipboardList, tooltip: 'ನಿರ್ವಹಣೆ' },
+    { id: 'Settings', label: 'ಸೆಟ್ಟಿಂಗ್ಸ್', icon: Settings, tooltip: 'ಸೆಟ್ಟಿಂಗ್ಸ್' },
 ];
 
 export default function Navbar({ activeTab, onNavigate }: NavbarProps) {

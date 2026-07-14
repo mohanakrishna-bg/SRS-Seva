@@ -364,27 +364,83 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
             {/* Details Modal */}
             {viewItem && (
                 <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setViewItem(null)}>
-                    <div className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl p-6 max-w-lg w-full" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-[var(--text-primary)]">{viewItem.Name}</h3>
-                            <button onClick={() => setViewItem(null)}><X size={18} /></button>
-                        </div>
-                        {getImgSrc(viewItem.ImageLink, viewItem.Category) && (
-                            <img src={getImgSrc(viewItem.ImageLink, viewItem.Category)!} alt="" className="w-full h-48 object-cover rounded-xl mb-4" />
-                        )}
-                        <div className="space-y-2 text-sm text-[var(--text-secondary)] mb-6">
-                            <p>Category: <span className="font-bold text-[var(--text-primary)]">{viewItem.Category || '—'}</span></p>
-                            <p>Valuation: <span className="font-bold text-emerald-500 font-mono">{fmt(viewItem.TotalValue)}</span></p>
-                        </div>
-                        <div className="flex gap-2 justify-end">
-                            {viewItem.IsDeleted ? (
-                                <button onClick={() => handleRestore(viewItem.ItemId)} className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm">Restore</button>
+                    <div className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl p-0 max-w-4xl w-full overflow-hidden flex flex-col md:flex-row" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Left Side: Image */}
+                        <div className="w-full md:w-1/2 bg-black/5 dark:bg-white/5 relative min-h-[300px] flex items-center justify-center border-b md:border-b-0 md:border-r border-[var(--glass-border)]">
+                            {getImgSrc(viewItem.ImageLink, viewItem.Category) ? (
+                                <img src={getImgSrc(viewItem.ImageLink, viewItem.Category)!} alt="" className="absolute inset-0 w-full h-full object-cover" />
                             ) : (
-                                <>
-                                    <button onClick={() => { setEditItem(viewItem); setViewItem(null); setIsModalOpen(true); }} className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-500 font-bold text-sm">Edit</button>
-                                    <button onClick={() => handleSoftDelete(viewItem.ItemId)} className="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm">Delete</button>
-                                </>
+                                <div className="text-[var(--text-secondary)] flex flex-col items-center opacity-30">
+                                    <ImageIcon size={48} className="mb-2" />
+                                    <span>No Image Available</span>
+                                </div>
                             )}
+                        </div>
+                        
+                        {/* Right Side: Information */}
+                        <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="text-2xl font-black text-[var(--text-primary)] leading-tight">{viewItem.Name}</h3>
+                                    <p className="text-sm font-mono text-[var(--text-secondary)] mt-1">ID: #{viewItem.ItemId}</p>
+                                </div>
+                                <button onClick={() => setViewItem(null)} className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] rounded-full transition-colors"><X size={20} /></button>
+                            </div>
+                            
+                            <div className="space-y-4 text-sm mb-8 flex-1">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Category</p>
+                                        <p className="font-bold text-[var(--text-primary)]">{viewItem.Category || '—'}</p>
+                                    </div>
+                                    {itemType === 'asset' ? (
+                                        <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Material</p>
+                                            <p className="font-bold text-[var(--text-primary)]">{viewItem.Material || '—'}</p>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">UOM</p>
+                                            <p className="font-bold text-[var(--text-primary)]">{viewItem.UOM || 'Nos'}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Unit Price</p>
+                                        <p className="font-mono font-bold text-[var(--text-primary)]">{fmt(viewItem.UnitPrice)}</p>
+                                    </div>
+                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Quantity</p>
+                                        <p className="font-mono font-bold text-[var(--text-primary)]">{viewItem.Quantity}</p>
+                                    </div>
+                                </div>
+                                
+                                {itemType === 'asset' && viewItem.WeightGrams && (
+                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Weight</p>
+                                        <p className="font-bold text-[var(--text-primary)]">{viewItem.WeightGrams}g</p>
+                                    </div>
+                                )}
+                                
+                                <div className="p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl">
+                                    <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Total Valuation</p>
+                                    <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{fmt(viewItem.TotalValue)}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-3 justify-end mt-auto pt-6 border-t border-[var(--glass-border)]">
+                                {viewItem.IsDeleted ? (
+                                    <button onClick={() => handleRestore(viewItem.ItemId)} className="flex-1 px-4 py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/20">Restore Item</button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => handleSoftDelete(viewItem.ItemId)} className="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20 transition-colors">Delete</button>
+                                        <button onClick={() => { setEditItem(viewItem); setViewItem(null); setIsModalOpen(true); }} className="flex-1 px-4 py-3 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors">Edit Item</button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

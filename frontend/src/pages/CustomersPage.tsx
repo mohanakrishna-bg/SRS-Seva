@@ -80,7 +80,7 @@ export default function CustomersPage() {
             const res = await devoteeApi.list();
             setAllDevotees(res.data);
         } catch {
-            showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ (Failed to load devotees)');
+            showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
         } finally {
             setLoading(false);
         }
@@ -140,7 +140,7 @@ export default function CustomersPage() {
         if (advDateTo) params.date_to = advDateTo;
 
         if (Object.keys(params).length === 0) {
-            showToast('info', 'ಯಾವುದಾದರೂ ಶೋಧ ಮಾನದಂಡ ನಮೂದಿಸಿ (Enter at least one criteria)');
+            showToast('info', 'ಯಾವುದಾದರೂ ಶೋಧ ಮಾನದಂಡ ನಮೂದಿಸಿ');
             return;
         }
 
@@ -149,9 +149,9 @@ export default function CustomersPage() {
             const res = await devoteeApi.searchAdvanced(params);
             setAllDevotees(res.data);
             setCurrentPage(1);
-            showToast('success', `${res.data.length} ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿವೆ (results found)`);
+            showToast('success', `${res.data.length} ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿವೆ`);
         } catch {
-            showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲ (Search failed)');
+            showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲ');
         } finally {
             setLoading(false);
         }
@@ -185,22 +185,22 @@ export default function CustomersPage() {
             fetchDevotees();
         } catch (err: any) {
             const detail = err?.response?.data?.detail;
-            showToast('error', detail || 'ಕಾರ್ಯ ವಿಫಲ (Operation failed)');
+            showToast('error', detail || 'ಕಾರ್ಯ ವಿಫಲ');
             setLoading(false);
         }
     };
 
     const handleSoftDelete = async (d: Devotee) => {
         // Stop row click (details) propagation is already done in row buttons
-        if (!confirm(`${d.Name} ಅಳಿಸಬೇಕೇ? (Delete Devotee?)`)) return;
+        if (!confirm(`${d.Name} ಅಳಿಸಬೇಕೇ?`)) return;
         try {
             setLoading(true);
             await devoteeApi.delete(d.DevoteeId);
-            showToast('success', `${d.Name} ಅಳಿಸಲಾಗಿದೆ (Soft deleted)`);
+            showToast('success', `${d.Name} ಅಳಿಸಲಾಗಿದೆ`);
             setViewDevotee(null); 
             fetchDevotees();
         } catch {
-            showToast('error', 'ಅಳಿಸಲಾಗಲಿಲ್ಲ (Delete failed)');
+            showToast('error', 'ಅಳಿಸಲಾಗಲಿಲ್ಲ');
             setLoading(false);
         }
     };
@@ -355,7 +355,7 @@ export default function CustomersPage() {
                             {advSevaCodes.length > 0 && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಮೊದಲ ದಿನಾಂಕ (From)</label>
+                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಮೊದಲ ದಿನಾಂಕ</label>
                                         <input
                                             type="date"
                                             value={advDateFrom}
@@ -372,7 +372,7 @@ export default function CustomersPage() {
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಕೊನೆಯ ದಿನಾಂಕ (To)</label>
+                                        <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ನೋಂದಣಿ ಕೊನೆಯ ದಿನಾಂಕ</label>
                                         <input
                                             type="date"
                                             value={advDateTo}
@@ -395,7 +395,7 @@ export default function CustomersPage() {
                                 onClick={handleAdvancedSearch}
                                 className="px-6 py-2.5 rounded-xl bg-[var(--primary)] text-white font-bold hover:bg-[var(--primary-hover)] transition-colors flex items-center gap-2"
                             >
-                                <Search size={16} /> ಹುಡುಕಿ (Search)
+                                <Search size={16} /> ಹುಡುಕಿ
                             </button>
                         </div>
                     </motion.div>

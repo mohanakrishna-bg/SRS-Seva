@@ -44,15 +44,15 @@ const fields: {
     multiline?: boolean;
     colSpan2?: boolean;
 }[] = [
-    { key: 'Name', label: 'ಪೂರ್ಣ ಹೆಸರು (Name)', placeholder: 'ಭಕ್ತರ ಹೆಸರು ನಮೂದಿಸಿ', voiceEnabled: true, canTransliterate: true },
-    { key: 'Phone', label: 'ಫೋನ್ (Phone)', type: 'tel', placeholder: '9876543210' },
-    { key: 'Gotra', label: 'ಗೋತ್ರ (Gotra)', placeholder: 'ಉದಾ: ಕಾಶ್ಯಪ', voiceEnabled: true, canTransliterate: true },
-    { key: 'Nakshatra', label: 'ನಕ್ಷತ್ರ (Nakshatra)', placeholder: 'ಉದಾ: ಅಶ್ವಿನಿ', voiceEnabled: true, canTransliterate: true },
-    { key: 'WhatsApp_Phone', label: 'ವಾಟ್ಸ್ಆಪ್ (WhatsApp)', type: 'tel', placeholder: '9876543210' },
-    { key: 'Email', label: 'ಇಮೇಲ್ (Email)', type: 'email', placeholder: 'email@example.com' },
-    { key: 'Address', label: 'ವಿಳಾಸ (Address)', placeholder: 'ರಸ್ತೆ ವಿಳಾಸ', voiceEnabled: true, canTransliterate: true, multiline: true, colSpan2: true },
-    { key: 'City', label: 'ನಗರ (City)', placeholder: 'Mysore', voiceEnabled: true, canTransliterate: true },
-    { key: 'PinCode', label: 'ಪಿನ್ ಕೋಡ್ (PIN Code)', type: 'text', placeholder: '570001' },
+    { key: 'Name', label: 'ಪೂರ್ಣ ಹೆಸರು', placeholder: 'ಭಕ್ತರ ಹೆಸರು ನಮೂದಿಸಿ', voiceEnabled: true, canTransliterate: true },
+    { key: 'Phone', label: 'ಫೋನ್', type: 'tel', placeholder: '9876543210' },
+    { key: 'Gotra', label: 'ಗೋತ್ರ', placeholder: 'ಉದಾ: ಕಾಶ್ಯಪ', voiceEnabled: true, canTransliterate: true },
+    { key: 'Nakshatra', label: 'ನಕ್ಷತ್ರ', placeholder: 'ಉದಾ: ಅಶ್ವಿನಿ', voiceEnabled: true, canTransliterate: true },
+    { key: 'WhatsApp_Phone', label: 'ವಾಟ್ಸ್ಆಪ್', type: 'tel', placeholder: '9876543210' },
+    { key: 'Email', label: 'ಇಮೇಲ್', type: 'email', placeholder: 'email@example.com' },
+    { key: 'Address', label: 'ವಿಳಾಸ', placeholder: 'ರಸ್ತೆ ವಿಳಾಸ', voiceEnabled: true, canTransliterate: true, multiline: true, colSpan2: true },
+    { key: 'City', label: 'ನಗರ', placeholder: 'Mysore', voiceEnabled: true, canTransliterate: true },
+    { key: 'PinCode', label: 'ಪಿನ್ ಕೋಡ್', type: 'text', placeholder: '570001' },
 ];
 
 export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ', loading = false }: CustomerFormProps) {
@@ -132,7 +132,7 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
         return list.flatMap(i => [i.en, i.kn]);
     };
 
-    const displayTitle = form.DevoteeId && !initialData ? `${form.Name} ನವೀಕರಿಸಿ (Update)` : title;
+    const displayTitle = form.DevoteeId && !initialData ? `${form.Name} ನವೀಕರಿಸಿ` : title;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={displayTitle} maxWidth="max-w-2xl">
@@ -201,7 +201,7 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                             {(f.key === 'Name' || f.key === 'Phone') && showDropdown[f.key] && searchResults.length > 0 && (
                                 <div className="absolute z-50 w-full mt-1 bg-white dark:bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg shadow-xl max-h-60 overflow-y-auto">
                                     <div className="sticky top-0 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-xs px-3 py-1.5 font-medium border-b border-[var(--glass-border)]">
-                                        ಈ ಭಕ್ತರು ಮೊದಲೇ ಇದ್ದಾರೆ (Existing Devotees)
+                                        ಈ ಭಕ್ತರು ಮೊದಲೇ ಇದ್ದಾರೆ
                                     </div>
                                     {searchResults.map((c: any) => (
                                         <div
@@ -243,14 +243,14 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                         onClick={onClose}
                         className="px-5 py-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors text-sm"
                     >
-                        ರದ್ದುಮಾಡಿ (Cancel)
+                        ರದ್ದುಮಾಡಿ
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
                         className={`px-5 py-2.5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white font-semibold text-sm shadow-lg hover:shadow-orange-500/25 transition-shadow ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {initialData || form.DevoteeId ? (loading ? 'ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ...' : 'ನವೀಕರಿಸಿ (Update)') : (loading ? 'ಸೇರಿಸಲಾಗುತ್ತಿದೆ...' : 'ಸೇರಿಸಿ (Add)')}
+                        {initialData || form.DevoteeId ? (loading ? 'ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ...' : 'ನವೀಕರಿಸಿ') : (loading ? 'ಸೇರಿಸಲಾಗುತ್ತಿದೆ...' : 'ಸೇರಿಸಿ')}
                     </button>
                 </div>
             </form>

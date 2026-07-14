@@ -116,13 +116,13 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                 {/* 1. Basic Info */}
                 <div className="space-y-4">
                     <h4 className="font-bold text-[var(--primary)] border-b border-[var(--glass-border)] pb-2 text-sm uppercase tracking-wider">
-                        ಮೂಲ ವಿವರಣೆ (Basic Info)
+                        ಮೂಲ ವಿವರಣೆ
                     </h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಘಟನೆಯ ಹೆಸರು (Event Name - Kannada)
+                                ಘಟನೆಯ ಹೆಸರು
                             </label>
                             <TransliteratedInput
                                 value={form.Description}
@@ -147,7 +147,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
 
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಸೇವಾ ಕೋಡ್ (Event Code)
+                                ಸೇವಾ ಕೋಡ್
                             </label>
                             <input
                                 type="text"
@@ -161,7 +161,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
 
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಅಂದಾಜು ಶುಲ್ಕ (Base Amount)
+                                ಅಂದಾಜು ಶುಲ್ಕ
                             </label>
                             <input
                                 type="number"
@@ -177,13 +177,13 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                 {/* 2. Scheduling */}
                 <div className="space-y-4">
                     <h4 className="font-bold text-[var(--primary)] border-b border-[var(--glass-border)] pb-2 text-sm uppercase tracking-wider">
-                        ವೇಳಾಪಟ್ಟಿ (Scheduling)
+                        ವೇಳಾಪಟ್ಟಿ
                     </h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ದಿನಾಂಕ / ಆರಂಭಿಕ ದಿನಾಂಕ (Date/Start)
+                                ದಿನಾಂಕ / ಆರಂಭಿಕ ದಿನಾಂಕ
                             </label>
                             <input
                                 type="date"
@@ -196,18 +196,18 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
 
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಪುನರಾವರ್ತನೆ (Recurrence)
+                                ಪುನರಾವರ್ತನೆ
                             </label>
                             <select
                                 value={form.RecurrenceRule || 'None'}
                                 onChange={(e) => handleChange('RecurrenceRule', e.target.value)}
                                 className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                             >
-                                <option value="None">ಪುನರಾವರ್ತನೆ ಇಲ್ಲ (Ad-Hoc / None)</option>
-                                <option value="Daily">ದೈನಂದಿನ (Daily)</option>
-                                <option value="Weekly">ಸಾಪ್ತಾಹಿಕ (Weekly)</option>
-                                <option value="Monthly">ಮಾಸಿಕ (Monthly by Date)</option>
-                                <option value="Yearly">ವಾರ್ಷಿಕ (Yearly)</option>
+                                <option value="None">ಪುನರಾವರ್ತನೆ ಇಲ್ಲ</option>
+                                <option value="Daily">ದೈನಂದಿನ</option>
+                                <option value="Weekly">ಸಾಪ್ತಾಹಿಕ</option>
+                                <option value="Monthly">ಮಾಸಿಕ</option>
+                                <option value="Yearly">ವಾರ್ಷಿಕ</option>
                             </select>
                         </div>
 
@@ -220,7 +220,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                                 className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer"
                             />
                             <label htmlFor="isAllDay" className="text-sm font-medium text-[var(--text-primary)] cursor-pointer">
-                                ದಿನವಿಡೀ ಘಟನೆ (All-Day Event)
+                                ದಿನವಿಡೀ ಘಟನೆ
                             </label>
                         </div>
 
@@ -228,7 +228,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                             <>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        ಆರಂಭದ ಸಮಯ (Start Time)
+                                        ಆರಂಭದ ಸಮಯ
                                     </label>
                                     <input
                                         type="time"
@@ -239,7 +239,7 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        ಅಂತ್ಯದ ಸಮಯ (End Time - Optional)
+                                        ಅಂತ್ಯದ ಸಮಯ
                                     </label>
                                     <input
                                         type="time"
@@ -256,10 +256,10 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                 {/* 3. Composition */}
                 <div className="space-y-4">
                     <h4 className="font-bold text-[var(--primary)] border-b border-[var(--glass-border)] pb-2 text-sm uppercase tracking-wider">
-                        ಸೇವಾ ಸಂಯೋಜನೆ (Composite Sevas - Optional)
+                        ಸೇವಾ ಸಂಯೋಜನೆ
                     </h4>
                     <p className="text-xs text-[var(--text-secondary)]">
-                        ಈ ಘಟನೆಯು ಬಹು ಸೇವೆಗಳ ಗುಂಪಾಗಿದ್ದರೆ, ಕೆಳಗೆ ಆಯ್ದುಕೊಳ್ಳಿ. (If this event is a bundle of smaller sevas, select them below.)
+                        ಈ ಘಟನೆಯು ಬಹು ಸೇವೆಗಳ ಗುಂಪಾಗಿದ್ದರೆ, ಕೆಳಗೆ ಆಯ್ದುಕೊಳ್ಳಿ.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-black/5 dark:bg-white/5 rounded-xl border border-[var(--glass-border)]">
                         {availableSevas.length === 0 && (
@@ -288,13 +288,13 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                         onClick={onClose}
                         className="px-5 py-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors text-sm"
                     >
-                        ರದ್ದುಮಾಡಿ (Cancel)
+                        ರದ್ದುಮಾಡಿ
                     </button>
                     <button
                         type="submit"
                         className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white font-semibold text-sm shadow-lg hover:shadow-orange-500/25 transition-shadow"
                     >
-                        {isEdit ? 'ನವೀಕರಿಸಿ (Update)' : 'ಸೇರಿಸಿ (Add Event)'}
+                        {isEdit ? 'ನವೀಕರಿಸಿ' : 'ಸೇರಿಸಿ'}
                     </button>
                 </div>
             </form>

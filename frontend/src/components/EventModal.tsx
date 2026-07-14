@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Plus, Trash2, Check, Pencil, Sparkles, Moon, Sun, Star } from 'lucide-react';
+import { X, Plus, Trash2, Check, Pencil, Sparkles } from 'lucide-react';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
 
@@ -8,14 +8,6 @@ interface Highlight {
     id: number;
     text: string;
     time?: string;
-}
-
-interface PanchangaData {
-    tithi: string;
-    nakshatra: string;
-    sunrise: string;
-    sunset: string;
-    indianDate: string;
 }
 
 interface EventModalProps {
@@ -26,7 +18,6 @@ interface EventModalProps {
 
 export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
     const [events, setEvents] = useState<Highlight[]>([]);
-    const [panchanga, setPanchanga] = useState<PanchangaData | null>(null);
 
     // Add/Edit State
     const [isAdding, setIsAdding] = useState(false);
@@ -56,25 +47,7 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
             setEvents([]);
         }
 
-        // Load Panchanga
-        const cacheKey = `seva_panchanga_kn_${date.toDateString()}`;
-        const cachedPanchanga = localStorage.getItem(cacheKey);
 
-        if (cachedPanchanga) {
-            setPanchanga(JSON.parse(cachedPanchanga));
-        } else {
-            // Generate Static Panchanga directly
-            const sunriseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 15, 0);
-            const staticData: PanchangaData = {
-                tithi: getTithiAtSunrise(sunriseDate),
-                nakshatra: getApproxNakshatra(date),
-                sunrise: '06:15 AM',
-                sunset: '06:42 PM',
-                indianDate: getSakaSamvatDate(date),
-            };
-            setPanchanga(staticData);
-            localStorage.setItem(cacheKey, JSON.stringify(staticData));
-        }
     }, [isOpen, date.toDateString()]);
 
     const saveEvents = (items: Highlight[]) => {
@@ -119,48 +92,29 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
                     className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-[var(--glass-border)] overflow-hidden flex flex-col md:flex-row min-h-[400px]"
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-[var(--primary)] to-amber-500 p-6 text-white relative flex-shrink-0">
-                        <div className="absolute top-0 right-0 bottom-0 w-1/2 bg-[url('/pattern.svg')] opacity-20 mix-blend-overlay" />
-
+                    <div className="bg-gradient-to-br from-[var(--primary)] to-amber-500 p-4 md:p-6 text-white relative flex-shrink-0 flex items-center justify-between">
+                        <div className="absolute top-0 right-0 bottom-0 w-1/2 bg-[url('/pattern.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
+                        <h2 className="text-xl md:text-2xl font-black relative z-10 flex items-center gap-2">
+                            <Sparkles size={24} />
+                            ವಿಶೇಷ ಸೇವೆಗಳು / ಘಟನೆಗಳು ಸಂಪಾದಿಸಿ
+                        </h2>
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 p-1.5 rounded-full bg-black/20 text-white hover:bg-black/30 transition-colors z-10"
+                            className="p-1.5 rounded-full bg-black/20 text-white hover:bg-black/30 transition-colors relative z-10"
                         >
                             <X size={20} />
                         </button>
-
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-2 opacity-90">
-                                <Calendar size={18} />
-                                <span className="text-sm font-bold uppercase tracking-wider">ದಿನಾಂಕದ ವಿವರ</span>
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-black">{formattedDate}</h2>
-                            {panchanga && <p className="text-white/80 mt-1 font-medium">{panchanga.indianDate}</p>}
-                        </div>
                     </div>
 
                     {/* Scrollable Content */}
                     <div className="p-6 overflow-y-auto overflow-x-hidden flex-1 space-y-6">
 
-                        {/* Panchanga Quick Info */}
-                        {panchanga && (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <PanchangaPill icon={<Moon size={14} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
-                                <PanchangaPill icon={<Star size={14} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
-                                <PanchangaPill icon={<Sun size={14} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
-                                <PanchangaPill icon={<Sun size={14} />} label="ಸೂರ್ಯಾಸ್ತ" value={panchanga.sunset} color="text-rose-400" />
-                            </div>
-                        )}
 
-                        <div className="w-full h-px bg-[var(--glass-border)]" />
 
                         {/* Events Section */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Sparkles size={18} className="text-[var(--primary)]" />
-                                    <h3 className="font-bold text-[var(--text-primary)] text-lg">ವಿಶೇಷ ಸೇವೆಗಳು / ಘಟನೆಗಳು</h3>
-                                </div>
+                                <div></div>
                                 <div className="flex items-center gap-3">
                                     <GlobalInputToolbar />
                                     <button
@@ -218,7 +172,7 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
                                                 <TransliteratedInput value={editText} onChange={setEditText} placeholder="ಸೇವಾ ಹೆಸರು" />
                                                 <TransliteratedInput value={editTime} onChange={setEditTime} placeholder="ಸಮಯ" />
                                                 <div className="flex shrink-0 gap-1 justify-end">
-                                                    <button onClick={saveEdit} className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all font-bold text-xs">ಉಳಿಸಿ (Save)</button>
+                                                    <button onClick={saveEdit} className="p-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all font-bold text-xs">ಉಳಿಸಿ</button>
                                                     <button onClick={() => setEditingId(null)} className="p-1.5 rounded-lg bg-black/5 text-[var(--text-secondary)] hover:bg-black/10 transition-all font-bold text-xs">✕</button>
                                                 </div>
                                             </div>
@@ -256,75 +210,4 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
     );
 }
 
-function PanchangaPill({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
-    return (
-        <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--glass-border)] rounded-xl p-2.5 flex flex-col items-center justify-center text-center">
-            <span className={`${color} mb-1.5`}>{icon}</span>
-            <p className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-0.5">{label}</p>
-            <p className="text-xs font-bold text-[var(--text-primary)] leading-tight">{value}</p>
-        </div>
-    );
-}
 
-// --- Tithi at Sunrise ---
-function getTithiAtSunrise(sunriseDate: Date): string {
-    const tithis = [
-        'ಪ್ರತಿಪದೆ', 'ದ್ವಿತೀಯಾ', 'ತೃತೀಯಾ', 'ಚತುರ್ಥೀ', 'ಪಂಚಮಿ',
-        'ಷಷ್ಟಿ', 'ಸಪ್ತಮಿ', 'ಅಷ್ಟಮಿ', 'ನವಮಿ', 'ದಶಮಿ',
-        'ಏಕಾದಶಿ', 'ದ್ವಾದಶಿ', 'ತ್ರಯೋದಶಿ', 'ಚತುರ್ದಶಿ'
-    ];
-    const epoch = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
-    const diffMs = sunriseDate.getTime() - epoch.getTime();
-    const synodicMonth = 29.53058868;
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    const lunarAge = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
-    const tithiNum = Math.floor(lunarAge / (synodicMonth / 30));
-
-    if (tithiNum < 15) {
-        const idx = tithiNum % 15;
-        if (idx === 14) return 'ಶುಕ್ಲ ಪೂರ್ಣಿಮೆ';
-        return `ಶುಕ್ಲ ${tithis[idx]}`;
-    } else {
-        const idx = (tithiNum - 15) % 15;
-        if (idx === 14) return 'ಕೃಷ್ಣ ಅಮಾವಾಸ್ಯೆ';
-        return `ಕೃಷ್ಣ ${tithis[idx]}`;
-    }
-}
-
-function getApproxNakshatra(date: Date): string {
-    const nakshatras = [
-        'ಅಶ್ವಿನಿ', 'ಭರಣಿ', 'ಕೃತ್ತಿಕಾ', 'ರೋಹಿಣಿ', 'ಮೃಗಶಿರಾ',
-        'ಆರ್ದ್ರಾ', 'ಪುನರ್ವಸು', 'ಪುಷ್ಯ', 'ಆಶ್ಲೇಷಾ', 'ಮಘಾ',
-        'ಪೂರ್ವ ಫಲ್ಗುಣಿ', 'ಉತ್ತರ ಫಲ್ಗುಣಿ', 'ಹಸ್ತ', 'ಚಿತ್ರಾ', 'ಸ್ವಾತಿ',
-        'ವಿಶಾಖಾ', 'ಅನುರಾಧಾ', 'ಜ್ಯೇಷ್ಠಾ', 'ಮೂಲಾ', 'ಪೂರ್ವಾಷಾಢಾ',
-        'ಉತ್ತರಾಷಾಢಾ', 'ಶ್ರವಣ', 'ಧನಿಷ್ಟಾ', 'ಶತಭಿಷಾ',
-        'ಪೂರ್ವಭಾದ್ರಪದಾ', 'ಉತ್ತರಭಾದ್ರಪದಾ', 'ರೇವತಿ'
-    ];
-    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-    return nakshatras[dayOfYear % 27];
-}
-
-function getSakaSamvatDate(date: Date): string {
-    const sakaMonths = [
-        'ಚೈತ್ರ', 'ವೈಶಾಖ', 'ಜ್ಯೇಷ್ಠ', 'ಆಷಾಢ',
-        'ಶ್ರಾವಣ', 'ಭಾದ್ರಪದ', 'ಆಶ್ವಿನ', 'ಕಾರ್ತಿಕ',
-        'ಮಾರ್ಗಶಿರ', 'ಪುಷ್ಯ', 'ಮಾಘ', 'ಫಾಲ್ಗುಣ'
-    ];
-
-    const marchEquinox = new Date(date.getFullYear(), 2, 22);
-    let sakaYear: number;
-    let monthIdx: number;
-
-    if (date >= marchEquinox) {
-        sakaYear = date.getFullYear() - 78;
-        const daysSinceEquinox = Math.floor((date.getTime() - marchEquinox.getTime()) / (1000 * 60 * 60 * 24));
-        monthIdx = Math.min(11, Math.floor(daysSinceEquinox / 30.4));
-    } else {
-        sakaYear = date.getFullYear() - 79;
-        const prevEquinox = new Date(date.getFullYear() - 1, 2, 22);
-        const daysSinceEquinox = Math.floor((date.getTime() - prevEquinox.getTime()) / (1000 * 60 * 60 * 24));
-        monthIdx = Math.min(11, Math.floor(daysSinceEquinox / 30.4));
-    }
-
-    return `${sakaMonths[monthIdx]}, ಶಕ ಸಂವತ್ ${sakaYear}`;
-}

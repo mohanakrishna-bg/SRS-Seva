@@ -100,7 +100,7 @@ export default function ImageInput({
                         onClick={() => fileRef.current?.click()}
                         disabled={loading}
                         className={finalIconBtnClass}
-                        title="ಫೈಲ್ ಆಯ್ಕೆ (Upload)"
+                        title="ಫೈಲ್ ಆಯ್ಕೆ"
                     >
                         <Upload size={18} />
                     </button>
@@ -110,7 +110,7 @@ export default function ImageInput({
                             onClick={() => setIsCameraModalOpen(true)}
                             disabled={loading}
                             className={finalIconBtnClass}
-                            title="ಕ್ಯಾಮೆರಾ (Camera)"
+                            title="ಕ್ಯಾಮೆರಾ"
                         >
                             <Camera size={18} />
                         </button>
@@ -129,7 +129,7 @@ export default function ImageInput({
                             type="button"
                             onClick={onClear}
                             className="p-2 rounded-lg border border-red-500/20 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors"
-                            title="ಅಳಿಸಿ (Clear)"
+                            title="ಅಳಿಸಿ"
                         >
                             <Trash2 size={18} />
                         </button>

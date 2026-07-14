@@ -49,7 +49,7 @@ export const LedgerDrilldown: React.FC<LedgerDrilldownProps> = ({ accountId, acc
                 <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
                     <div>
                         <h3 className="font-heading text-xl font-bold text-white tracking-tight">
-                            ಖಾತೆ ಉಪ-ಲೆಡ್ಜರ್ ಹೇಳಿಕೆ (Sub-ledger Statement)
+                            ಖಾತೆ ಉಪ-ಲೆಡ್ಜರ್ ಹೇಳಿಕೆ
                         </h3>
                         <p className="text-sm text-[#FF9933] font-semibold mt-1">
                             {accountName} (Chronological Transactions)
