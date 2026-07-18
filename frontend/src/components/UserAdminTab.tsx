@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Pencil, KeyRound, Trash2, Shield, Circle, AlertCircle, History, ChevronDown, X } from 'lucide-react';
+import { UserPlus, Pencil, KeyRound, Trash2, Shield, Circle, AlertCircle, History, X } from 'lucide-react';
 import { usersApi } from '../api';
 import UserFormModal from './UserFormModal';
 import ResetPasswordModal from './ResetPasswordModal';

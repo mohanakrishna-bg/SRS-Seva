@@ -183,8 +183,8 @@ export default function DonationReceiptGenerator({ isOpen, onClose, receiptData 
                         {/* Receipt */}
                         <div ref={receiptRef} className="bg-white dark:bg-white text-black rounded-xl border border-gray-200 p-5 mb-5 font-mono text-sm space-y-1 shadow-inner relative">
                             <div className="text-center mb-3">
-                                <p className="text-base font-bold text-gray-900">{activeOrgName}</p>
-                                {activeAddress && <p className="text-xs text-gray-600">{activeAddress}</p>}
+                                <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight pb-1">{activeOrgName}</p>
+                                {activeAddress && <p className="text-xs text-gray-600 break-words">{activeAddress}</p>}
                                 {settings.phone && <p className="text-xs text-gray-600">Ph: {settings.phone}</p>}
                                 <p className="text-xs font-bold text-rose-700 mt-1 uppercase tracking-wider">{labels.title}</p>
                             </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Printer, MessageCircle, X, Download, Languages } from 'lucide-react';
+import { Printer, MessageCircle, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { transliterateToKannada, transliterateKnToEn } from '../transliterate';
@@ -67,8 +67,8 @@ import { useSettings } from '../context/SettingsContext';
 
 export default function ReceiptGenerator({ isOpen, onClose, receiptData }: ReceiptGeneratorProps) {
     const { settings } = useSettings();
-    const [generating, setGenerating] = useState(false);
-    const [lang, setLang] = useState<'kn' | 'en'>('kn');
+    const [generating] = useState(false);
+    const [lang] = useState<'kn' | 'en'>('kn');
     const [kannadaData, setKannadaData] = useState<ReceiptData | null>(null);
     const [showSendMenu, setShowSendMenu] = useState(false);
     const receiptRef = useRef<HTMLDivElement>(null);
@@ -273,30 +273,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         printWindow.document.close();
     };
 
-    const handleDownload = async () => {
-        if (!receiptRef.current) return;
-        setGenerating(true);
-        try {
-            const canvas = await html2canvas(receiptRef.current, { scale: 3, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            
-            // Standard receipt width ~ 80mm
-            const pdfWidth = 80;
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: [pdfWidth, pdfHeight]
-            });
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Receipt-${currentData.voucherNo}.pdf`);
-        } catch (err) {
-            console.error('PDF generation failed:', err);
-        }
-        setGenerating(false);
-    };
 
     const handleWhatsApp = () => {
         const encodedText = encodeURIComponent(receiptTextSummary);
@@ -348,8 +325,8 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                             className="bg-white dark:bg-white text-black rounded-xl border border-gray-200 p-5 mb-5 font-mono text-sm space-y-1 shadow-inner relative"
                         >
                             <div className="text-center mb-3">
-                                <p className="text-base font-bold text-gray-900">{activeOrgName}</p>
-                                {activeAddress && <p className="text-xs text-gray-600">{activeAddress}</p>}
+                                <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight pb-1">{activeOrgName}</p>
+                                {activeAddress && <p className="text-xs text-gray-600 break-words">{activeAddress}</p>}
                                 {settings.phone && <p className="text-xs text-gray-600">Ph: {settings.phone}</p>}
                             </div>
 

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+
 import { Routes, Route, Navigate, NavLink, useLocation, useOutletContext } from 'react-router-dom';
-import { CalendarRange, ClipboardList, FileBarChart2 } from 'lucide-react';
+import { ClipboardList, FileBarChart2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import BookedSevasTab from '../components/seva/BookedSevasTab';
 import SevaReportsTab from '../components/seva/SevaReportsTab';

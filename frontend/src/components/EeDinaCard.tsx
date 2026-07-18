@@ -218,7 +218,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                 className="absolute left-0 bottom-full mb-3 w-80 z-[100]"
                             >
-                                <div className="bg-white/95 dark:bg-slate-900/95 border border-[var(--glass-border)] rounded-3xl shadow-2xl p-5 backdrop-blur-xl">
+                                <div className="bg-white/95 dark:bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-3xl shadow-2xl p-5 backdrop-blur-xl">
                                     <div className="flex justify-between items-center mb-4 border-b border-black/10 dark:border-white/10 pb-2">
                                         <h3 className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
                                             <Clock size={16} className="text-amber-500" />

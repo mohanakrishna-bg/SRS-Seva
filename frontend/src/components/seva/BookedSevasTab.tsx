@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Filter, Search, MoreVertical, Ban, Edit3, Printer, CheckCircle, X } from 'lucide-react';
+
+import { Search, Ban, Edit3, Printer, X } from 'lucide-react';
 import { registrationApi } from '../../api';
 import { useToast } from '../Toast';
 import SplitPaneLayout from '../ui/SplitPaneLayout';
@@ -126,7 +126,7 @@ export default function BookedSevasTab() {
                 payload.OptTheerthaPrasada = modifyOptPrasada;
             }
 
-            const res = await registrationApi.modify(selectedReg.RegistrationId, payload);
+            await registrationApi.modify(selectedReg.RegistrationId, payload);
             showToast('success', 'ನವೀಕರಿಸಲಾಗಿದೆ');
             setShowModifyModal(false);
 

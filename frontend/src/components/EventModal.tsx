@@ -27,12 +27,6 @@ export default function EventModal({ isOpen, date, onClose }: EventModalProps) {
     const [editText, setEditText] = useState('');
     const [editTime, setEditTime] = useState('');
 
-    const formattedDate = date.toLocaleDateString('kn-IN', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
 
     const getStorageKey = () => `seva_highlights_kn_${date.toDateString()}`;
 

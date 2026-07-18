@@ -42,7 +42,7 @@ export default function CalendarWidget({ selectedDate, onChange, compact = false
     const daysOfWeek = ['ಭಾ', 'ಸೋ', 'ಮಂ', 'ಬು', 'ಗು', 'ಶು', 'ಶನಿ'];
 
     return (
-        <div className={`bg-white dark:bg-slate-900 rounded-2xl flex flex-col items-center h-full ${compact ? 'p-2 w-full' : 'p-6 shadow-2xl min-w-[320px]'}`}>
+        <div className={`glass-card flex flex-col items-center h-full ${compact ? '!p-2 w-full' : 'min-w-[320px]'}`}>
             <div className={`flex items-center justify-between w-full ${compact ? 'mb-2' : 'mb-6'}`}>
                 <button onClick={prevMonth} className={`${compact ? 'p-1' : 'p-2'} rounded-full hover:bg-black/5 text-[var(--text-secondary)] transition-colors`}>
                     <ChevronLeft size={compact ? 16 : 24} />
