@@ -16,6 +16,7 @@ Contains all endpoints for:
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, File, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
+from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Optional
 import os
 import shutil
@@ -37,7 +38,7 @@ PHOTO_DIR = os.path.join(UPLOAD_DIR, "photos")
 # DEVOTEE CRUD
 # ═══════════════════════════════════════════════════════════
 
-@router.get("/devotees", response_model=List[schemas.Devotee])
+@router.get("/devotees", response_model=schemas.PaginatedDevotees)
 def list_devotees(
     skip: int = 0,
     limit: int = 2000,
@@ -47,7 +48,9 @@ def list_devotees(
     q = db.query(models.Devotee)
     if not include_deleted:
         q = q.filter(or_(models.Devotee.IsDeleted == False, models.Devotee.IsDeleted == None))
-    return q.order_by(models.Devotee.Name).offset(skip).limit(limit).all()
+    total = q.count()
+    items = q.order_by(models.Devotee.Name).offset(skip).limit(limit).all()
+    return {"items": items, "total": total}
 
 
 @router.post("/devotees", response_model=schemas.Devotee)
@@ -57,9 +60,9 @@ def create_devotee(devotee: schemas.DevoteeCreate, db: Session = Depends(databas
         db.add(db_devotee)
         db.commit()
         db.refresh(db_devotee)
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Database operation failed")
     return db_devotee
 
 
@@ -410,9 +413,9 @@ def create_registration(reg: schemas.SevaRegistrationCreate, db: Session = Depen
     except HTTPException:
         db.rollback()
         raise
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Database operation failed")
     return db_reg
 
 
@@ -738,10 +741,12 @@ def read_items_legacy(db: Session = Depends(database.get_db)):
 
 @router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)):
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    uncategorized_dir = os.path.join(UPLOAD_DIR, "uncategorized")
+    os.makedirs(uncategorized_dir, exist_ok=True)
+    file_path = os.path.join(uncategorized_dir, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    return {"filename": file.filename, "status": "success"}
+    return {"filename": f"uncategorized/{file.filename}", "status": "success"}
 
 
 # ─── Payment Verification ───

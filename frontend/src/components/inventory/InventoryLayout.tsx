@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Package, BarChart3, FolderSync, Plus, Search, RefreshCw, 
-    X, Loader2, ImageIcon, Eye, EyeOff 
+    X, Loader2, ImageIcon, Eye, EyeOff, ChevronLeft, ChevronRight,
+    TrendingUp, Coins, MapPin, Sparkles, Calendar
 } from 'lucide-react';
 import { inventoryApi } from '../../api';
 import InventoryCard, { getImgSrc } from './InventoryCard';
 import type { InventoryItem } from './InventoryCard';
 import InventoryModal from './InventoryModal';
 import SyncDashboard from './SyncDashboard';
+import QuickCapturePanel from './QuickCapturePanel';
 
 interface Category { Id: number; Name: string; ForType?: string; }
 interface Material { Id: number; Name: string; BullionRate?: number | null; }
@@ -86,6 +88,35 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
 
     const paginatedItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+    const viewItemIndex = viewItem ? items.findIndex(i => i.ItemId === viewItem.ItemId) : -1;
+    const hasPrevItem = viewItemIndex > 0;
+    const hasNextItem = viewItemIndex >= 0 && viewItemIndex < items.length - 1;
+
+    const handlePrevItem = () => {
+        if (hasPrevItem) setViewItem(items[viewItemIndex - 1]);
+    };
+
+    const handleNextItem = () => {
+        if (hasNextItem) setViewItem(items[viewItemIndex + 1]);
+    };
+
+    useEffect(() => {
+        if (!viewItem) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') {
+                const idx = items.findIndex(i => i.ItemId === viewItem.ItemId);
+                if (idx > 0) setViewItem(items[idx - 1]);
+            } else if (e.key === 'ArrowRight') {
+                const idx = items.findIndex(i => i.ItemId === viewItem.ItemId);
+                if (idx >= 0 && idx < items.length - 1) setViewItem(items[idx + 1]);
+            } else if (e.key === 'Escape') {
+                setViewItem(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [viewItem, items]);
+
     const handleSoftDelete = async (id: number) => {
         try {
             await inventoryApi.deleteItem(id, false, 'Deleted by user');
@@ -162,6 +193,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                 >
                     {tab === 'dashboard' && (
                         <div className="space-y-6">
+                            {/* Summary Metrics */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl p-5 backdrop-blur-md">
                                     <p className="text-xs text-[var(--text-secondary)] uppercase font-bold mb-1">Total Items</p>
@@ -180,16 +212,117 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                 </div>
                             </div>
 
+                            {/* Today's Bullion Rates for Bangalore */}
                             {itemType === 'asset' && (
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={handleRevalue}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/30 transition-colors"
-                                    >
-                                        <RefreshCw size={14} /> Revalue Precious Metals
-                                    </button>
+                                <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md space-y-4">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-[var(--glass-border)]">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+                                                <TrendingUp size={20} />
+                                            </div>
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <h2 className="text-base font-bold text-[var(--text-primary)]">
+                                                        Today's Bullion Rates (Bangalore) / ಇಂದಿನ ಬುಲಿಯನ್ ದರಗಳು
+                                                    </h2>
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold border border-amber-500/20">
+                                                        <MapPin size={10} /> Bangalore Spot Market
+                                                    </span>
+                                                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-[10px] font-bold border border-blue-500/20">
+                                                        <Calendar size={10} /> {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                                                    Live Bangalore market rates used for auto-revaluing precious metal assets
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await inventoryApi.refreshBullionRates();
+                                                        loadData();
+                                                    } catch (e) {
+                                                        console.error('Failed to refresh bullion rates', e);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs hover:bg-amber-500/20 transition-colors"
+                                                title="Refresh Bangalore bullion market rates"
+                                            >
+                                                <RefreshCw size={14} /> Refresh Rates
+                                            </button>
+                                            <button
+                                                onClick={handleRevalue}
+                                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 text-white font-bold text-xs hover:bg-emerald-600 transition-colors shadow-md shadow-emerald-500/20"
+                                                title="Recalculate total register asset valuation"
+                                            >
+                                                <Sparkles size={14} /> Revalue Portfolio
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Bullion Cards */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {(materials.filter(m => m.BullionRate != null && m.BullionRate > 0).length > 0
+                                            ? materials.filter(m => m.BullionRate != null && m.BullionRate > 0)
+                                            : [
+                                                { Id: 1, Name: 'Gold (24K)', BullionRate: 7450.00 },
+                                                { Id: 2, Name: 'Gold (22K)', BullionRate: 6830.00 },
+                                                { Id: 3, Name: 'Silver', BullionRate: 92.50 },
+                                                { Id: 4, Name: 'Platinum', BullionRate: 3450.00 },
+                                            ]
+                                        ).map((mat) => {
+                                            const assetSummary = summary?.byMaterial?.find(
+                                                b => b.material.toLowerCase() === mat.Name.toLowerCase()
+                                            );
+                                            return (
+                                                <div
+                                                    key={mat.Id || mat.Name}
+                                                    className="p-4 rounded-xl bg-black/5 dark:bg-white/[0.03] border border-[var(--glass-border)] space-y-2 hover:border-amber-500/30 transition-all"
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="text-xs font-bold text-[var(--text-primary)]">{mat.Name}</p>
+                                                            <p className="text-[10px] text-[var(--text-secondary)] font-mono">
+                                                                {mat.Name.includes('24K') ? '99.9% Pure Fine Gold' : mat.Name.includes('22K') ? '22 Karat Jewellery Gold' : mat.Name.includes('Silver') ? '.999 Fine Silver' : 'Precious Metal'}
+                                                            </p>
+                                                        </div>
+                                                        <Coins size={18} className="text-amber-500/70 shrink-0" />
+                                                    </div>
+
+                                                    <div className="pt-1">
+                                                        <div className="flex items-baseline gap-1">
+                                                            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">
+                                                                {mat.BullionRate ? fmt(mat.BullionRate) : 'N/A'}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-[var(--text-secondary)]">/ gram</span>
+                                                        </div>
+                                                        {mat.BullionRate && (
+                                                            <p className="text-[11px] font-mono text-[var(--text-secondary)] mt-0.5">
+                                                                10g Rate: <span className="font-bold text-[var(--text-primary)]">{fmt(mat.BullionRate * 10)}</span>
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="pt-2 border-t border-[var(--glass-border)] flex justify-between items-center text-[10px] text-[var(--text-secondary)] font-mono">
+                                                        <span>Register Assets:</span>
+                                                        <span className="font-bold text-emerald-500">{assetSummary?.itemCount || 0} items ({fmt(assetSummary?.totalValue || 0)})</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
+
+                            {/* Quick Capture Panel */}
+                            <QuickCapturePanel
+                                categories={categories}
+                                itemType={itemType}
+                                onCaptured={loadData}
+                            />
                         </div>
                     )}
 
@@ -363,81 +496,103 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
 
             {/* Details Modal */}
             {viewItem && (
-                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setViewItem(null)}>
-                    <div className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl p-0 max-w-4xl w-full overflow-hidden flex flex-col md:flex-row" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 pt-3 sm:pt-4 backdrop-blur-md overflow-y-auto">
+                    <div className="bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-3xl p-0 max-w-3xl w-full overflow-hidden flex flex-col md:flex-row shadow-2xl my-0 sm:my-2 max-h-[calc(100vh-2rem)]">
                         
                         {/* Left Side: Image */}
-                        <div className="w-full md:w-1/2 bg-black/5 dark:bg-white/5 relative min-h-[300px] flex items-center justify-center border-b md:border-b-0 md:border-r border-[var(--glass-border)]">
+                        <div className="w-full md:w-5/12 bg-black/5 dark:bg-white/5 relative min-h-[180px] md:min-h-[240px] flex items-center justify-center border-b md:border-b-0 md:border-r border-[var(--glass-border)]">
                             {getImgSrc(viewItem.ImageLink, viewItem.Category) ? (
                                 <img src={getImgSrc(viewItem.ImageLink, viewItem.Category)!} alt="" className="absolute inset-0 w-full h-full object-cover" />
                             ) : (
                                 <div className="text-[var(--text-secondary)] flex flex-col items-center opacity-30">
-                                    <ImageIcon size={48} className="mb-2" />
-                                    <span>No Image Available</span>
+                                    <ImageIcon size={40} className="mb-1" />
+                                    <span className="text-xs">No Image Available</span>
                                 </div>
                             )}
                         </div>
                         
                         {/* Right Side: Information */}
-                        <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col">
-                            <div className="flex justify-between items-start mb-6">
+                        <div className="w-full md:w-7/12 p-4 sm:p-5 flex flex-col max-h-full overflow-y-auto">
+                            <div className="flex justify-between items-start mb-3">
                                 <div>
-                                    <h3 className="text-2xl font-black text-[var(--text-primary)] leading-tight">{viewItem.Name}</h3>
-                                    <p className="text-sm font-mono text-[var(--text-secondary)] mt-1">ID: #{viewItem.ItemId}</p>
+                                    <h3 className="text-xl font-black text-[var(--text-primary)] leading-tight">{viewItem.Name}</h3>
+                                    <p className="text-xs font-mono text-[var(--text-secondary)] mt-0.5">
+                                        ID: #{viewItem.ItemId} {viewItemIndex >= 0 && <span className="ml-2 text-xs font-semibold text-emerald-500 font-sans">({viewItemIndex + 1} of {items.length})</span>}
+                                    </p>
                                 </div>
-                                <button onClick={() => setViewItem(null)} className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] rounded-full transition-colors"><X size={20} /></button>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={handlePrevItem}
+                                        disabled={!hasPrevItem}
+                                        className="p-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg)] rounded-full transition-colors text-[var(--text-primary)]"
+                                        title="Previous Item"
+                                    >
+                                        <ChevronLeft size={18} />
+                                    </button>
+                                    <button
+                                        onClick={handleNextItem}
+                                        disabled={!hasNextItem}
+                                        className="p-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg)] rounded-full transition-colors text-[var(--text-primary)]"
+                                        title="Next Item"
+                                    >
+                                        <ChevronRight size={18} />
+                                    </button>
+                                    <button onClick={() => setViewItem(null)} className="p-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] rounded-full transition-colors text-[var(--text-primary)]" title="Close">
+                                        <X size={18} />
+                                    </button>
+                                </div>
                             </div>
                             
-                            <div className="space-y-4 text-sm mb-8 flex-1">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Category</p>
+                            <div className="space-y-2.5 text-xs mb-4 flex-1">
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Category</p>
                                         <p className="font-bold text-[var(--text-primary)]">{viewItem.Category || '—'}</p>
                                     </div>
                                     {itemType === 'asset' ? (
-                                        <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Material</p>
+                                        <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Material</p>
                                             <p className="font-bold text-[var(--text-primary)]">{viewItem.Material || '—'}</p>
                                         </div>
                                     ) : (
-                                        <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">UOM</p>
+                                        <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">UOM</p>
                                             <p className="font-bold text-[var(--text-primary)]">{viewItem.UOM || 'Nos'}</p>
                                         </div>
                                     )}
                                 </div>
                                 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Unit Price</p>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Unit Price</p>
                                         <p className="font-mono font-bold text-[var(--text-primary)]">{fmt(viewItem.UnitPrice)}</p>
                                     </div>
-                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Quantity</p>
+                                    <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Quantity</p>
                                         <p className="font-mono font-bold text-[var(--text-primary)]">{viewItem.Quantity}</p>
                                     </div>
                                 </div>
                                 
                                 {itemType === 'asset' && viewItem.WeightGrams && (
-                                    <div className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl">
-                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Weight</p>
+                                    <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Weight</p>
                                         <p className="font-bold text-[var(--text-primary)]">{viewItem.WeightGrams}g</p>
                                     </div>
                                 )}
                                 
-                                <div className="p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-2xl">
-                                    <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-1">Total Valuation</p>
-                                    <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{fmt(viewItem.TotalValue)}</p>
+                                <div className="p-3 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-xl">
+                                    <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Total Valuation</p>
+                                    <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{fmt(viewItem.TotalValue)}</p>
                                 </div>
                             </div>
                             
-                            <div className="flex gap-3 justify-end mt-auto pt-6 border-t border-[var(--glass-border)]">
+                            <div className="flex gap-2.5 justify-end mt-auto pt-3 border-t border-[var(--glass-border)]">
                                 {viewItem.IsDeleted ? (
-                                    <button onClick={() => handleRestore(viewItem.ItemId)} className="flex-1 px-4 py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/20">Restore Item</button>
+                                    <button onClick={() => handleRestore(viewItem.ItemId)} className="flex-1 px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/20">Restore Item</button>
                                 ) : (
                                     <>
-                                        <button onClick={() => handleSoftDelete(viewItem.ItemId)} className="px-4 py-3 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20 transition-colors">Delete</button>
-                                        <button onClick={() => { setEditItem(viewItem); setViewItem(null); setIsModalOpen(true); }} className="flex-1 px-4 py-3 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors">Edit Item</button>
+                                        <button onClick={() => handleSoftDelete(viewItem.ItemId)} className="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20 transition-colors">Delete</button>
+                                        <button onClick={() => { setEditItem(viewItem); setViewItem(null); setIsModalOpen(true); }} className="flex-1 px-4 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors">Edit Item</button>
                                     </>
                                 )}
                             </div>

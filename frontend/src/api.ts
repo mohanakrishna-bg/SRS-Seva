@@ -247,6 +247,17 @@ export const inventoryApi = {
         });
     },
     syncCheckpoints: () => api.get('/inventory/sync/checkpoints'),
+    // Quick Capture (Mobile Camera → Repository)
+    quickCapture: (file: File, metadata?: { item_name?: string; category?: string; notes?: string }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (metadata?.item_name) formData.append('item_name', metadata.item_name);
+        if (metadata?.category) formData.append('category', metadata.category);
+        if (metadata?.notes) formData.append('notes', metadata.notes);
+        return api.post('/inventory/quick-capture', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
 };
 
 // ─── Settings API ───

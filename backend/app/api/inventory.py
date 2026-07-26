@@ -3,7 +3,7 @@ Inventory Module — FastAPI Router
 Full CRUD for assets, categories, materials, bullion rates, audit log, and dashboard summary.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import Optional, List
@@ -87,7 +87,21 @@ def delete_category(cat_id: int, db: Session = Depends(get_db)):
 
 @router.get("/materials", response_model=List[MaterialResponse])
 def list_materials(db: Session = Depends(get_db)):
-    return db.query(InventoryMaterial).order_by(InventoryMaterial.Name).all()
+    mats = db.query(InventoryMaterial).order_by(InventoryMaterial.Name).all()
+    if not mats:
+        defaults = [
+            InventoryMaterial(Name="Gold (24K)", BullionRate=7450.00),
+            InventoryMaterial(Name="Gold (22K)", BullionRate=6830.00),
+            InventoryMaterial(Name="Silver", BullionRate=92.50),
+            InventoryMaterial(Name="Platinum", BullionRate=3450.00),
+            InventoryMaterial(Name="Brass", BullionRate=None),
+            InventoryMaterial(Name="Copper", BullionRate=None),
+            InventoryMaterial(Name="Bronze", BullionRate=None),
+        ]
+        db.add_all(defaults)
+        db.commit()
+        mats = db.query(InventoryMaterial).order_by(InventoryMaterial.Name).all()
+    return mats
 
 @router.post("/materials", response_model=MaterialResponse)
 def create_material(payload: MaterialCreate, db: Session = Depends(get_db)):
@@ -185,6 +199,9 @@ def browse_images(category: Optional[str] = Query(None)):
                 if not f.startswith('.') and os.path.splitext(f)[1].lower() in valid_exts:
                     full_path = os.path.join(root, f)
                     rel_path = os.path.relpath(full_path, base_dir)
+                    # For root-level files, prepend './' so frontend getImgSrc knows it's a relative path
+                    if os.sep not in rel_path and '/' not in rel_path:
+                        rel_path = f"./{rel_path}"
                     files.append(rel_path)
         return sorted(files)
     else:
@@ -308,6 +325,85 @@ async def upload_uncategorized_files(files: List[UploadFile] = File(...)):
             errors.append(f"Unsupported file type: {f.filename}")
             
     return {"count": saved_count, "errors": errors}
+
+
+# ─── Quick Capture (Mobile Camera) ───
+
+@router.post("/quick-capture")
+async def quick_capture(
+    file: UploadFile = File(...),
+    item_name: Optional[str] = Form(None),
+    category: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+):
+    """Accept a camera capture from mobile and save to the image repository.
+    
+    This endpoint replaces the manual Google Photos workflow:
+      Phone camera → Google Photos album → Download ZIP → Sync
+    With a single step:
+      Phone camera → Quick Capture → Repository
+    
+    The photo is saved to uploads/photos/uncategorized/ with a descriptive
+    filename derived from the item name (if provided) or a timestamp.
+    """
+    photos_dir = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), "..", "..", "uploads", "photos", "uncategorized"
+    ))
+    os.makedirs(photos_dir, exist_ok=True)
+
+    image_extensions = {".jpg", ".jpeg", ".png", ".webp"}
+    heic_extensions = {".heic", ".heif"}
+
+    if not file.filename:
+        raise HTTPException(400, "No file provided")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in image_extensions and ext not in heic_extensions:
+        raise HTTPException(400, f"Unsupported image format: {ext}")
+
+    # Build a descriptive filename from item_name or use timestamp
+    if item_name and item_name.strip():
+        # Slugify: lowercase, replace non-alphanum with underscore
+        slug = re.sub(r'[^\w\s-]', '', item_name.strip().lower())
+        slug = re.sub(r'[\s-]+', '_', slug).strip('_')
+        if not slug:
+            slug = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    else:
+        slug = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    target_ext = ".jpg" if ext in heic_extensions else ext
+    filename = f"{slug}{target_ext}"
+
+    dest_path = os.path.join(photos_dir, filename)
+    counter = 1
+    base = slug
+    while os.path.exists(dest_path):
+        filename = f"{base}_{counter}{target_ext}"
+        dest_path = os.path.join(photos_dir, filename)
+        counter += 1
+
+    if ext in heic_extensions:
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = tmp.name
+        if convert_heic_to_jpg(tmp_path, dest_path):
+            os.unlink(tmp_path)
+        else:
+            os.unlink(tmp_path)
+            raise HTTPException(500, "Failed to convert HEIC image")
+    else:
+        with open(dest_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+    return {
+        "ok": True,
+        "filename": filename,
+        "path": f"uncategorized/{filename}",
+        "item_name": item_name,
+        "category": category,
+        "notes": notes,
+    }
+
 
 # ─── Items ───
 
