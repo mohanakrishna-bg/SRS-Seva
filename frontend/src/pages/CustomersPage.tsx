@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Phone, Mail, ChevronLeft, ChevronRight,
@@ -40,6 +40,7 @@ export default function CustomersPage() {
         return saved ? parseInt(saved) : DEFAULT_PAGE_SIZE;
     });
     const [loading, setLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Form state
     const [showForm, setShowForm] = useState(false);
@@ -51,6 +52,8 @@ export default function CustomersPage() {
     const [showBooking, setShowBooking] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
     const [showReceipt, setShowReceipt] = useState(false);
+
+    const [totalCount, setTotalCount] = useState(0);
 
     // Advanced search
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -68,24 +71,6 @@ export default function CustomersPage() {
 
     const { showToast } = useToast();
 
-    // Fetch devotees
-    useEffect(() => {
-        fetchDevotees();
-        fetchLookups();
-    }, []);
-
-    const fetchDevotees = async () => {
-        try {
-            setLoading(true);
-            const res = await devoteeApi.list();
-            setAllDevotees(res.data);
-        } catch {
-            showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const fetchLookups = async () => {
         try {
             const [gotraRes, nakRes, sevaRes] = await Promise.all([
@@ -101,30 +86,51 @@ export default function CustomersPage() {
         }
     };
 
-    // Client-side basic filtering
-    const filteredDevotees = useMemo(() => {
-        if (!searchQuery.trim()) return allDevotees;
-        const q = searchQuery.toLowerCase();
-        return allDevotees.filter(
-            (d) =>
-                d.Name?.toLowerCase().includes(q) ||
-                d.Phone?.toLowerCase().includes(q)
-        );
-    }, [allDevotees, searchQuery]);
-
-    // Pagination
-    const totalPages = Math.ceil(filteredDevotees.length / pageSize);
-    const paginatedDevotees = filteredDevotees.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
-
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery]);
+        fetchLookups();
+    }, []);
+
+    // Fetch devotees based on pagination and search
+    useEffect(() => {
+        const fetchDevotees = async () => {
+            try {
+                setLoading(true);
+                // If there's no search query, use server-side pagination
+                if (!searchQuery.trim()) {
+                    const skip = (currentPage - 1) * pageSize;
+                    const res = await devoteeApi.list(skip, pageSize);
+                    setAllDevotees(res.data.items || res.data);
+                    setTotalCount(res.data.total || res.data.length || 0);
+                } else {
+                    // Use basic search
+                    const res = await devoteeApi.searchBasic(searchQuery);
+                    setAllDevotees(res.data);
+                    setTotalCount(res.data.length);
+                }
+            } catch {
+                showToast('error', 'ಭಕ್ತರ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const handler = setTimeout(() => {
+            fetchDevotees();
+        }, 300);
+
+        return () => clearTimeout(handler);
+    }, [currentPage, pageSize, searchQuery, refreshTrigger]);
+
+    // Client-side basic filtering is no longer needed since searchBasic is called, but we still need to paginate the search results client-side if it's a search.
+    const paginatedDevotees = searchQuery.trim() 
+        ? allDevotees.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+        : allDevotees;
+    
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     const handleSearch = useCallback((q: string) => {
         setSearchQuery(q);
+        setCurrentPage(1);
         setShowAdvanced(false);
     }, []);
 
@@ -148,6 +154,7 @@ export default function CustomersPage() {
             setLoading(true);
             const res = await devoteeApi.searchAdvanced(params);
             setAllDevotees(res.data);
+            setTotalCount(res.data.length);
             setCurrentPage(1);
             showToast('success', `${res.data.length} ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿವೆ`);
         } catch {
@@ -165,7 +172,7 @@ export default function CustomersPage() {
         setAdvDateFrom('');
         setAdvDateTo('');
         setShowAdvanced(false);
-        fetchDevotees();
+        setRefreshTrigger(p => p + 1);
     };
 
     // CRUD handlers
@@ -182,7 +189,7 @@ export default function CustomersPage() {
             }
             setShowForm(false);
             setEditDevotee(null);
-            fetchDevotees();
+            setRefreshTrigger(p => p + 1);
         } catch (err: any) {
             const detail = err?.response?.data?.detail;
             showToast('error', detail || 'ಕಾರ್ಯ ವಿಫಲ');
@@ -198,7 +205,7 @@ export default function CustomersPage() {
             await devoteeApi.delete(d.DevoteeId);
             showToast('success', `${d.Name} ಅಳಿಸಲಾಗಿದೆ`);
             setViewDevotee(null); 
-            fetchDevotees();
+            setRefreshTrigger(p => p + 1);
         } catch {
             showToast('error', 'ಅಳಿಸಲಾಗಲಿಲ್ಲ');
             setLoading(false);
@@ -237,7 +244,7 @@ export default function CustomersPage() {
                         ಭಕ್ತರು
                     </h2>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
-                        {allDevotees.length.toLocaleString()} ರಲ್ಲಿ {filteredDevotees.length.toLocaleString()} ಭಕ್ತರು
+                        ಒಟ್ಟು {totalCount.toLocaleString()} ಭಕ್ತರು
                     </p>
                 </div>
 

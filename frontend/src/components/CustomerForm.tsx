@@ -1,24 +1,33 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Modal from './Modal';
 import TransliteratedInput from './TransliteratedInput';
 import GlobalInputToolbar from './GlobalInputToolbar';
 import { devoteeApi } from '../api';
 import { Camera, UserCircle2 } from 'lucide-react';
 import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
+import { useDebounce } from '../hooks/useDebounce';
 
-interface DevoteeFormData {
-    DevoteeId?: number;
-    Name: string;
-    Gotra: string;
-    Nakshatra: string;
-    Address: string;
-    City: string;
-    PinCode: string;
-    Phone: string;
-    WhatsApp_Phone: string;
-    Email: string;
-    PhotoPath?: string;
-}
+const phoneRegex = /^$|^\d{10}$/;
+const pinCodeRegex = /^$|^\d{6}$/;
+
+const schema = z.object({
+    DevoteeId: z.number().optional(),
+    Name: z.string().min(1, 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ (Name is required)'),
+    Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು (Must be 10 digits)').optional(),
+    Gotra: z.string().optional(),
+    Nakshatra: z.string().optional(),
+    Address: z.string().optional(),
+    City: z.string().optional(),
+    PinCode: z.string().regex(pinCodeRegex, 'ಪಿನ್ ಕೋಡ್ 6 ಅಂಕಿಗಳಿರಬೇಕು (Must be 6 digits)').optional(),
+    WhatsApp_Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು (Must be 10 digits)').optional(),
+    Email: z.union([z.literal(''), z.string().email('ಇಮೇಲ್ ಸರಿಯಾಗಿಲ್ಲ (Invalid email)')]).optional(),
+    PhotoPath: z.string().optional(),
+});
+
+type DevoteeFormData = z.infer<typeof schema>;
 
 interface CustomerFormProps {
     isOpen: boolean;
@@ -28,11 +37,6 @@ interface CustomerFormProps {
     title?: string;
     loading?: boolean;
 }
-
-const emptyForm: DevoteeFormData = {
-    Name: '', Gotra: '', Nakshatra: '', Address: '', City: '',
-    PinCode: '', Phone: '', WhatsApp_Phone: '', Email: '',
-};
 
 const fields: {
     key: keyof DevoteeFormData;
@@ -56,36 +60,55 @@ const fields: {
 ];
 
 export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ', loading = false }: CustomerFormProps) {
-    const [form, setForm] = useState<DevoteeFormData>({ ...emptyForm, ...initialData });
+    const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<DevoteeFormData>({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            Name: '', Gotra: '', Nakshatra: '', Address: '', City: '',
+            PinCode: '', Phone: '', WhatsApp_Phone: '', Email: '', PhotoPath: ''
+        }
+    });
+
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<{ [key: string]: boolean }>({});
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
-    const searchTimeout = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleChange = (key: keyof DevoteeFormData, value: string) => {
-        setForm((prev) => ({ ...prev, [key]: value }));
+    const watchName = watch('Name');
+    const watchPhone = watch('Phone');
+    const debouncedName = useDebounce(watchName, 300);
+    const debouncedPhone = useDebounce(watchPhone, 300);
+    const devoteeId = watch('DevoteeId');
 
-        if (key === 'Name' || key === 'Phone') {
-            if (value.length > 2) {
-                if (searchTimeout.current) clearTimeout(searchTimeout.current);
-                searchTimeout.current = setTimeout(async () => {
-                    try {
-                        const res = await devoteeApi.searchBasic(value);
-                        setSearchResults(res.data);
-                        setShowDropdown({ [key]: res.data.length > 0 });
-                    } catch {
-                        setSearchResults([]);
-                        setShowDropdown({});
-                    }
-                }, 300);
+    // Debounced Search Effects
+    useEffect(() => {
+        const search = async (q: string, key: string) => {
+            if (q && q.length > 2) {
+                try {
+                    const res = await devoteeApi.searchBasic(q);
+                    setSearchResults(res.data);
+                    setShowDropdown({ [key]: res.data.length > 0 });
+                } catch {
+                    setSearchResults([]);
+                    setShowDropdown({});
+                }
             } else {
                 setSearchResults([]);
                 setShowDropdown({});
             }
+        };
+
+        // Prefer phone search over name search if both are modified
+        if (debouncedPhone && debouncedPhone.length > 2) {
+            search(debouncedPhone, 'Phone');
+        } else if (debouncedName && debouncedName.length > 2) {
+            search(debouncedName, 'Name');
+        } else {
+            setSearchResults([]);
+            setShowDropdown({});
         }
-    };
+    }, [debouncedName, debouncedPhone]);
+
 
     const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -97,49 +120,57 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form.Name.trim()) return;
-
-        // Submit form data first
-        onSubmit(form);
+    const submitForm = async (data: DevoteeFormData) => {
+        onSubmit(data);
 
         // Upload photo if one was captured
-        if (photoFile && form.DevoteeId) {
+        if (photoFile && data.DevoteeId) {
             try {
-                await devoteeApi.uploadPhoto(form.DevoteeId, photoFile);
+                await devoteeApi.uploadPhoto(data.DevoteeId, photoFile);
             } catch {
                 console.error('Photo upload failed');
             }
         }
 
-        setForm(emptyForm);
+        reset();
         setPhotoPreview(null);
         setPhotoFile(null);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
-            setForm({ ...emptyForm, ...initialData });
+            reset({
+                DevoteeId: initialData?.DevoteeId,
+                Name: initialData?.Name || '',
+                Gotra: initialData?.Gotra || '',
+                Nakshatra: initialData?.Nakshatra || '',
+                Address: initialData?.Address || '',
+                City: initialData?.City || '',
+                PinCode: initialData?.PinCode || '',
+                Phone: initialData?.Phone || '',
+                WhatsApp_Phone: initialData?.WhatsApp_Phone || '',
+                Email: initialData?.Email || '',
+                PhotoPath: initialData?.PhotoPath || ''
+            });
             setSearchResults([]);
             setShowDropdown({});
             setPhotoPreview(initialData?.PhotoPath || null);
             setPhotoFile(null);
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, reset]);
 
     const getUnifiedSuggestions = (list: {en: string, kn: string}[]) => {
         return list.flatMap(i => [i.en, i.kn]);
     };
 
-    const displayTitle = form.DevoteeId && !initialData ? `${form.Name} ನವೀಕರಿಸಿ` : title;
+    const displayTitle = devoteeId && !initialData ? `${watchName} ನವೀಕರಿಸಿ` : title;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={displayTitle} maxWidth="max-w-2xl">
             <div className="mb-4 flex justify-end">
                 <GlobalInputToolbar />
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(submitForm)} className="space-y-4">
                 {/* Photo Section */}
                 <div className="flex items-center gap-4 mb-2">
                     <div className="relative group">
@@ -178,16 +209,30 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                             <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">
                                 {f.label}
                             </label>
-                            <TransliteratedInput
-                                value={form[f.key] as string}
-                                onChange={(val) => handleChange(f.key, val)}
-                                placeholder={f.placeholder}
-                                multiline={f.multiline}
-                                type={f.type}
-                                enableVoice={f.voiceEnabled}
-                                disableTransliteration={!f.canTransliterate}
-                                list={f.key === 'Gotra' ? 'gotra-list-cf' : f.key === 'Nakshatra' ? 'nakshatra-list-cf' : undefined}
+                            <Controller
+                                name={f.key}
+                                control={control}
+                                render={({ field }) => (
+                                    <TransliteratedInput
+                                        value={field.value as string}
+                                        onChange={(val) => {
+                                            field.onChange(val);
+                                            // Handle dropdown closing
+                                            if (val.length <= 2) setShowDropdown({});
+                                        }}
+                                        placeholder={f.placeholder}
+                                        multiline={f.multiline}
+                                        type={f.type}
+                                        enableVoice={f.voiceEnabled}
+                                        disableTransliteration={!f.canTransliterate}
+                                        list={f.key === 'Gotra' ? 'gotra-list-cf' : f.key === 'Nakshatra' ? 'nakshatra-list-cf' : undefined}
+                                    />
+                                )}
                             />
+                            {errors[f.key] && (
+                                <p className="text-red-500 text-xs mt-1">{errors[f.key]?.message}</p>
+                            )}
+                            
                             {f.key === 'Gotra' && (
                                 <datalist id="gotra-list-cf">
                                     {getUnifiedSuggestions(GOTRAS).map((g: string) => <option key={g} value={g} />)}
@@ -207,19 +252,17 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                                         <div
                                             key={c.DevoteeId}
                                             onClick={() => {
-                                                setForm({
-                                                    DevoteeId: c.DevoteeId,
-                                                    Name: c.Name || '',
-                                                    Gotra: c.Gotra || '',
-                                                    Nakshatra: c.Nakshatra || '',
-                                                    Address: c.Address || '',
-                                                    City: c.City || '',
-                                                    PinCode: c.PinCode || '',
-                                                    Phone: c.Phone || '',
-                                                    WhatsApp_Phone: c.WhatsApp_Phone || '',
-                                                    Email: c.Email || '',
-                                                    PhotoPath: c.PhotoPath || '',
-                                                });
+                                                setValue('DevoteeId', c.DevoteeId);
+                                                setValue('Name', c.Name || '');
+                                                setValue('Gotra', c.Gotra || '');
+                                                setValue('Nakshatra', c.Nakshatra || '');
+                                                setValue('Address', c.Address || '');
+                                                setValue('City', c.City || '');
+                                                setValue('PinCode', c.PinCode || '');
+                                                setValue('Phone', c.Phone || '');
+                                                setValue('WhatsApp_Phone', c.WhatsApp_Phone || '');
+                                                setValue('Email', c.Email || '');
+                                                setValue('PhotoPath', c.PhotoPath || '');
                                                 setPhotoPreview(c.PhotoPath || null);
                                                 setShowDropdown({});
                                             }}
@@ -250,7 +293,7 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                         disabled={loading}
                         className={`px-5 py-2.5 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white font-semibold text-sm shadow-lg hover:shadow-orange-500/25 transition-shadow ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {initialData || form.DevoteeId ? (loading ? 'ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ...' : 'ನವೀಕರಿಸಿ') : (loading ? 'ಸೇರಿಸಲಾಗುತ್ತಿದೆ...' : 'ಸೇರಿಸಿ')}
+                        {initialData || devoteeId ? (loading ? 'ನವೀಕರಿಸಲಾಗುತ್ತಿದೆ...' : 'ನವೀಕರಿಸಿ') : (loading ? 'ಸೇರಿಸಲಾಗುತ್ತಿದೆ...' : 'ಸೇರಿಸಿ')}
                     </button>
                 </div>
             </form>

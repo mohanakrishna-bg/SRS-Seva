@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Clock, Key, Users, Utensils, Pencil, Trash2, Maximize2, Check } from 'lucide-react';
+import { Sparkles, Clock, Users, Utensils, Pencil, Trash2, Maximize2, Check } from 'lucide-react';
 import { eventsApi, statsApi } from '../api';
 import EventModal from './EventModal';
 import TransliteratedInput from './TransliteratedInput';

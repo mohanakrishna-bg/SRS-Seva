@@ -120,6 +120,10 @@ class Devotee(DevoteeBase):
     class Config:
         from_attributes = True
 
+class PaginatedDevotees(BaseModel):
+    items: List[Devotee]
+    total: int
+
 
 # ─── Event Composition Schema ───
 class EventCompositionBase(BaseModel):

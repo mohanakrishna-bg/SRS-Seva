@@ -7,6 +7,7 @@ import GlobalInputToolbar from './GlobalInputToolbar';
 import { useToast } from './Toast';
 import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 import { devoteeApi, inventoryApi, uploadApi, paymentApi } from '../api';
+import upiQrImage from '../assets/upi-qr.jpeg';
 
 interface Customer {
     ID1?: number;
@@ -790,6 +791,10 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
 
                                             {paymentMode === 'UPI' && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                                                    <div className="flex flex-col items-center justify-center space-y-2 mb-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-[var(--glass-border)]">
+                                                        <img src={upiQrImage} alt="UPI QR Code" className="w-36 h-36 object-contain bg-white p-2 rounded-xl shadow-md border-2 border-[var(--glass-border)]" />
+                                                        <p className="text-[10px] font-mono text-[var(--text-secondary)]">Scan to Pay via UPI</p>
+                                                    </div>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">Gateway <span className="text-red-500">*</span></label>

@@ -271,7 +271,7 @@ export default function BookedSevasTab() {
                     </div>
                 }
                 detailContent={
-                    <div className="h-full bg-[var(--bg-dark)] p-6 overflow-y-auto">
+                    <div className="h-full bg-[var(--bg-dark)] p-6 pb-32 overflow-y-auto">
                         {!selectedReg ? (
                             <div className="h-full flex items-center justify-center text-[var(--text-secondary)]">
                                 ಸೇವಾ ವಿವರಗಳನ್ನು ನೋಡಲು ಆಯ್ಕೆಮಾಡಿ

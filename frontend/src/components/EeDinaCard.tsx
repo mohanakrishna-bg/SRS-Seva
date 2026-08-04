@@ -82,20 +82,79 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
             setLoading(true);
             try {
                 const dateStr = activeDate.toDateString();
-                const cacheKey = `seva_panchanga_v2_kn_${dateStr}`;
+                const cacheKey = `seva_panchanga_v3_kn_${dateStr}`;
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) { setPanchanga(JSON.parse(cached)); setLoading(false); return; }
-                const sunriseDate = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDate(), 6, 15, 0);
+                
+                // Dynamic import for client-side to prevent any SSR issues, though Vite handles it
+                const panchangam = await import('@ishubhamx/panchangam-js');
+                const obs = new panchangam.Observer(12.2958, 76.6394, 0); // Mysore coordinates
+                const details = panchangam.getPanchangamDetails(activeDate, obs);
+
+                const tithis = [
+                    'ಪ್ರತಿಪದೆ', 'ದ್ವಿತೀಯಾ', 'ತೃತೀಯಾ', 'ಚತುರ್ಥೀ', 'ಪಂಚಮಿ',
+                    'ಷಷ್ಟಿ', 'ಸಪ್ತಮಿ', 'ಅಷ್ಟಮಿ', 'ನವಮಿ', 'ದಶಮಿ',
+                    'ಏಕಾದಶಿ', 'ದ್ವಾದಶಿ', 'ತ್ರಯೋದಶಿ', 'ಚತುರ್ದಶಿ'
+                ];
+                
+                let tithiName = '';
+                const pakshaStr = details.paksha === 'Shukla' ? 'ಶುಕ್ಲ' : 'ಕೃಷ್ಣ';
+                
+                if (details.tithis[0].name.includes('Amavasya')) tithiName = 'ಕೃಷ್ಣ ಅಮಾವಾಸ್ಯೆ';
+                else if (details.tithis[0].name.includes('Purnima')) tithiName = 'ಶುಕ್ಲ ಪೂರ್ಣಿಮೆ';
+                else {
+                    // tithis[0].index goes from 0-29. 
+                    // Pratipada is index 0 and 15.
+                    const tIdx = (details.tithis[0].index % 15);
+                    tithiName = `${pakshaStr} ${tithis[tIdx]}`;
+                }
+
+                const nakshatras = [
+                    'ಅಶ್ವಿನಿ', 'ಭರಣಿ', 'ಕೃತ್ತಿಕಾ', 'ರೋಹಿಣಿ', 'ಮೃಗಶಿರಾ',
+                    'ಆರ್ದ್ರಾ', 'ಪುನರ್ವಸು', 'ಪುಷ್ಯ', 'ಆಶ್ಲೇಷಾ', 'ಮಘಾ',
+                    'ಪೂರ್ವ ಫಲ್ಗುಣಿ', 'ಉತ್ತರ ಫಲ್ಗುಣಿ', 'ಹಸ್ತ', 'ಚಿತ್ರಾ', 'ಸ್ವಾತಿ',
+                    'ವಿಶಾಖಾ', 'ಅನುರಾಧಾ', 'ಜ್ಯೇಷ್ಠಾ', 'ಮೂಲಾ', 'ಪೂರ್ವಾಷಾಢಾ',
+                    'ಉತ್ತರಷಾಢಾ', 'ಶ್ರವಣ', 'ಧನಿಷ್ಟಾ', 'ಶತಭಿಷಾ',
+                    'ಪೂರ್ವಭಾದ್ರಪದಾ', 'ಉತ್ತರಭಾದ್ರಪದಾ', 'ರೇವತಿ'
+                ];
+                const nakshatraName = nakshatras[details.nakshatras[0].index];
+
+                const sakaMonths = ['ಚೈತ್ರ', 'ವೈಶಾಖ', 'ಜ್ಯೇಷ್ಠ', 'ಆಷಾಢ', 'ಶ್ರಾವಣ', 'ಭಾದ್ರಪದ', 'ಆಶ್ವಿನ', 'ಕಾರ್ತಿಕ', 'ಮಾರ್ಗಶಿರ', 'ಪುಷ್ಯ', 'ಮಾಘ', 'ಫಾಲ್ಗುಣ'];
+                const samvatsaras = [
+                    "ಪ್ರಭವ", "ವಿಭವ", "ಶುಕ್ಲ", "ಪ್ರಮೋದೂತ", "ಪ್ರಜೋತ್ಪತ್ತಿ",
+                    "ಆಂಗಿರಸ", "ಶ್ರೀಮುಖ", "ಭಾವ", "ಯುವ", "ಧಾತೃ",
+                    "ಈಶ್ವರ", "ಬಹುಧಾನ್ಯ", "ಪ್ರಮಾಧಿ", "ವಿಕ್ರಮ", "ವೃಷಭ",
+                    "ಚಿತ್ರಭಾನು", "ಸ್ವಭಾನು", "ತಾರಣ", "ಪಾರ್ಥಿವ", "ವ್ಯಯ",
+                    "ಸರ್ವಜಿತ್", "ಸರ್ವಧಾರಿ", "ವಿರೋಧಿ", "ವಿಕೃತಿ", "ಖರ",
+                    "ನಂದನ", "ವಿಜಯ", "ಜಯ", "ಮನ್ಮಥ", "ದುರ್ಮುಖಿ",
+                    "ಹೇವಿಳಂಬಿ", "ವಿಳಂಬಿ", "ವಿಕಾರಿ", "ಶಾರ್ವರಿ", "ಪ್ಲವ",
+                    "ಶುಭಕೃತ್", "ಶೋಭಕೃತ್", "ಕ್ರೋಧಿ", "ವಿಶ್ವಾವಸು", "ಪರಾಭವ",
+                    "ಪ್ಲವಂಗ", "ಕೀಲಕ", "ಸೌಮ್ಯ", "ಸಾಧಾರಣ", "ವಿರೋಧಿಕೃತ್",
+                    "ಪರಿಧಾವಿ", "ಪ್ರಮಾದಿ", "ಆನಂದ", "ರಾಕ್ಷಸ", "ನಳ",
+                    "ಪಿಂಗಳ", "ಕಾಲಯುಕ್ತಿ", "ಸಿದ್ಧಾರ್ಥಿ", "ರೌದ್ರಿ", "ದುರ್ಮತಿ",
+                    "ದುಂದುಭಿ", "ರುಧಿರೋದ್ಗಾರಿ", "ರಕ್ತಾಕ್ಷಿ", "ಕ್ರೋಧನ", "ಅಕ್ಷಯ"
+                ];
+                
+                const shakaYear = details.samvat.shaka;
+                const samvatsara = samvatsaras[(shakaYear + 11) % 60];
+                const monthName = sakaMonths[details.masa.index];
+                
+                const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+                
                 const staticData: PanchangaData = {
-                    tithi: getTithiAtSunrise(sunriseDate),
-                    nakshatra: getApproxNakshatra(activeDate),
-                    sunrise: '06:15 AM',
-                    sunset: '06:42 PM',
-                    indianDate: getSakaSamvatDate(activeDate),
+                    tithi: tithiName,
+                    nakshatra: nakshatraName,
+                    sunrise: new Date(details.sunrise).toLocaleTimeString('en-IN', timeOpts),
+                    sunset: new Date(details.sunset).toLocaleTimeString('en-IN', timeOpts),
+                    indianDate: `${samvatsara} ಸಂವತ್ಸರ, ${monthName} ಮಾಸ`,
                 };
+                
                 setPanchanga(staticData);
                 localStorage.setItem(cacheKey, JSON.stringify(staticData));
-            } catch { setPanchanga(null); }
+            } catch (err) { 
+                console.error('Panchanga Error:', err);
+                setPanchanga(null); 
+            }
             finally { setLoading(false); }
         };
         fetchPanchanga();
@@ -276,69 +335,4 @@ function InfoPill({ icon, label, value, color }: { icon: ReactNode; label: strin
     );
 }
 
-function getTithiAtSunrise(sunriseDate: Date): string {
-    const tithis = [
-        'ಪ್ರತಿಪದೆ', 'ದ್ವಿತೀಯಾ', 'ತೃತೀಯಾ', 'ಚತುರ್ಥೀ', 'ಪಂಚಮಿ',
-        'ಷಷ್ಟಿ', 'ಸಪ್ತಮಿ', 'ಅಷ್ಟಮಿ', 'ನವಮಿ', 'ದಶಮಿ',
-        'ಏಕಾದಶಿ', 'ದ್ವಾದಶಿ', 'ತ್ರಯೋದಶಿ', 'ಚತುರ್ದಶಿ'
-    ];
-    const epoch = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
-    const synodicMonth = 29.53058868;
-    const diffDays = (sunriseDate.getTime() - epoch.getTime()) / (1000 * 60 * 60 * 24);
-    const lunarAge = ((diffDays % synodicMonth) + synodicMonth) % synodicMonth;
-    const tithiNum = Math.floor(lunarAge / (synodicMonth / 30));
-    if (tithiNum < 15) {
-        const idx = tithiNum % 15;
-        return idx === 14 ? 'ಶುಕ್ಲ ಪೂರ್ಣಿಮೆ' : `ಶುಕ್ಲ ${tithis[idx]}`;
-    } else {
-        const idx = (tithiNum - 15) % 15;
-        return idx === 14 ? 'ಕೃಷ್ಣ ಅಮಾವಾಸ್ಯೆ' : `ಕೃಷ್ಣ ${tithis[idx]}`;
-    }
-}
 
-function getApproxNakshatra(date: Date): string {
-    const nakshatras = [
-        'ಅಶ್ವಿನಿ', 'ಭರಣಿ', 'ಕೃತ್ತಿಕಾ', 'ರೋಹಿಣಿ', 'ಮೃಗಶಿರಾ',
-        'ಆರ್ದ್ರಾ', 'ಪುನರ್ವಸು', 'ಪುಷ್ಯ', 'ಆಶ್ಲೇಷಾ', 'ಮಘಾ',
-        'ಪೂರ್ವ ಫಲ್ಗುಣಿ', 'ಉತ್ತರ ಫಲ್ಗುಣಿ', 'ಹಸ್ತ', 'ಚಿತ್ರಾ', 'ಸ್ವಾತಿ',
-        'ವಿಶಾಖಾ', 'ಅನುರಾಧಾ', 'ಜ್ಯೇಷ್ಠಾ', 'ಮೂಲಾ', 'ಪೂರ್ವಾಷಾಢಾ',
-        'ಉತ್ತರಾಷಾಢಾ', 'ಶ್ರವಣ', 'ಧನಿಷ್ಟಾ', 'ಶತಭಿಷಾ',
-        'ಪೂರ್ವಭಾದ್ರಪದಾ', 'ಉತ್ತರಭಾದ್ರಪದಾ', 'ರೇವತಿ'
-    ];
-    const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-    return nakshatras[dayOfYear % 27];
-}
-
-function getSakaSamvatDate(date: Date): string {
-    const sakaMonths = ['ಚೈತ್ರ', 'ವೈಶಾಖ', 'ಜ್ಯೇಷ್ಠ', 'ಆಷಾಢ', 'ಶ್ರಾವಣ', 'ಭಾದ್ರಪದ', 'ಆಶ್ವಿನ', 'ಕಾರ್ತಿಕ', 'ಮಾರ್ಗಶಿರ', 'ಪುಷ್ಯ', 'ಮಾಘ', 'ಫಾಲ್ಗುಣ'];
-    const samvatsaras = [
-        "ಪ್ರಭವ", "ವಿಭವ", "ಶುಕ್ಲ", "ಪ್ರಮೋದೂತ", "ಪ್ರಜೋತ್ಪತ್ತಿ",
-        "ಆಂಗಿರಸ", "ಶ್ರೀಮುಖ", "ಭಾವ", "ಯುವ", "ಧಾತೃ",
-        "ಈಶ್ವರ", "ಬಹುಧಾನ್ಯ", "ಪ್ರಮಾಧಿ", "ವಿಕ್ರಮ", "ವೃಷಭ",
-        "ಚಿತ್ರಭಾನು", "ಸ್ವಭಾನು", "ತಾರಣ", "ಪಾರ್ಥಿವ", "ವ್ಯಯ",
-        "ಸರ್ವಜಿತ್", "ಸರ್ವಧಾರಿ", "ವಿರೋಧಿ", "ವಿಕೃತಿ", "ಖರ",
-        "ನಂದನ", "ವಿಜಯ", "ಜಯ", "ಮನ್ಮಥ", "ದುರ್ಮುಖಿ",
-        "ಹೇವಿಳಂಬಿ", "ವಿಳಂಬಿ", "ವಿಕಾರಿ", "ಶಾರ್ವರಿ", "ಪ್ಲವ",
-        "ಶುಭಕೃತ್", "ಶೋಭಕೃತ್", "ಕ್ರೋಧಿ", "ವಿಶ್ವಾವಸು", "ಪರಾಭವ",
-        "ಪ್ಲವಂಗ", "ಕೀಲಕ", "ಸೌಮ್ಯ", "ಸಾಧಾರಣ", "ವಿರೋಧಿಕೃತ್",
-        "ಪರಿಧಾವಿ", "ಪ್ರಮಾದಿ", "ಆನಂದ", "ರಾಕ್ಷಸ", "ನಳ",
-        "ಪಿಂಗಳ", "ಕಾಲಯುಕ್ತಿ", "ಸಿದ್ಧಾರ್ಥಿ", "ರೌದ್ರಿ", "ದುರ್ಮತಿ",
-        "ದುಂದುಭಿ", "ರುಧಿರೋದ್ಗಾರಿ", "ರಕ್ತಾಕ್ಷಿ", "ಕ್ರೋಧನ", "ಅಕ್ಷಯ"
-    ];
-
-    const ugadiDate = new Date(date.getFullYear(), 2, 19);
-    let shakaYear = date.getFullYear() - 78;
-    if (date < ugadiDate) shakaYear--;
-    const samvatsara = samvatsaras[(shakaYear + 11) % 60];
-
-    const marchEquinox = new Date(date.getFullYear(), 2, 22);
-    let monthIdx: number;
-    if (date >= marchEquinox) {
-        monthIdx = Math.min(11, Math.floor((date.getTime() - marchEquinox.getTime()) / (1000 * 60 * 60 * 24 * 30.4)));
-    } else {
-        const prevEquinox = new Date(date.getFullYear() - 1, 2, 22);
-        monthIdx = Math.min(11, Math.floor((date.getTime() - prevEquinox.getTime()) / (1000 * 60 * 60 * 24 * 30.4)));
-    }
-
-    return `${samvatsara} ಸಂವತ್ಸರ, ${sakaMonths[monthIdx]} ಮಾಸ`;
-}

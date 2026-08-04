@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { transliterateToKannada, convertKnNumeralsToEn } from '../transliterate';
-import { X, Search, CreditCard, Receipt, Check, Loader2, Info } from 'lucide-react';
-import TransliteratedInput from './TransliteratedInput';
+import { X, Loader2 } from 'lucide-react';
 import GlobalInputToolbar from './GlobalInputToolbar';
+import DevoteeSelectionStep from './registration/DevoteeSelectionStep';
+import SevaDetailsStep from './registration/SevaDetailsStep';
+import PaymentStep from './registration/PaymentStep';
 import { useToast } from './Toast';
 import { useSettings } from '../context/SettingsContext';
 import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 import { devoteeApi, registrationApi } from '../api';
 
-interface SevaItem {
+export interface SevaItem {
     SevaCode?: string;
     ItemCode?: string;
     Description: string;
@@ -280,7 +282,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     const calculateTotal = () => {
         const item = getSelectedItem();
         if (!item) return 0;
-        let total = item.Amount || item.Basic || 0;
+        let total = parseFloat(String(item.Amount)) || parseFloat(String(item.Basic)) || 0;
         if (optPrasada) {
             // Food service is charged for additional people only
             total += familyMembers * (parseInt(foodServiceRateStr) || 0);
@@ -430,289 +432,57 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col h-full overflow-hidden">
                                         <div className="flex-1 overflow-y-auto pr-1.5 pb-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-                                                {/* Left Column: Devotee */}
-                                                <div className="flex flex-col space-y-2 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)]">
-                                                    <h3 className="text-xs font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5">
-                                                        <Search className="text-[var(--primary)]" size={14} /> ಭಕ್ತರ ಹುಡುಕಿ
-                                                    </h3>
-
-                                                    {isNewCustomer ? (
-                                                        <div className="flex gap-2 mb-1">
-                                                            <div className="flex-1 relative">
-                                                                <TransliteratedInput
-                                                                    value={searchQuery}
-                                                                    onChange={(v) => setSearchQuery(v)}
-                                                                    placeholder="ಹೆಸರು ಅಥವಾ ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
-                                                                />
-                                                                {isSearching && (
-                                                                    <Loader2 size={14} className="absolute right-3 top-2 text-[var(--text-secondary)] animate-spin" />
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/20 rounded-lg p-2 mb-1 flex items-center justify-between">
-                                                            <div>
-                                                                <p className="text-[9px] font-bold text-green-700 dark:text-green-400 mb-0.5 uppercase tracking-wider">ಆಯ್ಕೆಯಾದ ಭಕ್ತರು</p>
-                                                                <p className="text-xs font-bold text-[var(--text-primary)]">{customer.Name}</p>
-                                                                <p className="text-xs text-[var(--text-secondary)]">{customer.Phone}</p>
-                                                            </div>
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => { setIsNewCustomer(true); setCustomer({ Name: '', Phone: '', Sgotra: '', SNakshatra: '', Address: '', City: '' }); setSearchQuery(''); }} 
-                                                                className="text-xs flex py-1.5 px-2.5 items-center gap-1 font-bold text-green-700 dark:text-green-400 hover:bg-green-200/50 dark:hover:bg-green-800/30 rounded-lg transition-colors"
-                                                            >
-                                                                <X size={14} /> ಬದಲಾಯಿಸಿ
-                                                            </button>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Search Results Dropdown */}
-                                                    {isNewCustomer && searchResults.length > 0 && (
-                                                        <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl p-3 mb-2">
-                                                            <p className="text-[10px] font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-wider">{searchResults.length} ಫಲಿತಾಂಶಗಳು</p>
-                                                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
-                                                                {searchResults.map(res => (
-                                                                    <button
-                                                                        key={res.ID1}
-                                                                        type="button"
-                                                                        onClick={() => selectCustomer(res)}
-                                                                        className="w-full text-left bg-white dark:bg-black/30 p-2 rounded-lg hover:border-[var(--primary)] border border-transparent transition-all flex items-center justify-between group"
-                                                                    >
-                                                                        <div>
-                                                                            <div className="font-bold text-[var(--text-primary)] text-xs">{res.Name}</div>
-                                                                            <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{res.Phone} • {res.City || 'No City'}</div>
-                                                                        </div>
-                                                                        <Check size={14} className="text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="h-px w-full bg-[var(--glass-border)] my-1.5 relative">
-                                                        <span className="absolute left-1/2 -top-2 -translate-x-1/2 bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] px-2 text-[9px] font-bold text-[var(--text-secondary)]">
-                                                            {isNewCustomer ? 'ಅಥವಾ ಹೊಸ ವಿವರ ಸೇರಿಸಿ' : 'ವಿವರಗಳನ್ನು ನವೀಕರಿಸಿ'}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Manual Form */}
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಪೂರ್ಣ ಹೆಸರು <span className="text-red-500">*</span></label>
-                                                            <TransliteratedInput value={customer.Name} onChange={(v) => setCustomer({ ...customer, Name: v })} placeholder="ಹೆಸರು" />
-                                                        </div>
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಫೋನ್ ನಂಬರ್ <span className="text-red-500">*</span></label>
-                                                            <input type="tel" value={customer.Phone} onChange={(e) => setCustomer({ ...customer, Phone: convertKnNumeralsToEn(e.target.value) })} placeholder="9999999999" className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" />
-                                                        </div>
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಗೋತ್ರ</label>
-                                                            <TransliteratedInput value={customer.Sgotra} onChange={(v) => setCustomer({ ...customer, Sgotra: v })} placeholder="ಗೋತ್ರ" list="gotra-list" />
-                                                            <datalist id="gotra-list">
-                                                                {getUnifiedSuggestions(GOTRAS).map((g) => <option key={g} value={g} />)}
-                                                            </datalist>
-                                                        </div>
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ನಕ್ಷತ್ರ</label>
-                                                            <TransliteratedInput value={customer.SNakshatra} onChange={(v) => setCustomer({ ...customer, SNakshatra: v })} placeholder="ನಕ್ಷತ್ರ" list="nakshatra-list" />
-                                                            <datalist id="nakshatra-list">
-                                                                {getUnifiedSuggestions(NAKSHATRAS).map((n) => <option key={n} value={n} />)}
-                                                            </datalist>
-                                                        </div>
-                                                        <div className="sm:col-span-2 space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ವಿಳಾಸ</label>
-                                                            <TransliteratedInput value={customer.Address} onChange={(v) => setCustomer({ ...customer, Address: v })} placeholder="ವಿಳಾಸ" multiline />
-                                                        </div>
-                                                        <div className="sm:col-span-2 space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ</label>
-                                                            <TransliteratedInput value={customer.City} onChange={(v) => setCustomer({ ...customer, City: v })} placeholder="ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ" />
-                                                        </div>
-                                                    </div>
+                                                <div className="flex-1 min-w-[280px]">
+                                                    <DevoteeSelectionStep
+                                                        customer={customer}
+                                                        setCustomer={setCustomer}
+                                                        isNewCustomer={isNewCustomer}
+                                                        setIsNewCustomer={setIsNewCustomer}
+                                                        searchQuery={searchQuery}
+                                                        setSearchQuery={setSearchQuery}
+                                                        isSearching={isSearching}
+                                                        searchResults={searchResults}
+                                                        selectCustomer={selectCustomer}
+                                                    />
                                                 </div>
 
                                                 {/* Right Column: Seva */}
-                                                <div className="flex flex-col space-y-2.5 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)]">
-                                                    <h3 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5">
-                                                        <Receipt className="text-[var(--primary)]" size={14} /> ಸೇವಾ ವಿವರಗಳು
-                                                    </h3>
-
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ದಿನಾಂಕ</label>
-                                                            <input
-                                                                type="date"
-                                                                min={new Date().toLocaleDateString('en-CA')}
-                                                                value={selectedDate.toLocaleDateString('en-CA')}
-                                                                onChange={(e) => {
-                                                                    const d = e.target.value;
-                                                                    if (d) {
-                                                                        const [y, m, day] = d.split('-');
-                                                                        setSelectedDate(new Date(Number(y), Number(m) - 1, Number(day)));
-                                                                    }
-                                                                }}
-                                                                className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
-                                                            />
-                                                        </div>
-
-                                                        <div className="space-y-0.5">
-                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ಸೇವೆ / ಈವೆಂಟ್ <span className="text-red-500">*</span></label>
-                                                            <select
-                                                                value={selectedItemCode}
-                                                                onChange={(e) => setSelectedItemCode(e.target.value)}
-                                                                className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
-                                                            >
-                                                                <option className="bg-[var(--bg-light)] dark:bg-slate-800" value="">-- ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ --</option>
-                                                                {items.map(item => (
-                                                                    <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode}>
-                                                                        {item.Description} (₹{item.Basic})
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-lg p-2 space-y-1.5">
-                                                        <div className="flex items-center justify-between pb-1 border-b border-blue-100 dark:border-blue-900/30">
-                                                            <div className="space-y-0.5 cursor-pointer" onClick={() => setOptPrasada(!optPrasada)}>
-                                                                <label className="text-xs font-bold text-orange-600 dark:text-orange-400 cursor-pointer">ಹಸ್ತೋದಕ</label>
-                                                            </div>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setOptPrasada(!optPrasada)}
-                                                                className={`w-10 h-5 rounded-full transition-colors relative ${optPrasada ? 'bg-[var(--accent-saffron)]' : 'bg-slate-300 dark:bg-slate-700'}`}
-                                                            >
-                                                                <motion.div
-                                                                    animate={{ x: optPrasada ? 20 : 2 }}
-                                                                    className="w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm"
-                                                                />
-                                                            </button>
-                                                        </div>
-
-                                                        <AnimatePresence>
-                                                            {optPrasada && (
-                                                                <motion.div 
-                                                                    initial={{ height: 0, opacity: 0 }}
-                                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                                    exit={{ height: 0, opacity: 0 }}
-                                                                    className="overflow-hidden flex flex-col gap-2 pt-1"
-                                                                >
-                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                        <div className="space-y-0.5">
-                                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಹೆಚ್ಚುವರಿ ಸದಸ್ಯರು</label>
-                                                                            <input
-                                                                                type="number" min="0" max="20"
-                                                                                value={familyMembers}
-                                                                                onChange={(e) => setFamilyMembers(parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
-                                                                                className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-0.5">
-                                                                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ದರ</label>
-                                                                            <select
-                                                                                value={foodServiceRateStr}
-                                                                                onChange={(e) => setFoodServiceRateStr(convertKnNumeralsToEn(e.target.value))}
-                                                                                className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
-                                                                            >
-                                                                                {defaultFoodRates.map((rate: number) => (
-                                                                                    <option key={rate} value={rate.toString()}>₹{rate}</option>
-                                                                                ))}
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </motion.div>
-                                                            )}
-                                                        </AnimatePresence>
-                                                    </div>
-
-                                                    <div className="flex-1 min-h-[16px]" />
-                                                    {selectedItemCode && (
-                                                        <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--primary)]/30 rounded-xl p-2.5 flex justify-between items-center bg-gradient-to-r from-[var(--glass-bg)] to-orange-50 dark:to-orange-900/10 shrink-0">
-                                                            <span className="font-medium text-[var(--text-secondary)] uppercase text-xs">ಒಟ್ಟು ಮೊತ್ತ</span>
-                                                            <span className="text-sm font-black text-[var(--primary)]">₹{calculateTotal()}</span>
-                                                        </div>
-                                                    )}
+                                                <div className="flex-1 min-w-[280px]">
+                                                    <SevaDetailsStep
+                                                        selectedDate={selectedDate}
+                                                        setSelectedDate={setSelectedDate}
+                                                        selectedItemCode={selectedItemCode}
+                                                        setSelectedItemCode={setSelectedItemCode}
+                                                        items={items}
+                                                        optPrasada={optPrasada}
+                                                        setOptPrasada={setOptPrasada}
+                                                        familyMembers={familyMembers}
+                                                        setFamilyMembers={setFamilyMembers}
+                                                        foodServiceRateStr={foodServiceRateStr}
+                                                        setFoodServiceRateStr={setFoodServiceRateStr}
+                                                        defaultFoodRates={defaultFoodRates}
+                                                        calculateTotal={calculateTotal}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
                                     </motion.div>
                                 )}
 
-                                {/* STEP 2: PAYMENT */}
                                 {step === Step.Payment && (
-                                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col space-y-2 h-full overflow-y-auto pr-1 pb-4">
-                                        <h3 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5 relative">
-                                            <CreditCard className="text-[var(--primary)]" size={16} /> ಪಾವತಿ ವಿಧಾನ
-                                        </h3>
-
-                                        <div className="grid grid-cols-2 gap-2 max-w-xs">
-                                            {['Cash', 'UPI'].map((mode) => (
-                                                <button
-                                                    key={mode}
-                                                    type="button"
-                                                    onClick={() => setPaymentMode(mode as any)}
-                                                    className={`py-2 px-1 rounded-lg border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all ${paymentMode === mode
-                                                        ? 'bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)] shadow-sm'
-                                                        : 'bg-slate-50 dark:bg-slate-800 border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-white/50 dark:hover:bg-black/20'
-                                                        }`}
-                                                >
-                                                    {mode === 'Cash' ? 'ನಗದು' : 'UPI'}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {paymentMode === 'UPI' && (
-                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 mt-2 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-[var(--glass-border)]">
-                                                {orgSettings.upiQrCode ? (
-                                                    <div className="flex flex-col items-center justify-center space-y-2 mb-2">
-                                                        <img src={orgSettings.upiQrCode} alt="UPI QR Code" className="w-32 h-32 object-cover rounded-xl shadow-md border-4 border-white" />
-                                                        {orgSettings.upiVpa && <p className="text-[10px] font-mono text-[var(--text-secondary)]">{orgSettings.upiVpa}</p>}
-                                                    </div>
-                                                ) : (
-                                                    <div className="bg-orange-50 text-orange-600 p-2 rounded-lg text-xs text-center">
-                                                        QR Code is not configured.
-                                                    </div>
-                                                )}
-                                                
-                                                <div className="space-y-1 max-w-md mx-auto">
-                                                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">Transaction ID / UTR Number <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        type="text"
-                                                        value={upiDetails.transactionId}
-                                                        onChange={(e) => {
-                                                            const cleaned = convertKnNumeralsToEn(e.target.value);
-                                                            setUpiDetails({ ...upiDetails, transactionId: cleaned, gateway: 'Direct' });
-                                                            setPaymentRef(cleaned);
-                                                        }}
-                                                        className="w-full px-2 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-xs font-mono text-center tracking-widest focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                                                        placeholder="123456789012"
-                                                    />
-                                                </div>
-                                            </motion.div>
-                                        )}
-
-                                        <div className="flex-1" />
-                                        
-                                        <div className="bg-orange-50/50 dark:bg-orange-900/10 rounded-lg p-2 flex gap-2 text-[10px] text-[var(--text-secondary)] border border-orange-100 dark:border-orange-500/10 mb-2">
-                                            <Info className="shrink-0 text-orange-500 mt-0.5" size={14} />
-                                            <p>ದಯವಿಟ್ಟು ಪಾವತಿ ಸ್ವೀಕರಿಸಿದ ನಂತರವೇ 'ಮುಕ್ತಾಯ' ಕ್ಲಿಕ್ ಮಾಡಿ. ವಹಿವಾಟು ಯಶಸ್ವಿಯಾದರೆ, ಸ್ವಯಂಚಾಲಿತವಾಗಿ ರಸೀದಿ ಸೃಷ್ಟಿಸಲಾಗುತ್ತದೆ.</p>
-                                        </div>
-                                        
-                                        {/* Final Summary */}
-                                        <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--primary)]/30 rounded-xl p-3 flex justify-between items-center shadow-lg shadow-orange-500/5">
-                                            <div>
-                                                <p className="text-xs text-[var(--text-secondary)] font-bold mb-1">ಸೇವೆ: {getSelectedItem()?.Description || '-'}</p>
-                                                <p className="text-xs text-[var(--text-secondary)]">ಭಕ್ತರು: {customer.Name}</p>
-                                                {optPrasada && familyMembers > 0 && (
-                                                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 font-bold">ಹಸ್ತೋದಕ: {familyMembers} ಹೆಚ್ಚುವರಿ ಸದಸ್ಯರು</p>
-                                                )}
-                                            </div>
-                                            <div className="text-right">
-                                                <span className="text-[10px] text-[var(--text-secondary)] uppercase block mb-1">ಪಾವತಿಸಬೇಕಾದ ಮೊತ್ತ ({paymentMode === 'Cash' ? 'ನಗದು' : 'UPI'})</span>
-                                                <span className="text-xl font-black text-[var(--primary)]">₹{calculateTotal()}</span>
-                                            </div>
-                                        </div>
-                                    </motion.div>
+                                    <PaymentStep
+                                        paymentMode={paymentMode}
+                                        setPaymentMode={setPaymentMode}
+                                        orgSettings={orgSettings}
+                                        upiDetails={upiDetails}
+                                        setUpiDetails={setUpiDetails}
+                                        setPaymentRef={setPaymentRef}
+                                        calculateTotal={calculateTotal}
+                                        getSelectedItem={getSelectedItem}
+                                        customer={customer}
+                                        optPrasada={optPrasada}
+                                        familyMembers={familyMembers}
+                                    />
                                 )}
 
                                 {/* Footer Nav */}

@@ -17,3 +17,10 @@ build/
 
 # OS
 .DS_Store
+
+# Uploads and generated files
+backend/uploads/
+backend/app/receipts/
+.continue-here.md
+.vscode/
+

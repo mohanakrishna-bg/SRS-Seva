@@ -16,6 +16,7 @@ interface InventoryModalProps {
     itemType: 'asset' | 'consumable';
     categories: Category[];
     materials?: Material[];
+    items?: InventoryItem[];
     onClose: () => void;
     onSaved: () => void;
 }
@@ -25,6 +26,7 @@ export default function InventoryModal({
     itemType,
     categories,
     materials = [],
+    items = [],
     onClose,
     onSaved
 }: InventoryModalProps) {
@@ -344,8 +346,8 @@ export default function InventoryModal({
                                 </button>
                             </div>
                         )}
-                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
-                        <input type="file" ref={mobileCameraRef} onChange={handleMobileCameraCapture} className="hidden" accept="image/*" capture="environment" />
+                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/jpeg,image/png,image/webp" />
+                        <input type="file" ref={mobileCameraRef} onChange={handleMobileCameraCapture} className="hidden" accept="image/jpeg,image/png,image/webp" capture="environment" />
                     </div>
 
                     {/* Action Buttons */}
@@ -381,6 +383,8 @@ export default function InventoryModal({
                 onClose={() => setRepoModalOpen(false)}
                 onSelectImage={(filename) => setForm(prev => ({ ...prev, ImageLink: filename }))}
                 currentImage={form.ImageLink}
+                items={items}
+                categories={categories}
             />
         </div>
     );

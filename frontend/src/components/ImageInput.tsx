@@ -91,7 +91,7 @@ export default function ImageInput({
                     <input
                         ref={fileRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp"
                         className="hidden"
                         onChange={handleFile}
                     />

@@ -87,6 +87,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
     }, [search, filterCat, filterMat, showDeleted]);
 
     const paginatedItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const totalPages = Math.ceil(items.length / pageSize);
 
     const viewItemIndex = viewItem ? items.findIndex(i => i.ItemId === viewItem.ItemId) : -1;
     const hasPrevItem = viewItemIndex > 0;
@@ -101,8 +102,8 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
     };
 
     useEffect(() => {
-        if (!viewItem) return;
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (!viewItem) return;
             if (e.key === 'ArrowLeft') {
                 const idx = items.findIndex(i => i.ItemId === viewItem.ItemId);
                 if (idx > 0) setViewItem(items[idx - 1]);
@@ -111,6 +112,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                 if (idx >= 0 && idx < items.length - 1) setViewItem(items[idx + 1]);
             } else if (e.key === 'Escape') {
                 setViewItem(null);
+                setTab('register');
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -121,6 +123,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
         try {
             await inventoryApi.deleteItem(id, false, 'Deleted by user');
             setViewItem(null);
+            setTab('register');
             loadData();
         } catch (e) {
             console.error('Failed to soft delete', e);
@@ -131,6 +134,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
         try {
             await inventoryApi.restoreItem(id);
             setViewItem(null);
+            setTab('register');
             loadData();
         } catch (e) {
             console.error('Failed to restore item', e);
@@ -475,6 +479,34 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                             />
                                         ))}
                                     </div>
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <div className="mt-4 pt-4 border-t border-[var(--glass-border)] flex flex-wrap items-center justify-between gap-4">
+                                            <div className="text-xs text-[var(--text-secondary)] font-medium">
+                                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, items.length)} of {items.length} items
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                    disabled={currentPage === 1}
+                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <ChevronLeft size={14} /> Previous
+                                                </button>
+                                                <div className="px-3 py-1.5 text-xs font-bold text-[var(--text-primary)] font-mono">
+                                                    Page {currentPage} of {totalPages}
+                                                </div>
+                                                <button
+                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                    disabled={currentPage === totalPages}
+                                                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    Next <ChevronRight size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
@@ -489,6 +521,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                     itemType={itemType}
                     categories={categories}
                     materials={materials}
+                    items={items}
                     onClose={() => setIsModalOpen(false)}
                     onSaved={() => { setIsModalOpen(false); loadData(); }}
                 />
@@ -537,7 +570,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                     >
                                         <ChevronRight size={18} />
                                     </button>
-                                    <button onClick={() => setViewItem(null)} className="p-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] rounded-full transition-colors text-[var(--text-primary)]" title="Close">
+                                    <button onClick={() => { setViewItem(null); setTab('register'); }} className="p-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-border)] rounded-full transition-colors text-[var(--text-primary)]" title="Close">
                                         <X size={18} />
                                     </button>
                                 </div>
@@ -592,7 +625,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                 ) : (
                                     <>
                                         <button onClick={() => handleSoftDelete(viewItem.ItemId)} className="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20 transition-colors">Delete</button>
-                                        <button onClick={() => { setEditItem(viewItem); setViewItem(null); setIsModalOpen(true); }} className="flex-1 px-4 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors">Edit Item</button>
+                                    <button onClick={() => { setEditItem(viewItem); setViewItem(null); setTab('register'); setIsModalOpen(true); }} className="flex-1 px-4 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors">Edit Item</button>
                                     </>
                                 )}
                             </div>
