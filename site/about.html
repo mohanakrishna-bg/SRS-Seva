@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ಪರಿಚಯ — ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</title>
+  <meta name="description" content="ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠದ ಇತಿಹಾಸ, ಪರಂಪರೆ ಮತ್ತು ಮಹತ್ವ. History, tradition and significance of Sri Raghavendra Swamy Matha.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Serif+Kannada:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script>
+    (function(){var t=localStorage.getItem('seva_site_theme');if(t==='dark'||((!t)&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})();
+    (function(){var l=localStorage.getItem('seva_site_lang');if(l==='en')document.documentElement.setAttribute('data-lang','en');})();
+  </script>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Home">
+        <div class="brand-icon">🙏</div>
+        <div class="brand-text">
+          <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span>
+          <span lang="en">Sri Raghavendra Swamy Matha</span>
+          <small>
+            <span lang="kn">ಸೇವಾ ವ್ಯವಸ್ಥಾಪನೆ</span>
+            <span lang="en">Seva Management</span>
+          </small>
+        </div>
+      </a>
+      <nav class="nav-desktop" aria-label="Main navigation">
+        <ul>
+          <li><a href="index.html" class="nav-link"><span lang="kn">🏠 ಮುಖಪುಟ</span><span lang="en">🏠 Home</span></a></li>
+          <li><a href="about.html" class="nav-link"><span lang="kn">🕉️ ಪರಿಚಯ</span><span lang="en">🕉️ About</span></a></li>
+          <li><a href="sevas.html" class="nav-link"><span lang="kn">🪔 ಸೇವೆಗಳು</span><span lang="en">🪔 Sevas</span></a></li>
+          <li><a href="events.html" class="nav-link"><span lang="kn">📅 ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">📅 Events</span></a></li>
+          <li><a href="contact.html" class="nav-link"><span lang="kn">📞 ಸಂಪರ್ಕ</span><span lang="en">📞 Contact</span></a></li>
+        </ul>
+      </nav>
+      <div class="header-controls">
+        <button class="icon-btn lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+        <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Nav -->
+  <div class="nav-overlay" id="nav-overlay"></div>
+  <nav class="nav-mobile" id="nav-mobile" aria-label="Mobile navigation">
+    <div class="nav-mobile-header">
+      <div class="brand-text" style="font-size:var(--text-base);">
+        <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span>
+        <span lang="en">Sri Raghavendra Swamy Matha</span>
+      </div>
+      <button class="nav-mobile-close" id="nav-close" aria-label="Close menu">✕</button>
+    </div>
+    <div class="nav-mobile-links">
+      <a href="index.html"><span lang="kn">🏠 ಮುಖಪುಟ</span><span lang="en">🏠 Home</span></a>
+      <a href="about.html"><span lang="kn">🕉️ ಪರಿಚಯ</span><span lang="en">🕉️ About</span></a>
+      <a href="sevas.html"><span lang="kn">🪔 ಸೇವೆಗಳು</span><span lang="en">🪔 Sevas</span></a>
+      <a href="events.html"><span lang="kn">📅 ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">📅 Events</span></a>
+      <a href="contact.html"><span lang="kn">📞 ಸಂಪರ್ಕ</span><span lang="en">📞 Contact</span></a>
+    </div>
+    <div class="nav-mobile-footer">
+      <button class="icon-btn lang-btn" onclick="document.getElementById('lang-toggle').click()">EN</button>
+      <button class="icon-btn" onclick="document.getElementById('theme-toggle').click()">🌙</button>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE HEADER ========== -->
+  <section class="page-header">
+    <div class="container">
+      <h1>
+        <span lang="kn">🕉️ ಮಠದ ಪರಿಚಯ</span>
+        <span lang="en">🕉️ About the Matha</span>
+      </h1>
+      <p>
+        <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠದ ಇತಿಹಾಸ ಮತ್ತು ಪರಂಪರೆ</span>
+        <span lang="en">History and tradition of Sri Raghavendra Swamy Matha</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="main-content">
+
+    <!-- History Section -->
+    <section class="section">
+      <div class="container">
+        <div class="grid-2" style="align-items: start;">
+          <div class="fade-in-up">
+            <h2 style="margin-bottom: var(--space-lg);">
+              <span lang="kn">ಇತಿಹಾಸ</span>
+              <span lang="en">History</span>
+            </h2>
+            <p class="block-text" lang="kn">
+              ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠವು ಧಾರ್ಮಿಕ ಮತ್ತು ಸಾಂಸ್ಕೃತಿಕ ಚಟುವಟಿಕೆಗಳ ಕೇಂದ್ರವಾಗಿ ಸೇವೆ ಸಲ್ಲಿಸುತ್ತಿದೆ. ಮಠವು ಭಕ್ತರಿಗೆ ಧಾರ್ಮಿಕ ಸೇವೆಗಳನ್ನು ಒದಗಿಸುವುದು, ವೇದ ಪಾಠಶಾಲೆಗಳನ್ನು ನಡೆಸುವುದು ಮತ್ತು ಸಮಾಜ ಸೇವಾ ಕಾರ್ಯಕ್ರಮಗಳನ್ನು ಹಮ್ಮಿಕೊಳ್ಳುವ ಮೂಲಕ ಸಮುದಾಯಕ್ಕೆ ಬಹುಮೂಲ್ಯ ಕೊಡುಗೆ ನೀಡುತ್ತಿದೆ.
+            </p>
+            <p class="block-text" lang="kn">
+              ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳು ೧೬೭೧ ರಲ್ಲಿ ಮಂತ್ರಾಲಯದಲ್ಲಿ ಬೃಂದಾವನ ಪ್ರವೇಶ ಮಾಡಿದರು. ಅವರ ಅನುಗ್ರಹದಿಂದ ಈ ಮಠವು ಸ್ಥಾಪಿತವಾಯಿತು ಮತ್ತು ಇಂದಿಗೂ ಅವರ ಆಶೀರ್ವಾದದಿಂದ ಭಕ್ತರ ಸೇವೆಯಲ್ಲಿ ತೊಡಗಿದೆ.
+            </p>
+            <p class="block-text" lang="en">
+              Sri Raghavendra Swamy Matha serves as a center for religious and cultural activities. The Matha provides religious services to devotees, runs Veda Pathashala schools, and contributes to the community through various social service programs.
+            </p>
+            <p class="block-text" lang="en">
+              Sri Raghavendra Swamy entered Brindavana at Mantralaya in 1671. Through his grace, this Matha was established and continues to serve devotees with his blessings to this day.
+            </p>
+          </div>
+
+          <!-- Photo Gallery Placeholder -->
+          <div class="fade-in-up delay-2">
+            <div class="card" style="aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary);">
+              <div class="empty-state">
+                <div class="empty-icon">🏛️</div>
+                <p>
+                  <span lang="kn">ಮಠದ ಛಾಯಾಚಿತ್ರ</span>
+                  <span lang="en">Matha Photo</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider-ornament">❖</div>
+
+    <!-- Traditions Section -->
+    <section class="section">
+      <div class="container">
+        <div class="section-title fade-in-up">
+          <h2>
+            <span lang="kn">ಪರಂಪರೆ ಮತ್ತು ಮಹತ್ವ</span>
+            <span lang="en">Traditions & Significance</span>
+          </h2>
+        </div>
+
+        <div class="grid-3">
+          <div class="card fade-in-up delay-1">
+            <div class="card-icon">📖</div>
+            <h3>
+              <span lang="kn">ವೇದ ಪಾಠಶಾಲೆ</span>
+              <span lang="en">Veda Pathashala</span>
+            </h3>
+            <p>
+              <span lang="kn">ವೇದಗಳ ಅಧ್ಯಯನ ಮತ್ತು ಸಂಸ್ಕೃತ ಶಿಕ್ಷಣವನ್ನು ಮಠವು ಒದಗಿಸುತ್ತದೆ. ಯುವಜನರಿಗೆ ಧಾರ್ಮಿಕ ಶಿಕ್ಷಣದ ಮೂಲಕ ಸಂಸ್ಕಾರ ನೀಡಲಾಗುತ್ತದೆ.</span>
+              <span lang="en">The Matha provides Vedic studies and Sanskrit education. Young people are given cultural values through religious education.</span>
+            </p>
+          </div>
+
+          <div class="card fade-in-up delay-2">
+            <div class="card-icon">🙏</div>
+            <h3>
+              <span lang="kn">ನಿತ್ಯ ಪೂಜೆ</span>
+              <span lang="en">Daily Worship</span>
+            </h3>
+            <p>
+              <span lang="kn">ಪ್ರತಿದಿನ ವಿಧಿವತ್ ಪೂಜೆ, ಅಭಿಷೇಕ, ಮಂಗಳಾರತಿ ಮತ್ತು ತೀರ್ಥ ಪ್ರಸಾದ ವಿತರಣೆ ನಡೆಯುತ್ತದೆ. ಭಕ್ತರಿಗೆ ದರ್ಶನದ ಅವಕಾಶ ಲಭ್ಯವಿದೆ.</span>
+              <span lang="en">Daily ritual worship, Abhisheka, Mangalarati and distribution of Tirtha Prasada takes place. Darshan opportunities are available for devotees.</span>
+            </p>
+          </div>
+
+          <div class="card fade-in-up delay-3">
+            <div class="card-icon">🍚</div>
+            <h3>
+              <span lang="kn">ಅನ್ನಸಂತರ್ಪಣೆ</span>
+              <span lang="en">Annadana (Food Service)</span>
+            </h3>
+            <p>
+              <span lang="kn">ಮಠದಲ್ಲಿ ಭಕ್ತರಿಗೆ ಪ್ರಸಾದ ಭೋಜನ ವ್ಯವಸ್ಥೆ ಇದೆ. ವಿಶೇಷ ಸಂದರ್ಭಗಳಲ್ಲಿ ಸಾಮೂಹಿಕ ಅನ್ನಸಂತರ್ಪಣೆ ಕಾರ್ಯಕ್ರಮಗಳು ನಡೆಯುತ್ತವೆ.</span>
+              <span lang="en">Prasada meals are available for devotees at the Matha. Mass Annadana programs are conducted on special occasions.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider-ornament">ॐ</div>
+
+    <!-- Management / FAQ Accordion -->
+    <section class="section">
+      <div class="container" style="max-width: 700px;">
+        <div class="section-title fade-in-up">
+          <h2>
+            <span lang="kn">ಪದೇ ಪದೇ ಕೇಳುವ ಪ್ರಶ್ನೆಗಳು</span>
+            <span lang="en">Frequently Asked Questions</span>
+          </h2>
+        </div>
+
+        <div class="fade-in-up">
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>
+                <span lang="kn">ಮಠದ ಸಮಯ ಏನು?</span>
+                <span lang="en">What are the Matha timings?</span>
+              </span>
+              <span class="accordion-icon">▾</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-body-inner">
+                <span lang="kn">ಬೆಳಿಗ್ಗೆ 6:00 ರಿಂದ ಮಧ್ಯಾಹ್ನ 1:30 ರವರೆಗೆ ಮತ್ತು ಸಂಜೆ 5:30 ರಿಂದ ರಾತ್ರಿ 8:30 ರವರೆಗೆ ಮಠ ತೆರೆದಿರುತ್ತದೆ.</span>
+                <span lang="en">The Matha is open from 6:00 AM to 1:30 PM and from 5:30 PM to 8:30 PM.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>
+                <span lang="kn">ಸೇವೆಗಳನ್ನು ಹೇಗೆ ಕಾಯ್ದಿರಿಸಬಹುದು?</span>
+                <span lang="en">How can I book a seva?</span>
+              </span>
+              <span class="accordion-icon">▾</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-body-inner">
+                <span lang="kn">ನೀವು ನೇರವಾಗಿ ಮಠಕ್ಕೆ ಭೇಟಿ ನೀಡಿ ಸೇವೆಗಳನ್ನು ಕಾಯ್ದಿರಿಸಬಹುದು ಅಥವಾ ಫೋನ್ ಮೂಲಕ ಸಂಪರ್ಕಿಸಬಹುದು. ಸೇವೆಗಳ ಪಟ್ಟಿ ಮತ್ತು ದರಗಳಿಗೆ ಸೇವೆಗಳ ಪುಟವನ್ನು ನೋಡಿ.</span>
+                <span lang="en">You can book sevas by visiting the Matha directly or contacting us by phone. See the Sevas page for the full list of services and rates.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>
+                <span lang="kn">ಅನ್ನಸಂತರ್ಪಣೆ ಲಭ್ಯವಿದೆಯೇ?</span>
+                <span lang="en">Is Annadana (food) available?</span>
+              </span>
+              <span class="accordion-icon">▾</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-body-inner">
+                <span lang="kn">ಹೌದು, ಮಠದಲ್ಲಿ ಭಕ್ತರಿಗೆ ಪ್ರಸಾದ ಭೋಜನ ಲಭ್ಯವಿದೆ. ಅನ್ನಸಂತರ್ಪಣೆ ದರಗಳಿಗೆ ಮಠವನ್ನು ಸಂಪರ್ಕಿಸಿ.</span>
+                <span lang="en">Yes, Prasada meals are available for devotees at the Matha. Contact the Matha for Annadana rates.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <span>
+                <span lang="kn">ಮಠಕ್ಕೆ ಹೇಗೆ ತಲುಪಬಹುದು?</span>
+                <span lang="en">How do I reach the Matha?</span>
+              </span>
+              <span class="accordion-icon">▾</span>
+            </button>
+            <div class="accordion-body">
+              <div class="accordion-body-inner">
+                <span lang="kn">ಮಠದ ವಿಳಾಸ ಮತ್ತು ನಕ್ಷೆಗಾಗಿ ಸಂಪರ್ಕ ಪುಟವನ್ನು ನೋಡಿ.</span>
+                <span lang="en">Please see the Contact page for the Matha address and map.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="brand-text">
+            <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span>
+            <span lang="en">Sri Raghavendra Swamy Matha</span>
+          </div>
+          <p><span lang="kn">ಸೇವೆ · ಭಕ್ತಿ · ಸಮರ್ಪಣೆ</span><span lang="en">Service · Devotion · Dedication</span></p>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು</span><span lang="en">Quick Links</span></h4>
+          <a href="index.html"><span lang="kn">ಮುಖಪುಟ</span><span lang="en">Home</span></a>
+          <a href="about.html"><span lang="kn">ಪರಿಚಯ</span><span lang="en">About</span></a>
+          <a href="sevas.html"><span lang="kn">ಸೇವೆಗಳು</span><span lang="en">Sevas</span></a>
+          <a href="events.html"><span lang="kn">ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">Events</span></a>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ಸಂಪರ್ಕ</span><span lang="en">Contact</span></h4>
+          <a href="contact.html"><span lang="kn">📞 ಸಂಪರ್ಕಿಸಿ</span><span lang="en">📞 Contact Us</span></a>
+          <a href="contact.html"><span lang="kn">📍 ನಕ್ಷೆ & ದಿಕ್ಕುಗಳು</span><span lang="en">📍 Map & Directions</span></a>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ಸಮಯ</span><span lang="en">Hours</span></h4>
+          <p style="font-size: var(--text-sm); margin-bottom: var(--space-xs);"><span lang="kn">ಬೆಳಿಗ್ಗೆ 6:00 - ಮಧ್ಯಾಹ್ನ 1:30</span><span lang="en">6:00 AM - 1:30 PM</span></p>
+          <p style="font-size: var(--text-sm);"><span lang="kn">ಸಂಜೆ 5:30 - ರಾತ್ರಿ 8:30</span><span lang="en">5:30 PM - 8:30 PM</span></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span><span lang="en">Sri Raghavendra Swamy Matha</span></span>
+        <span><span lang="kn">ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ</span><span lang="en">All Rights Reserved</span></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/theme.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

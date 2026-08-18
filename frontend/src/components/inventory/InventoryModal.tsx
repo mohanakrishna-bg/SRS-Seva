@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { X, Loader2, Camera, Upload, Check, RefreshCw, Trash2, ImageIcon, FolderSync, Smartphone } from 'lucide-react';
+import { X, Loader2, Camera, Upload, Check, Trash2, ImageIcon, FolderSync, Smartphone } from 'lucide-react';
 import { inventoryApi, uploadApi } from '../../api';
 import MediaCaptureModal from '../MediaCaptureModal';
 import TransliteratedInput from '../TransliteratedInput';
@@ -42,6 +42,7 @@ export default function InventoryModal({
         UOM: item?.UOM || 'Nos',
         Material: item?.Material || '',
         WeightGrams: item?.WeightGrams?.toString() || '',
+        Purity: item?.Purity?.toString() || '',
         UnitPrice: item?.UnitPrice?.toString() || '0',
         Quantity: item?.Quantity?.toString() || '1',
         IsMaintainable: item?.IsMaintainable || false,
@@ -124,6 +125,7 @@ export default function InventoryModal({
             if (itemType === 'asset') {
                 payload.Material = form.Material || undefined;
                 payload.WeightGrams = form.WeightGrams ? parseFloat(form.WeightGrams) : undefined;
+                payload.Purity = form.Purity ? parseFloat(form.Purity) : undefined;
                 payload.IsMaintainable = form.IsMaintainable;
             } else {
                 payload.UOM = form.UOM || 'Nos';
@@ -142,6 +144,7 @@ export default function InventoryModal({
     };
 
     const filteredCats = categories.filter(c => !c.ForType || c.ForType === itemType);
+    const selectedMat = materials.find(m => m.Name === form.Material);
 
     return (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 pt-3 sm:pt-4 backdrop-blur-md overflow-y-auto">
@@ -230,6 +233,22 @@ export default function InventoryModal({
                                     step="0.01"
                                     value={form.WeightGrams}
                                     onChange={e => setForm(prev => ({ ...prev, WeightGrams: e.target.value }))}
+                                    className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
+                                />
+                            </div>
+                        )}
+
+                        {itemType === 'asset' && selectedMat?.BullionRate && (
+                            <div>
+                                <label className="block text-[11px] font-bold uppercase text-[var(--text-secondary)] mb-0.5">Purity (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="100"
+                                    value={form.Purity}
+                                    onChange={e => setForm(prev => ({ ...prev, Purity: e.target.value }))}
+                                    placeholder="e.g. 91.6 for 22K"
                                     className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
                                 />
                             </div>

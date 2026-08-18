@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API routes are proxied by Vite directly to the backend.
-const API_BASE = '/api';
+// API routes are proxied by Vite or Vercel, or set via VITE_API_BASE env var.
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
 
 const api = axios.create({
     baseURL: API_BASE,

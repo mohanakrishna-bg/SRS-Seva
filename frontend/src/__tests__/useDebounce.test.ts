@@ -3,7 +3,7 @@
  * 
  * Ensures the debounce hook works correctly for search inputs.
  */
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDebounce } from '../hooks/useDebounce';
 

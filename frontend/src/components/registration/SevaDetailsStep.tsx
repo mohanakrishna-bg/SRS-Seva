@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt } from 'lucide-react';
 import type { SevaItem } from '../RegistrationModal';

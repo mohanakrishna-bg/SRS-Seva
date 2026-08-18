@@ -144,8 +144,8 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                 const staticData: PanchangaData = {
                     tithi: tithiName,
                     nakshatra: nakshatraName,
-                    sunrise: new Date(details.sunrise).toLocaleTimeString('en-IN', timeOpts),
-                    sunset: new Date(details.sunset).toLocaleTimeString('en-IN', timeOpts),
+                    sunrise: details.sunrise ? new Date(details.sunrise).toLocaleTimeString('en-IN', timeOpts) : '',
+                    sunset: details.sunset ? new Date(details.sunset).toLocaleTimeString('en-IN', timeOpts) : '',
                     indianDate: `${samvatsara} ಸಂವತ್ಸರ, ${monthName} ಮಾಸ`,
                 };
                 

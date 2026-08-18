@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Package, BarChart3, FolderSync, Plus, Search, RefreshCw, 
     X, Loader2, ImageIcon, Eye, EyeOff, ChevronLeft, ChevronRight,
-    TrendingUp, Coins, MapPin, Sparkles, Calendar
+    TrendingUp, Coins, MapPin, Sparkles, Calendar, FileText
 } from 'lucide-react';
 import { inventoryApi } from '../../api';
 import InventoryCard, { getImgSrc } from './InventoryCard';
@@ -11,6 +11,7 @@ import type { InventoryItem } from './InventoryCard';
 import InventoryModal from './InventoryModal';
 import SyncDashboard from './SyncDashboard';
 import QuickCapturePanel from './QuickCapturePanel';
+import ReportGenerator from './ReportGenerator';
 
 interface Category { Id: number; Name: string; ForType?: string; }
 interface Material { Id: number; Name: string; BullionRate?: number | null; }
@@ -52,6 +53,7 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editItem, setEditItem] = useState<InventoryItem | null>(null);
     const [viewItem, setViewItem] = useState<InventoryItem | null>(null);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const loadData = async () => {
         setLoading(true);
@@ -390,6 +392,13 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                     <Plus size={16} /> Add Item
                                 </button>
 
+                                <button
+                                    onClick={() => setShowReportModal(true)}
+                                    className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-sm font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:border-blue-500/50 hover:text-blue-500 transition-colors"
+                                >
+                                    <FileText size={14} /> Report
+                                </button>
+
                                 <div className="flex items-center gap-2 ml-auto">
                                     <span className="text-xs text-[var(--text-secondary)] font-medium">Rows:</span>
                                     <select
@@ -607,9 +616,17 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                                 </div>
                                 
                                 {itemType === 'asset' && viewItem.WeightGrams && (
-                                    <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
-                                        <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Weight</p>
-                                        <p className="font-bold text-[var(--text-primary)]">{viewItem.WeightGrams}g</p>
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                            <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Weight</p>
+                                            <p className="font-bold text-[var(--text-primary)]">{viewItem.WeightGrams}g</p>
+                                        </div>
+                                        {viewItem.Purity && (
+                                            <div className="p-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                                <p className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">Purity</p>
+                                                <p className="font-bold text-amber-500">{viewItem.Purity}%</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 
@@ -632,6 +649,14 @@ export default function InventoryLayout({ itemType, title, subtitle }: Inventory
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showReportModal && (
+                <ReportGenerator
+                    items={items}
+                    itemType={itemType}
+                    onClose={() => setShowReportModal(false)}
+                />
             )}
         </div>
     );

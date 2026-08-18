@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Info } from 'lucide-react';
 import type { SevaItem } from '../RegistrationModal';
@@ -8,7 +7,7 @@ import upiQrImage from '../../assets/upi-qr.jpeg';
 interface PaymentStepProps {
     paymentMode: string;
     setPaymentMode: (m: string) => void;
-    orgSettings: any;
+    orgSettings?: any;
     upiDetails: any;
     setUpiDetails: (d: any) => void;
     setPaymentRef: (r: string) => void;
@@ -20,7 +19,7 @@ interface PaymentStepProps {
 }
 
 export default function PaymentStep({
-    paymentMode, setPaymentMode, orgSettings, upiDetails, setUpiDetails,
+    paymentMode, setPaymentMode, upiDetails, setUpiDetails,
     setPaymentRef, calculateTotal, getSelectedItem, customer, optPrasada, familyMembers
 }: PaymentStepProps) {
     return (

@@ -9,6 +9,7 @@ export interface InventoryItem {
     UOM?: string;
     Material?: string;
     WeightGrams?: number;
+    Purity?: number;
     UnitPrice: number;
     Quantity: number;
     TotalValue: number;

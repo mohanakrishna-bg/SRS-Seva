@@ -472,7 +472,8 @@ def create_item(payload: InventoryItemCreate, db: Session = Depends(get_db)):
     if payload.Material and payload.WeightGrams:
         mat = db.query(InventoryMaterial).filter(InventoryMaterial.Name == payload.Material).first()
         if mat and mat.BullionRate:
-            unit_price = payload.WeightGrams * mat.BullionRate
+            purity_factor = (payload.Purity / 100.0) if payload.Purity else 1.0
+            unit_price = payload.WeightGrams * mat.BullionRate * purity_factor
 
     qty = payload.Quantity or 1
     total_value = unit_price * qty
@@ -485,6 +486,7 @@ def create_item(payload: InventoryItemCreate, db: Session = Depends(get_db)):
         UOM=payload.UOM or 'Nos',
         Material=payload.Material,
         WeightGrams=payload.WeightGrams,
+        Purity=payload.Purity,
         UnitPrice=unit_price,
         Quantity=qty,
         TotalValue=total_value,
@@ -534,7 +536,8 @@ def update_item(item_id: int, payload: InventoryItemUpdate, db: Session = Depend
     if item.Material and item.WeightGrams:
         mat = db.query(InventoryMaterial).filter(InventoryMaterial.Name == item.Material).first()
         if mat and mat.BullionRate:
-            new_price = item.WeightGrams * mat.BullionRate
+            purity_factor = (item.Purity / 100.0) if item.Purity else 1.0
+            new_price = item.WeightGrams * mat.BullionRate * purity_factor
             if item.UnitPrice != new_price:
                 changes["UnitPrice"] = {"old": item.UnitPrice, "new": new_price}
                 item.UnitPrice = new_price
@@ -649,6 +652,9 @@ def revalue_all(db: Session = Depends(get_db)):
         if not rate or not item.WeightGrams:
             continue
         new_price = item.WeightGrams * rate
+        # Apply purity factor if set
+        if item.Purity:
+            new_price *= (item.Purity / 100.0)
         old_price = item.UnitPrice or 0
         if abs(new_price - old_price) > 0.01:
             item.UnitPrice = new_price
@@ -799,7 +805,8 @@ def create_donation(payload: DonationCreate, db: Session = Depends(get_db)):
     if payload.Material and payload.WeightGrams:
         mat = db.query(InventoryMaterial).filter(InventoryMaterial.Name == payload.Material).first()
         if mat and mat.BullionRate:
-            auto_value = payload.WeightGrams * mat.BullionRate
+            purity_factor = (payload.Purity / 100.0) if payload.Purity else 1.0
+            auto_value = payload.WeightGrams * mat.BullionRate * purity_factor
             # Use auto-calculated value as default, unless donor explicitly stated a value
             if not payload.EstimatedValue or payload.EstimatedValue <= 0:
                 unit_price = auto_value
@@ -816,6 +823,7 @@ def create_donation(payload: DonationCreate, db: Session = Depends(get_db)):
         UOM=payload.UOM or 'Nos',
         Material=payload.Material,
         WeightGrams=payload.WeightGrams,
+        Purity=payload.Purity,
         UnitPrice=unit_price,
         Quantity=qty,
         TotalValue=total_value,
@@ -839,6 +847,7 @@ def create_donation(payload: DonationCreate, db: Session = Depends(get_db)):
         Description=payload.Description,
         Material=payload.Material,
         WeightGrams=payload.WeightGrams,
+        Purity=payload.Purity,
         UOM=payload.UOM or 'Nos',
         Quantity=qty,
         EstimatedValue=unit_price,

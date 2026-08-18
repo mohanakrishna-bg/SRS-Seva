@@ -43,6 +43,7 @@ class InventoryItem(Base):
     UOM = Column(String, default="Nos")                   # Unit of Measure
     Material = Column(String, nullable=True)
     WeightGrams = Column(Float, nullable=True)
+    Purity = Column(Float, nullable=True)          # Purity % for bullion (e.g. 91.6 for 22K Gold)
     UnitPrice = Column(Float, default=0.0)
     Quantity = Column(Integer, default=1)
     TotalValue = Column(Float, default=0.0)
@@ -134,6 +135,7 @@ class Donation(Base):
     Description = Column(String, nullable=True)
     Material = Column(String, nullable=True)               # For asset donations
     WeightGrams = Column(Float, nullable=True)             # For precious metal donations
+    Purity = Column(Float, nullable=True)                   # Purity % for bullion donations
     UOM = Column(String, default="Nos")                    # For consumable donations
     Quantity = Column(Integer, default=1)
     EstimatedValue = Column(Float, default=0.0)            # Donor-stated or appraised value

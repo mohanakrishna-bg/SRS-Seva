@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ಕಾರ್ಯಕ್ರಮಗಳು — ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</title>
+  <meta name="description" content="ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠದ ವಿಶೇಷ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಉತ್ಸವಗಳು. Events and festivals at Sri Raghavendra Swamy Matha.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Kannada:wght@400;500;600;700&family=Noto+Serif+Kannada:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script>
+    (function(){var t=localStorage.getItem('seva_site_theme');if(t==='dark'||((!t)&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})();
+    (function(){var l=localStorage.getItem('seva_site_lang');if(l==='en')document.documentElement.setAttribute('data-lang','en');})();
+  </script>
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" id="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Home">
+        <div class="brand-icon">🙏</div>
+        <div class="brand-text">
+          <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span>
+          <span lang="en">Sri Raghavendra Swamy Matha</span>
+          <small><span lang="kn">ಸೇವಾ ವ್ಯವಸ್ಥಾಪನೆ</span><span lang="en">Seva Management</span></small>
+        </div>
+      </a>
+      <nav class="nav-desktop" aria-label="Main navigation">
+        <ul>
+          <li><a href="index.html" class="nav-link"><span lang="kn">🏠 ಮುಖಪುಟ</span><span lang="en">🏠 Home</span></a></li>
+          <li><a href="about.html" class="nav-link"><span lang="kn">🕉️ ಪರಿಚಯ</span><span lang="en">🕉️ About</span></a></li>
+          <li><a href="sevas.html" class="nav-link"><span lang="kn">🪔 ಸೇವೆಗಳು</span><span lang="en">🪔 Sevas</span></a></li>
+          <li><a href="events.html" class="nav-link"><span lang="kn">📅 ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">📅 Events</span></a></li>
+          <li><a href="contact.html" class="nav-link"><span lang="kn">📞 ಸಂಪರ್ಕ</span><span lang="en">📞 Contact</span></a></li>
+        </ul>
+      </nav>
+      <div class="header-controls">
+        <button class="icon-btn lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+        <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav-overlay" id="nav-overlay"></div>
+  <nav class="nav-mobile" id="nav-mobile" aria-label="Mobile navigation">
+    <div class="nav-mobile-header">
+      <div class="brand-text" style="font-size:var(--text-base);"><span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span><span lang="en">Sri Raghavendra Swamy Matha</span></div>
+      <button class="nav-mobile-close" id="nav-close" aria-label="Close menu">✕</button>
+    </div>
+    <div class="nav-mobile-links">
+      <a href="index.html"><span lang="kn">🏠 ಮುಖಪುಟ</span><span lang="en">🏠 Home</span></a>
+      <a href="about.html"><span lang="kn">🕉️ ಪರಿಚಯ</span><span lang="en">🕉️ About</span></a>
+      <a href="sevas.html"><span lang="kn">🪔 ಸೇವೆಗಳು</span><span lang="en">🪔 Sevas</span></a>
+      <a href="events.html"><span lang="kn">📅 ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">📅 Events</span></a>
+      <a href="contact.html"><span lang="kn">📞 ಸಂಪರ್ಕ</span><span lang="en">📞 Contact</span></a>
+    </div>
+    <div class="nav-mobile-footer">
+      <button class="icon-btn lang-btn" onclick="document.getElementById('lang-toggle').click()">EN</button>
+      <button class="icon-btn" onclick="document.getElementById('theme-toggle').click()">🌙</button>
+    </div>
+  </nav>
+
+  <!-- ========== PAGE HEADER ========== -->
+  <section class="page-header">
+    <div class="container">
+      <h1>
+        <span lang="kn">📅 ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಉತ್ಸವಗಳು</span>
+        <span lang="en">📅 Events & Festivals</span>
+      </h1>
+      <p>
+        <span lang="kn">ಮಠದಲ್ಲಿ ನಡೆಯುವ ವಿಶೇಷ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಧಾರ್ಮಿಕ ಉತ್ಸವಗಳು</span>
+        <span lang="en">Special programs and religious festivals at the Matha</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="main-content">
+
+    <!-- Calendar + Upcoming Events -->
+    <section class="section">
+      <div class="container">
+        <div class="grid-2" style="align-items: start;">
+
+          <!-- Calendar Widget -->
+          <div class="fade-in-up">
+            <div id="calendar-widget" class="calendar"></div>
+          </div>
+
+          <!-- Upcoming Events -->
+          <div class="fade-in-up delay-2">
+            <h3 style="margin-bottom: var(--space-lg);">
+              <span lang="kn">ಮುಂಬರುವ ಕಾರ್ಯಕ್ರಮಗಳು</span>
+              <span lang="en">Upcoming Events</span>
+            </h3>
+
+            <div class="card event-card" style="margin-bottom: var(--space-md);">
+              <div class="event-date-badge">
+                <span class="event-day">23</span>
+                <span class="event-month">
+                  <span lang="kn">ಆಗ</span>
+                  <span lang="en">AUG</span>
+                </span>
+              </div>
+              <div>
+                <h4>
+                  <span lang="kn">ಶ್ರೀ ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ</span>
+                  <span lang="en">Sri Krishna Janmashtami</span>
+                </h4>
+                <p style="margin-bottom: var(--space-xs);">
+                  <span lang="kn">ಶ್ರೀ ಕೃಷ್ಣ ಪರಮಾತ್ಮನ ಜನ್ಮ ದಿನಾಚರಣೆ. ವಿಶೇಷ ಅಭಿಷೇಕ ಮತ್ತು ಅಲಂಕಾರ.</span>
+                  <span lang="en">Celebration of Lord Krishna's birth. Special Abhisheka and decoration.</span>
+                </p>
+                <span class="badge badge-saffron">
+                  <span lang="kn">ವಿಶೇಷ ಉತ್ಸವ</span>
+                  <span lang="en">Special Festival</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="card event-card" style="margin-bottom: var(--space-md);">
+              <div class="event-date-badge">
+                <span class="event-day">15</span>
+                <span class="event-month">
+                  <span lang="kn">ಸೆ</span>
+                  <span lang="en">SEP</span>
+                </span>
+              </div>
+              <div>
+                <h4>
+                  <span lang="kn">ಗಣೇಶ ಚತುರ್ಥಿ</span>
+                  <span lang="en">Ganesh Chaturthi</span>
+                </h4>
+                <p style="margin-bottom: var(--space-xs);">
+                  <span lang="kn">ಶ್ರೀ ಗಣೇಶ ಚತುರ್ಥಿ ಉತ್ಸವ. ವಿಶೇಷ ಪೂಜೆ ಮತ್ತು ಮೋದಕ ನೈವೇದ್ಯ.</span>
+                  <span lang="en">Ganesh Chaturthi festival. Special pooja and modaka offering.</span>
+                </p>
+                <span class="badge badge-gold">
+                  <span lang="kn">ಉತ್ಸವ</span>
+                  <span lang="en">Festival</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="card event-card" style="margin-bottom: var(--space-md);">
+              <div class="event-date-badge">
+                <span class="event-day">1</span>
+                <span class="event-month">
+                  <span lang="kn">ಅ</span>
+                  <span lang="en">OCT</span>
+                </span>
+              </div>
+              <div>
+                <h4>
+                  <span lang="kn">ನವರಾತ್ರಿ ಪ್ರಾರಂಭ</span>
+                  <span lang="en">Navaratri Begins</span>
+                </h4>
+                <p style="margin-bottom: var(--space-xs);">
+                  <span lang="kn">ಒಂಬತ್ತು ರಾತ್ರಿಗಳ ದೇವಿ ಆರಾಧನೆ. ಪ್ರತಿದಿನ ವಿಶೇಷ ಅಲಂಕಾರ.</span>
+                  <span lang="en">Nine nights of Devi worship. Special decoration every day.</span>
+                </p>
+                <span class="badge badge-maroon">
+                  <span lang="kn">ನವರಾತ್ರಿ</span>
+                  <span lang="en">Navaratri</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="card event-card">
+              <div class="event-date-badge">
+                <span class="event-day">8</span>
+                <span class="event-month">
+                  <span lang="kn">ಅ</span>
+                  <span lang="en">OCT</span>
+                </span>
+              </div>
+              <div>
+                <h4>
+                  <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಆರಾಧನೆ</span>
+                  <span lang="en">Sri Raghavendra Swamy Aradhana</span>
+                </h4>
+                <p style="margin-bottom: var(--space-xs);">
+                  <span lang="kn">ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ವಾರ್ಷಿಕ ಆರಾಧನೆ. ವಿಶೇಷ ಪೂಜೆ, ಪ್ರವಚನ ಮತ್ತು ಅನ್ನಸಂತರ್ಪಣೆ.</span>
+                  <span lang="en">Annual Aradhana of Sri Guru Raghavendra Swamy. Special pooja, discourse and Annadana.</span>
+                </p>
+                <span class="badge badge-saffron">
+                  <span lang="kn">ಆರಾಧನೆ</span>
+                  <span lang="en">Aradhana</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="divider-ornament">❖</div>
+
+    <!-- Annual Highlights -->
+    <section class="section">
+      <div class="container">
+        <div class="section-title fade-in-up">
+          <h2>
+            <span lang="kn">ವಾರ್ಷಿಕ ಪ್ರಮುಖ ಉತ್ಸವಗಳು</span>
+            <span lang="en">Annual Major Festivals</span>
+          </h2>
+        </div>
+
+        <div style="max-width: 700px; margin-inline: auto;">
+          <table class="info-table fade-in-up">
+            <thead>
+              <tr>
+                <th><span lang="kn">ಉತ್ಸವ</span><span lang="en">Festival</span></th>
+                <th><span lang="kn">ಅವಧಿ</span><span lang="en">Period</span></th>
+                <th><span lang="kn">ವಿಶೇಷ</span><span lang="en">Special</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ಉಗಾದಿ</span><span lang="en">Ugadi</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಮಾರ್ಚ್/ಏಪ್ರಿಲ್</span>
+                  <span lang="en">Mar/Apr</span>
+                </td>
+                <td>
+                  <span lang="kn">ಪಂಚಾಂಗ ಶ್ರವಣ</span>
+                  <span lang="en">Panchanga Shravana</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ಶ್ರೀ ರಾಮ ನವಮಿ</span><span lang="en">Sri Rama Navami</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಏಪ್ರಿಲ್</span>
+                  <span lang="en">April</span>
+                </td>
+                <td>
+                  <span lang="kn">ವಿಶೇಷ ಅಭಿಷೇಕ</span>
+                  <span lang="en">Special Abhisheka</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ಕೃಷ್ಣ ಜನ್ಮಾಷ್ಟಮಿ</span><span lang="en">Krishna Janmashtami</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಆಗಸ್ಟ್</span>
+                  <span lang="en">August</span>
+                </td>
+                <td>
+                  <span lang="kn">ಅಲಂಕಾರ, ಅಭಿಷೇಕ</span>
+                  <span lang="en">Decoration, Abhisheka</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ನವರಾತ್ರಿ</span><span lang="en">Navaratri</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಅಕ್ಟೋಬರ್</span>
+                  <span lang="en">October</span>
+                </td>
+                <td>
+                  <span lang="kn">9 ದಿನ ವಿಶೇಷ ಪೂಜೆ</span>
+                  <span lang="en">9-day special pooja</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ದೀಪಾವಳಿ</span><span lang="en">Deepavali</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಅಕ್ಟೋ/ನವೆಂ</span>
+                  <span lang="en">Oct/Nov</span>
+                </td>
+                <td>
+                  <span lang="kn">ಲಕ್ಷ ದೀಪೋತ್ಸವ</span>
+                  <span lang="en">Laksha Deepotsava</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong><span lang="kn">ಮಕರ ಸಂಕ್ರಾಂತಿ</span><span lang="en">Makar Sankranti</span></strong>
+                </td>
+                <td>
+                  <span lang="kn">ಜನವರಿ</span>
+                  <span lang="en">January</span>
+                </td>
+                <td>
+                  <span lang="kn">ಎಳ್ಳು ಬೆಲ್ಲ ವಿತರಣೆ</span>
+                  <span lang="en">Til-gul distribution</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="brand-text"><span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span><span lang="en">Sri Raghavendra Swamy Matha</span></div>
+          <p><span lang="kn">ಸೇವೆ · ಭಕ್ತಿ · ಸಮರ್ಪಣೆ</span><span lang="en">Service · Devotion · Dedication</span></p>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು</span><span lang="en">Quick Links</span></h4>
+          <a href="index.html"><span lang="kn">ಮುಖಪುಟ</span><span lang="en">Home</span></a>
+          <a href="about.html"><span lang="kn">ಪರಿಚಯ</span><span lang="en">About</span></a>
+          <a href="sevas.html"><span lang="kn">ಸೇವೆಗಳು</span><span lang="en">Sevas</span></a>
+          <a href="events.html"><span lang="kn">ಕಾರ್ಯಕ್ರಮಗಳು</span><span lang="en">Events</span></a>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ಸಂಪರ್ಕ</span><span lang="en">Contact</span></h4>
+          <a href="contact.html"><span lang="kn">📞 ಸಂಪರ್ಕಿಸಿ</span><span lang="en">📞 Contact Us</span></a>
+        </div>
+        <div class="footer-section">
+          <h4><span lang="kn">ಸಮಯ</span><span lang="en">Hours</span></h4>
+          <p style="font-size:var(--text-sm); margin-bottom:var(--space-xs);"><span lang="kn">ಬೆಳಿಗ್ಗೆ 6:00 - ಮಧ್ಯಾಹ್ನ 1:30</span><span lang="en">6:00 AM - 1:30 PM</span></p>
+          <p style="font-size:var(--text-sm);"><span lang="kn">ಸಂಜೆ 5:30 - ರಾತ್ರಿ 8:30</span><span lang="en">5:30 PM - 8:30 PM</span></p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 <span lang="kn">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ</span><span lang="en">Sri Raghavendra Swamy Matha</span></span>
+        <span><span lang="kn">ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ</span><span lang="en">All Rights Reserved</span></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/theme.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

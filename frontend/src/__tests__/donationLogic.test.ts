@@ -38,37 +38,37 @@ describe('Donation value formatting', () => {
 // ─── Donation Kind → Type Mapping ───
 describe('Donation kind to type mapping', () => {
     it('monetary kind maps to monetary type', () => {
-        const donationKind = 'monetary';
+        const donationKind: string = 'monetary';
         const donationType = donationKind === 'monetary' ? 'monetary' : 'in_kind';
         expect(donationType).toBe('monetary');
     });
 
     it('asset kind maps to in_kind type', () => {
-        const donationKind = 'asset';
+        const donationKind: string = 'asset';
         const donationType = donationKind === 'monetary' ? 'monetary' : 'in_kind';
         expect(donationType).toBe('in_kind');
     });
 
     it('consumable kind maps to in_kind type', () => {
-        const donationKind = 'consumable';
+        const donationKind: string = 'consumable';
         const donationType = donationKind === 'monetary' ? 'monetary' : 'in_kind';
         expect(donationType).toBe('in_kind');
     });
 
     it('monetary kind has itemType as asset', () => {
-        const donationKind = 'monetary';
+        const donationKind: string = 'monetary';
         const itemType = donationKind === 'monetary' ? 'asset' : donationKind;
         expect(itemType).toBe('asset');
     });
 
     it('asset kind preserves itemType as asset', () => {
-        const donationKind = 'asset';
+        const donationKind: string = 'asset';
         const itemType = donationKind === 'monetary' ? 'asset' : donationKind;
         expect(itemType).toBe('asset');
     });
 
     it('consumable kind preserves itemType as consumable', () => {
-        const donationKind = 'consumable';
+        const donationKind: string = 'consumable';
         const itemType = donationKind === 'monetary' ? 'asset' : donationKind;
         expect(itemType).toBe('consumable');
     });

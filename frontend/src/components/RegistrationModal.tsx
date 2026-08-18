@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { transliterateToKannada, convertKnNumeralsToEn } from '../transliterate';
+import { transliterateToKannada } from '../transliterate';
 import { X, Loader2 } from 'lucide-react';
 import GlobalInputToolbar from './GlobalInputToolbar';
 import DevoteeSelectionStep from './registration/DevoteeSelectionStep';
@@ -379,9 +379,6 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             setLoading(false);
         }
     };
-    const getUnifiedSuggestions = (list: {en: string, kn: string}[]) => {
-        return list.flatMap(i => [i.en, i.kn]);
-    };
 
     if (!isOpen) return null;
 
@@ -472,7 +469,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                 {step === Step.Payment && (
                                     <PaymentStep
                                         paymentMode={paymentMode}
-                                        setPaymentMode={setPaymentMode}
+                                        setPaymentMode={(m: any) => setPaymentMode(m)}
                                         orgSettings={orgSettings}
                                         upiDetails={upiDetails}
                                         setUpiDetails={setUpiDetails}

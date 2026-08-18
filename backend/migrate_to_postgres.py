@@ -84,6 +84,13 @@ def migrate():
     PgSession = sessionmaker(bind=pg_engine)
     pg_session = PgSession()
 
+    # Disable FK constraints during bulk load
+    try:
+        pg_session.execute(text("SET session_replication_role = 'replica';"))
+        pg_session.commit()
+    except Exception:
+        pg_session.rollback()
+
     row_counts = {}
 
     for table_name in sqlite_tables:
@@ -91,12 +98,22 @@ def migrate():
             print(f"  ⏭️  Skipping '{table_name}' — not in PostgreSQL schema")
             continue
 
-        # Read all rows from SQLite
+        # Read all rows from SQLite (include rowid as Id if table uses rowid as PK)
+        sqlite_cursor.execute(f"PRAGMA table_info('{table_name}')")
+        sqlite_cols = [r["name"] for r in sqlite_cursor.fetchall()]
         try:
+            pk_cols = pg_inspector.get_pk_constraint(table_name).get("constrained_columns", [])
+            pk_col = pk_cols[0] if (pk_cols and len(pk_cols) == 1) else None
+            if pk_col and pk_col.lower() in ("id", "rowid"):
+                has_pk = any(c.lower() == pk_col.lower() for c in sqlite_cols)
+                if not has_pk:
+                    sqlite_cursor.execute(f'SELECT rowid AS "{pk_col}", * FROM "{table_name}"')
+                else:
+                    sqlite_cursor.execute(f'SELECT * FROM "{table_name}"')
+            else:
+                sqlite_cursor.execute(f'SELECT * FROM "{table_name}"')
+        except Exception:
             sqlite_cursor.execute(f'SELECT * FROM "{table_name}"')
-        except Exception as e:
-            print(f"  ⚠️  Error reading '{table_name}': {e}")
-            continue
 
         rows = sqlite_cursor.fetchall()
         if not rows:
@@ -115,8 +132,37 @@ def migrate():
             print(f"  ⚠️  '{table_name}' — no matching columns found")
             continue
 
-        # Clear existing data in target table
-        pg_session.execute(text(f'DELETE FROM "{table_name}"'))
+        # Map column names to PostgreSQL data types for type coercion
+        pg_col_specs = {c["name"]: str(c["type"]).upper() for c in pg_inspector.get_columns(table_name)}
+
+        # Get Primary Key constraint
+        pk_cols = pg_inspector.get_pk_constraint(table_name).get("constrained_columns", [])
+        pk_col = pk_cols[0] if (pk_cols and len(pk_cols) == 1) else None
+        pk_col_match = None
+        next_pk_val = 1
+        if pk_col and rows:
+            row_keys = list(rows[0].keys())
+            for k in row_keys:
+                if k.lower() == pk_col.lower():
+                    pk_col_match = k
+                    break
+            if pk_col_match:
+                existing_pks = [r[pk_col_match] for r in rows if r[pk_col_match] is not None and isinstance(r[pk_col_match], int)]
+                if existing_pks:
+                    next_pk_val = max(existing_pks) + 1
+
+        # Clear existing data in target table if needed
+        try:
+            pg_session.execute(text(f'TRUNCATE TABLE "{table_name}" CASCADE'))
+            pg_session.commit()
+        except Exception as e:
+            print(f"  ⚠️  Could not TRUNCATE '{table_name}': {e}")
+            pg_session.rollback()
+            try:
+                pg_session.execute(text(f'DELETE FROM "{table_name}"'))
+                pg_session.commit()
+            except Exception:
+                pg_session.rollback()
 
         # Bulk insert
         col_names = ", ".join(f'"{c}"' for c in valid_columns)
@@ -125,11 +171,55 @@ def migrate():
 
         batch = []
         for row in rows:
-            row_dict = {c: row[c] for c in valid_columns}
+            row_dict = {}
+            for c in valid_columns:
+                val = row[c]
+                col_type = pg_col_specs.get(c, "")
+
+                if pk_col and c.lower() == pk_col.lower() and val is None:
+                    val = next_pk_val
+                    next_pk_val += 1
+
+                if val is not None:
+                    # 1. Convert integer 1/0 or strings to bool for BOOLEAN columns
+                    if "BOOL" in col_type:
+                        if isinstance(val, (int, str)):
+                            sval = str(val).strip().lower()
+                            val = sval in ("1", "true", "yes", "t")
+
+                    # 2. Convert plain text strings to valid JSON for JSON columns
+                    elif "JSON" in col_type:
+                        if isinstance(val, str):
+                            sval = val.strip()
+                            if not (sval.startswith("{") or sval.startswith("[")):
+                                import json
+                                val = json.dumps(val)
+
+                    # 3. Clean empty strings for numeric/date columns
+                    elif ("INT" in col_type or "FLOAT" in col_type or "NUMERIC" in col_type) and val == "":
+                        val = None
+
+                row_dict[c] = val
             batch.append(row_dict)
 
         try:
-            pg_session.execute(insert_sql, batch)
+            chunk_size = 500
+            for i in range(0, len(batch), chunk_size):
+                chunk = batch[i:i + chunk_size]
+                values_clauses = []
+                params = {}
+                for row_idx, row_dict in enumerate(chunk):
+                    row_placeholders = []
+                    for c in valid_columns:
+                        param_name = f"{c}_{row_idx}"
+                        # In case the column name has special chars, strip them for param names
+                        clean_param_name = "".join(ch for ch in param_name if ch.isalnum() or ch == "_")
+                        params[clean_param_name] = row_dict[c]
+                        row_placeholders.append(f":{clean_param_name}")
+                    values_clauses.append(f"({', '.join(row_placeholders)})")
+                
+                insert_multi_sql = text(f'INSERT INTO "{table_name}" ({col_names}) VALUES {", ".join(values_clauses)}')
+                pg_session.execute(insert_multi_sql, params)
             pg_session.commit()
             row_counts[table_name] = len(batch)
             print(f"  ✅ '{table_name}' — {len(batch)} rows migrated")
@@ -137,6 +227,13 @@ def migrate():
             pg_session.rollback()
             print(f"  ❌ '{table_name}' — Error: {e}")
             row_counts[table_name] = -1
+
+    # Re-enable FK constraints
+    try:
+        pg_session.execute(text("SET session_replication_role = 'origin';"))
+        pg_session.commit()
+    except Exception:
+        pg_session.rollback()
 
     # ─── Step 4: Reset auto-increment sequences ───
     print("\nStep 4: Resetting PostgreSQL sequences...")

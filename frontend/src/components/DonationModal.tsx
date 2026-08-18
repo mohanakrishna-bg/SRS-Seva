@@ -62,6 +62,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
     const [category, setCategory] = useState('');
     const [material, setMaterial] = useState('');
     const [weightGrams, setWeightGrams] = useState('');
+    const [purity, setPurity] = useState('');
     const [uom, setUom] = useState('Nos');
     const [quantity, setQuantity] = useState('1');
     const [estimatedValue, setEstimatedValue] = useState('');
@@ -96,6 +97,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
             setCategory('');
             setMaterial('');
             setWeightGrams('');
+            setPurity('');
             setUom('Nos');
             setQuantity('1');
             setEstimatedValue('');
@@ -198,7 +200,10 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
     const getAutoValue = (): number | null => {
         if (material && weightGrams) {
             const mat = materials.find(m => m.Name === material);
-            if (mat?.BullionRate) return parseFloat(weightGrams) * mat.BullionRate;
+            if (mat?.BullionRate) {
+                const purityFactor = purity ? parseFloat(purity) / 100.0 : 1.0;
+                return parseFloat(weightGrams) * mat.BullionRate * purityFactor;
+            }
         }
         return null;
     };
@@ -270,6 +275,7 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                 Description: description || null,
                 Material: material || null,
                 WeightGrams: weightGrams ? parseFloat(weightGrams) : null,
+                Purity: purity ? parseFloat(purity) : null,
                 UOM: uom,
                 Quantity: parseInt(quantity) || 1,
                 EstimatedValue: getDisplayValue(),
@@ -514,8 +520,8 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                         onClick={() => {
                                                             setDonationKind(t.key as any);
                                                             // Clear fields that don't apply when switching
-                                                            if (t.key === 'monetary') { setMaterial(''); setWeightGrams(''); setUom('Nos'); setQuantity('1'); }
-                                                            if (t.key === 'consumable') { setMaterial(''); setWeightGrams(''); }
+                                                            if (t.key === 'monetary') { setMaterial(''); setWeightGrams(''); setPurity(''); setUom('Nos'); setQuantity('1'); }
+                                                            if (t.key === 'consumable') { setMaterial(''); setWeightGrams(''); setPurity(''); }
                                                             if (t.key === 'asset') { setUom('Nos'); }
                                                         }}
                                                         className={`relative flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-left ${colors[t.color]}`}
@@ -609,6 +615,18 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                                         className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
                                                 </div>
                                             </div>
+                                            {(() => {
+                                                const selectedMat = materials.find(m => m.Name === material);
+                                                return selectedMat?.BullionRate ? (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-1">
+                                                            <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಶುದ್ಧತೆ (Purity %)</label>
+                                                            <input type="number" step="0.1" min="0" max="100" value={purity} onChange={e => setPurity(convertKnNumeralsToEn(e.target.value))} placeholder="e.g. 91.6 for 22K"
+                                                                className="w-full px-3 py-2 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-amber-500" />
+                                                        </div>
+                                                    </div>
+                                                ) : null;
+                                            })()}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-xs font-medium text-[var(--text-secondary)] uppercase">ಸಂಖ್ಯೆ</label>

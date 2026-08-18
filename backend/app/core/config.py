@@ -46,7 +46,12 @@ class Settings(BaseSettings):
         Otherwise, fall back to the local SQLite file.
         """
         if self.DATABASE_URL:
-            return self.DATABASE_URL
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            if "-pooler." in url:
+                url = url.replace("-pooler.", ".")
+            return url
 
         # SQLite fallback — same path as the original database.py
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

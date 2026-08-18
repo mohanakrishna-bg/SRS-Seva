@@ -741,7 +741,7 @@ def read_items_legacy(db: Session = Depends(database.get_db)):
 
 @router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...)):
-    uncategorized_dir = os.path.join(UPLOAD_DIR, "uncategorized")
+    uncategorized_dir = os.path.join(PHOTO_DIR, "uncategorized")
     os.makedirs(uncategorized_dir, exist_ok=True)
     file_path = os.path.join(uncategorized_dir, file.filename)
     with open(file_path, "wb") as buffer:

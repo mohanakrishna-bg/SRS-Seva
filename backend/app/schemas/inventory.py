@@ -45,6 +45,7 @@ class InventoryItemCreate(BaseModel):
     UOM: Optional[str] = 'Nos'
     Material: Optional[str] = None
     WeightGrams: Optional[float] = None
+    Purity: Optional[float] = None
     UnitPrice: Optional[float] = 0.0
     Quantity: Optional[int] = 1
     GSTRate: Optional[float] = 0.0
@@ -67,6 +68,7 @@ class InventoryItemUpdate(BaseModel):
     UOM: Optional[str] = None
     Material: Optional[str] = None
     WeightGrams: Optional[float] = None
+    Purity: Optional[float] = None
     UnitPrice: Optional[float] = None
     Quantity: Optional[int] = None
     GSTRate: Optional[float] = None
@@ -90,6 +92,7 @@ class InventoryItemResponse(BaseModel):
     UOM: Optional[str] = 'Nos'
     Material: Optional[str] = None
     WeightGrams: Optional[float] = None
+    Purity: Optional[float] = None
     UnitPrice: float
     Quantity: int
     TotalValue: float
@@ -169,6 +172,7 @@ class DonationCreate(BaseModel):
     Description: Optional[str] = None
     Material: Optional[str] = None
     WeightGrams: Optional[float] = None
+    Purity: Optional[float] = None
     UOM: Optional[str] = 'Nos'
     Quantity: Optional[int] = 1
     EstimatedValue: Optional[float] = 0.0
@@ -191,6 +195,7 @@ class DonationResponse(BaseModel):
     Description: Optional[str] = None
     Material: Optional[str] = None
     WeightGrams: Optional[float] = None
+    Purity: Optional[float] = None
     UOM: Optional[str] = 'Nos'
     Quantity: Optional[int] = 1
     EstimatedValue: Optional[float] = 0.0

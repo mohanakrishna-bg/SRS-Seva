@@ -1,0 +1,118 @@
+/* =============================================
+   SRS Seva — Design Tokens
+   ============================================= */
+
+:root {
+  /* === Color Palette — Warm Temple Saffron === */
+  --color-saffron:        #E8652A;
+  --color-saffron-light:  #F08C5A;
+  --color-saffron-dark:   #C44E18;
+  --color-gold:           #D4A843;
+  --color-gold-light:     #E8C96A;
+  --color-gold-dark:      #B08A2E;
+  --color-maroon:         #6B1D2A;
+  --color-maroon-light:   #8C3040;
+  --color-maroon-dark:    #4A1018;
+  --color-cream:          #FFF8F0;
+  --color-cream-dark:     #F5EDE0;
+  --color-ink:            #2D1810;
+  --color-ink-light:      #5A3D30;
+  --color-ink-muted:      #8B7268;
+  --color-white:          #FFFFFF;
+  --color-success:        #2E7D4F;
+  --color-error:          #C0392B;
+
+  /* === Semantic Colors (Light Mode) === */
+  --bg-primary:           var(--color-cream);
+  --bg-secondary:         var(--color-cream-dark);
+  --bg-card:              var(--color-white);
+  --bg-glass:             rgba(255, 255, 255, 0.75);
+  --bg-hero-start:        var(--color-saffron);
+  --bg-hero-end:          var(--color-maroon);
+  --text-primary:         var(--color-ink);
+  --text-secondary:       var(--color-ink-light);
+  --text-muted:           var(--color-ink-muted);
+  --text-on-hero:         var(--color-white);
+  --border-subtle:        rgba(107, 29, 42, 0.12);
+  --border-card:          rgba(212, 168, 67, 0.25);
+  --accent-primary:       var(--color-saffron);
+  --accent-secondary:     var(--color-gold);
+  --accent-deep:          var(--color-maroon);
+  --shadow-card:          0 4px 24px rgba(107, 29, 42, 0.08);
+  --shadow-card-hover:    0 8px 32px rgba(107, 29, 42, 0.14);
+  --shadow-hero:          0 8px 40px rgba(232, 101, 42, 0.2);
+
+  /* === Typography === */
+  --font-heading:         'Noto Serif Kannada', 'Noto Serif', Georgia, serif;
+  --font-body:            'Noto Sans Kannada', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:            'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Fluid type scale (clamp: min, preferred, max) */
+  --text-xs:              clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
+  --text-sm:              clamp(0.8rem, 0.75rem + 0.25vw, 0.9rem);
+  --text-base:            clamp(0.95rem, 0.9rem + 0.3vw, 1.05rem);
+  --text-lg:              clamp(1.1rem, 1rem + 0.4vw, 1.25rem);
+  --text-xl:              clamp(1.3rem, 1.1rem + 0.6vw, 1.6rem);
+  --text-2xl:             clamp(1.6rem, 1.3rem + 0.8vw, 2rem);
+  --text-3xl:             clamp(2rem, 1.5rem + 1.2vw, 2.8rem);
+  --text-4xl:             clamp(2.4rem, 1.8rem + 1.5vw, 3.5rem);
+
+  /* === Spacing Scale === */
+  --space-xs:             0.25rem;
+  --space-sm:             0.5rem;
+  --space-md:             1rem;
+  --space-lg:             1.5rem;
+  --space-xl:             2rem;
+  --space-2xl:            3rem;
+  --space-3xl:            4rem;
+  --space-4xl:            6rem;
+
+  /* === Border Radius === */
+  --radius-sm:            0.375rem;
+  --radius-md:            0.75rem;
+  --radius-lg:            1rem;
+  --radius-xl:            1.5rem;
+  --radius-full:          9999px;
+
+  /* === Transitions === */
+  --ease-out:             cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out:          cubic-bezier(0.45, 0, 0.55, 1);
+  --duration-fast:        150ms;
+  --duration-normal:      300ms;
+  --duration-slow:        500ms;
+
+  /* === Z-Index Scale === */
+  --z-base:               1;
+  --z-dropdown:           100;
+  --z-sticky:             200;
+  --z-overlay:            300;
+  --z-modal:              400;
+  --z-toast:              500;
+
+  /* === Layout === */
+  --max-width:            1200px;
+  --header-height:        4rem;
+  --nav-width-mobile:     280px;
+}
+
+/* === Dark Mode Overrides === */
+[data-theme="dark"] {
+  --bg-primary:           #1A0E0A;
+  --bg-secondary:         #261610;
+  --bg-card:              #2D1810;
+  --bg-glass:             rgba(45, 24, 16, 0.8);
+  --bg-hero-start:        #8C3040;
+  --bg-hero-end:          #2D1810;
+  --text-primary:         #F5EDE0;
+  --text-secondary:       #C9B8A8;
+  --text-muted:           #8B7268;
+  --text-on-hero:         #FFF8F0;
+  --border-subtle:        rgba(212, 168, 67, 0.15);
+  --border-card:          rgba(212, 168, 67, 0.2);
+  --accent-primary:       var(--color-saffron-light);
+  --accent-secondary:     var(--color-gold-light);
+  --accent-deep:          var(--color-maroon-light);
+  --shadow-card:          0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover:    0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-hero:          0 8px 40px rgba(140, 48, 64, 0.3);
+}

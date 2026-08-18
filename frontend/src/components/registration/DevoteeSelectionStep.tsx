@@ -1,4 +1,3 @@
-import React from 'react';
 import { Search, Loader2, X, Check } from 'lucide-react';
 import TransliteratedInput from '../TransliteratedInput';
 import { GOTRAS, NAKSHATRAS } from '../../constants/panchanga';
