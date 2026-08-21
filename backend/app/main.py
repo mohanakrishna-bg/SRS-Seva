@@ -36,6 +36,26 @@ settings = get_settings()
 # ─── Create tables ───
 models.Base.metadata.create_all(bind=database.engine)
 
+# ─── Sync Sequences (PostgreSQL only) ───
+if settings.is_postgres:
+    from sqlalchemy import text
+    with database.engine.begin() as conn:
+        for table in models.Base.metadata.sorted_tables:
+            for column in table.columns:
+                if column.autoincrement == True and column.primary_key:
+                    # Properly quote table name for mixed-case tables
+                    query = f"""
+                    SELECT setval(
+                        pg_get_serial_sequence('"{table.name}"', '{column.name}'), 
+                        COALESCE((SELECT MAX("{column.name}") FROM "{table.name}"), 0) + 1, 
+                        false
+                    );
+                    """
+                    try:
+                        conn.execute(text(query))
+                    except Exception as e:
+                        print(f"Failed to reset sequence for {table.name}.{column.name}: {e}")
+
 # ─── FastAPI App ───
 app = FastAPI(title="Seva Modern Intranet")
 
