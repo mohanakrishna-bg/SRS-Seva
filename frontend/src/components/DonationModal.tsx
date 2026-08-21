@@ -7,7 +7,8 @@ import GlobalInputToolbar from './GlobalInputToolbar';
 import { useToast } from './Toast';
 import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 import { devoteeApi, inventoryApi, uploadApi, paymentApi } from '../api';
-import upiQrImage from '../assets/upi-qr.jpeg';
+import { useSettings } from '../context/SettingsContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface Customer {
     ID1?: number;
@@ -40,6 +41,7 @@ const fmt = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDi
 
 export default function DonationModal({ isOpen, onClose, prefillDevotee, onSuccess }: DonationModalProps) {
     const { showToast } = useToast();
+    const { settings: globalSettings } = useSettings();
     const [step, setStep] = useState<StepType>(Step.Donor);
     const [loading, setLoading] = useState(false);
 
@@ -810,8 +812,19 @@ export default function DonationModal({ isOpen, onClose, prefillDevotee, onSucce
                                             {paymentMode === 'UPI' && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                                                     <div className="flex flex-col items-center justify-center space-y-2 mb-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-[var(--glass-border)]">
-                                                        <img src={upiQrImage} alt="UPI QR Code" className="w-36 h-36 object-contain bg-white p-2 rounded-xl shadow-md border-2 border-[var(--glass-border)]" />
-                                                        <p className="text-[10px] font-mono text-[var(--text-secondary)]">Scan to Pay via UPI</p>
+                                                        <div className="bg-white p-2.5 rounded-xl shadow-md border-2 border-[var(--glass-border)] flex items-center justify-center">
+                                                            <QRCodeSVG
+                                                                value={`upi://pay?pa=${encodeURIComponent(globalSettings?.upiVpa || 'pinelabs.stq3957386@pineaxis')}&pn=${encodeURIComponent(globalSettings?.orgNameEn || globalSettings?.orgName || 'SRS Seva')}&am=${(getDisplayValue() * (parseInt(quantity) || 1)).toFixed(2)}&tn=${encodeURIComponent(itemName ? `Donation - ${itemName}` : 'Donation')}&cu=INR`}
+                                                                size={140}
+                                                                level="H"
+                                                                includeMargin={false}
+                                                            />
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <p className="text-[11px] font-mono font-bold text-emerald-600">₹{(getDisplayValue() * (parseInt(quantity) || 1)).toFixed(2)}</p>
+                                                            <p className="text-[10px] font-mono text-[var(--text-secondary)]">Scan to Pay via UPI</p>
+                                                            <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">{globalSettings?.upiVpa || 'pinelabs.stq3957386@pineaxis'}</p>
+                                                        </div>
                                                     </div>
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1">

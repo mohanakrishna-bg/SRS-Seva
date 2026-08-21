@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { CreditCard, Info } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { SevaItem } from '../RegistrationModal';
 import { convertKnNumeralsToEn } from './DevoteeSelectionStep';
-import upiQrImage from '../../assets/upi-qr.jpeg';
 
 interface PaymentStepProps {
     paymentMode: string;
@@ -19,9 +19,15 @@ interface PaymentStepProps {
 }
 
 export default function PaymentStep({
-    paymentMode, setPaymentMode, upiDetails, setUpiDetails,
+    paymentMode, setPaymentMode, orgSettings, upiDetails, setUpiDetails,
     setPaymentRef, calculateTotal, getSelectedItem, customer, optPrasada, familyMembers
 }: PaymentStepProps) {
+    const totalAmount = calculateTotal();
+    const upiId = orgSettings?.upiVpa || 'pinelabs.stq3957386@pineaxis';
+    const payeeName = orgSettings?.orgNameEn || orgSettings?.orgName || 'SRS Seva';
+    const note = getSelectedItem()?.Description ? `Seva - ${getSelectedItem()?.Description}` : 'Seva Payment';
+    const upiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${totalAmount.toFixed(2)}&tn=${encodeURIComponent(note)}&cu=INR`;
+
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col space-y-2 h-full overflow-y-auto pr-1 pb-4">
             <h3 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5 relative">
@@ -47,8 +53,19 @@ export default function PaymentStep({
             {paymentMode === 'UPI' && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 mt-2 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-[var(--glass-border)]">
                     <div className="flex flex-col items-center justify-center space-y-2 mb-2">
-                        <img src={upiQrImage} alt="UPI QR Code" className="w-36 h-36 object-contain bg-white p-2 rounded-xl shadow-md border-2 border-[var(--glass-border)]" />
-                        <p className="text-[10px] font-mono text-[var(--text-secondary)]">Scan to Pay via UPI</p>
+                        <div className="bg-white p-2.5 rounded-xl shadow-md border-2 border-[var(--glass-border)] flex items-center justify-center">
+                            <QRCodeSVG
+                                value={upiUri}
+                                size={140}
+                                level="H"
+                                includeMargin={false}
+                            />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-[11px] font-mono font-bold text-[var(--primary)]">₹{totalAmount.toFixed(2)}</p>
+                            <p className="text-[9px] font-mono text-[var(--text-secondary)]">Scan to Pay via UPI</p>
+                            <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">{upiId}</p>
+                        </div>
                     </div>
                     
                     <div className="space-y-1 max-w-md mx-auto">

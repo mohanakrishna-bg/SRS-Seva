@@ -32,6 +32,7 @@ const defaultSettings: OrgSettings = {
     whatsapp: '',
     website: '',
     foodServiceCharges: '100, 150, 200',
+    upiVpa: 'pinelabs.stq3957386@pineaxis',
 };
 
 interface SettingsContextType {
