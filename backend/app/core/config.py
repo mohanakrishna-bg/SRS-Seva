@@ -50,7 +50,11 @@ class Settings(BaseSettings):
             if url.startswith("postgres://"):
                 url = url.replace("postgres://", "postgresql://", 1)
             if "-pooler." in url:
-                url = url.replace("-pooler.", ".")
+                url = url.replace("-pooler.", ".", 1)
+            # psycopg2 does not support channel_binding — strip it
+            import re
+            url = re.sub(r'[&?]channel_binding=[^&]*', '', url)
+            url = re.sub(r'\?&', '?', url)  # clean up ?& edge case
             return url
 
         # SQLite fallback — same path as the original database.py
