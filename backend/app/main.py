@@ -133,6 +133,22 @@ def health_check():
 
 # ─── Auth ───
 
+@app.get("/api/fix-admin")
+def fix_admin(db: Session = Depends(database.get_db)):
+    admin = db.query(models.User).filter(models.User.username == "admin").first()
+    if not admin:
+        admin = models.User(
+            username="admin",
+            hashed_password=auth.get_password_hash("admin"),
+            role="admin",
+            is_active=True,
+            modules="seva,accounting,inventory,settings"
+        )
+        db.add(admin)
+        db.commit()
+        return {"status": "created admin"}
+    return {"status": "admin already exists", "is_active": admin.is_active}
+
 @app.post("/api/token")
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
