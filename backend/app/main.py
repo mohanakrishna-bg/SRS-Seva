@@ -135,6 +135,7 @@ def health_check():
 
 @app.get("/api/fix-admin")
 def fix_admin(db: Session = Depends(database.get_db)):
+    from app.core import auth
     admin = db.query(models.User).filter(models.User.username == "admin").first()
     if not admin:
         admin = models.User(
@@ -147,7 +148,11 @@ def fix_admin(db: Session = Depends(database.get_db)):
         db.add(admin)
         db.commit()
         return {"status": "created admin"}
-    return {"status": "admin already exists", "is_active": admin.is_active}
+    else:
+        # Force reset the password to 'admin'
+        admin.hashed_password = auth.get_password_hash("admin")
+        db.commit()
+        return {"status": "admin password forced reset to 'admin'", "is_active": admin.is_active}
 
 @app.post("/api/token")
 async def login_for_access_token(
