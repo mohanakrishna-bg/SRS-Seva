@@ -143,7 +143,8 @@ def fix_admin(db: Session = Depends(database.get_db)):
             hashed_password=auth.get_password_hash("admin"),
             role="admin",
             is_active=True,
-            modules="seva,accounting,inventory,settings"
+            modules="seva,accounting,inventory,settings",
+            must_change_password=True
         )
         db.add(admin)
         db.commit()
@@ -151,6 +152,7 @@ def fix_admin(db: Session = Depends(database.get_db)):
     else:
         # Force reset the password to 'admin'
         admin.hashed_password = auth.get_password_hash("admin")
+        admin.must_change_password = True
         db.commit()
         return {"status": "admin password forced reset to 'admin'", "is_active": admin.is_active}
 

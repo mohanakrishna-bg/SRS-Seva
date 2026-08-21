@@ -148,6 +148,7 @@ async def create_user(
         role=user_data.role,
         display_name=user_data.display_name,
         modules=user_data.modules,
+        must_change_password=True,
     )
     db.add(user)
     db.flush()  # Get the user ID before audit log
