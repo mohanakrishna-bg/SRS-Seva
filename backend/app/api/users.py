@@ -130,6 +130,7 @@ async def create_user(
     admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Create a new user with optional module permission overrides."""
+    from sqlalchemy import func
     # Validate role
     if user_data.role not in ALL_ROLES:
         raise HTTPException(
@@ -137,31 +138,39 @@ async def create_user(
             detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(ALL_ROLES)}",
         )
 
-    # Check duplicate username
-    existing = db.query(models.User).filter(models.User.username == user_data.username).first()
+    username_clean = user_data.username.strip()
+    if not username_clean:
+        raise HTTPException(status_code=400, detail="Username cannot be empty")
+
+    # Check duplicate username (case-insensitive)
+    existing = db.query(models.User).filter(func.lower(models.User.username) == username_clean.lower()).first()
     if existing:
-        raise HTTPException(status_code=409, detail=f"Username '{user_data.username}' already exists")
+        raise HTTPException(status_code=409, detail=f"Username '{username_clean}' already exists")
 
-    user = models.User(
-        username=user_data.username,
-        hashed_password=get_password_hash(user_data.password),
-        role=user_data.role,
-        display_name=user_data.display_name,
-        modules=user_data.modules,
-        must_change_password=True,
-    )
-    db.add(user)
-    db.flush()  # Get the user ID before audit log
+    try:
+        user = models.User(
+            username=username_clean,
+            hashed_password=get_password_hash(user_data.password),
+            role=user_data.role,
+            display_name=user_data.display_name.strip() if user_data.display_name else None,
+            modules=user_data.modules,
+            must_change_password=True,
+        )
+        db.add(user)
+        db.flush()  # Get the user ID before audit log
 
-    # Audit trail
-    _log_audit(db, admin, user.username, user.id, "create", {
-        "role": user_data.role,
-        "modules": user_data.modules,
-    })
+        # Audit trail
+        _log_audit(db, admin, user.username, user.id, "create", {
+            "role": user_data.role,
+            "modules": user_data.modules,
+        })
 
-    db.commit()
-    db.refresh(user)
-    return user
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to create user: {str(e)}")
 
 
 @router.put("/{user_id}", response_model=schemas.User)

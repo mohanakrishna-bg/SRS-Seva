@@ -158,6 +158,13 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
 
                     {/* Body */}
                     <div className="p-5 overflow-y-auto custom-scrollbar">
+                        {error && (
+                            <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 dark:bg-red-500/10 p-3 rounded-xl mb-4 border border-red-200 dark:border-red-500/20">
+                                <AlertCircle size={15} className="shrink-0" />
+                                <span className="font-semibold">{error}</span>
+                            </div>
+                        )}
+
                         <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
 
                             <div className="grid grid-cols-2 gap-4">
@@ -237,13 +244,6 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                                 onChange={setModules}
                                 matrix={permMatrix}
                             />
-
-                            {error && (
-                                <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 dark:bg-red-500/10 p-2.5 rounded-lg">
-                                    <AlertCircle size={14} className="shrink-0" />
-                                    {error}
-                                </div>
-                            )}
                         </form>
                     </div>
 
