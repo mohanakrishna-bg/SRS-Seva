@@ -112,7 +112,14 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
             }
             onSuccess();
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
+            console.error('User save error:', err);
+            let detail = err.response?.data?.detail;
+            if (Array.isArray(detail)) {
+                detail = detail.map((d: any) => `${d.loc?.slice(1)?.join('.') || 'field'}: ${d.msg}`).join('; ');
+            } else if (typeof detail === 'object' && detail !== null) {
+                detail = JSON.stringify(detail);
+            }
+            setError(detail || err.message || 'ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsSubmitting(false);
         }

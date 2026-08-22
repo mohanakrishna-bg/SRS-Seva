@@ -41,23 +41,30 @@ def sync_postgres_sequences():
     if not settings.is_postgres:
         return
     from sqlalchemy import text
-    with database.engine.begin() as conn:
-        for table in models.Base.metadata.sorted_tables:
-            for column in table.columns:
-                if column.primary_key:
-                    # Query PostgreSQL sequence for the column and setval to max+1 if a sequence exists
-                    query = f"""
-                    SELECT setval(
-                        pg_get_serial_sequence('"{table.name}"', '{column.name}'), 
-                        COALESCE((SELECT MAX("{column.name}") FROM "{table.name}"), 0) + 1, 
-                        false
-                    )
-                    WHERE pg_get_serial_sequence('"{table.name}"', '{column.name}') IS NOT NULL;
-                    """
+    try:
+        with database.engine.begin() as conn:
+            query = """
+            SELECT 
+                s.sequence_name,
+                t.table_name,
+                c.column_name
+            FROM information_schema.sequences s
+            LEFT JOIN information_schema.columns c 
+                ON c.column_default LIKE '%' || s.sequence_name || '%'
+            LEFT JOIN information_schema.tables t 
+                ON t.table_name = c.table_name
+            WHERE s.sequence_schema = 'public';
+            """
+            rows = conn.execute(text(query)).fetchall()
+            for seq_name, tbl_name, col_name in rows:
+                if tbl_name and col_name:
                     try:
-                        conn.execute(text(query))
+                        q = f'SELECT setval(\'"{seq_name}"\'::regclass, COALESCE((SELECT MAX("{col_name}") FROM "{tbl_name}"), 0) + 1, false);'
+                        conn.execute(text(q))
                     except Exception as e:
-                        print(f"Failed to reset sequence for {table.name}.{column.name}: {e}")
+                        print(f"Failed to reset sequence {seq_name} for {tbl_name}.{col_name}: {e}")
+    except Exception as err:
+        print(f"Sequence sync error: {err}")
 
 sync_postgres_sequences()
 
