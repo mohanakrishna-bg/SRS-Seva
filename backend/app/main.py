@@ -37,24 +37,29 @@ settings = get_settings()
 models.Base.metadata.create_all(bind=database.engine)
 
 # ─── Sync Sequences (PostgreSQL only) ───
-if settings.is_postgres:
+def sync_postgres_sequences():
+    if not settings.is_postgres:
+        return
     from sqlalchemy import text
     with database.engine.begin() as conn:
         for table in models.Base.metadata.sorted_tables:
             for column in table.columns:
-                if column.autoincrement == True and column.primary_key:
-                    # Properly quote table name for mixed-case tables
+                if column.primary_key:
+                    # Query PostgreSQL sequence for the column and setval to max+1 if a sequence exists
                     query = f"""
                     SELECT setval(
                         pg_get_serial_sequence('"{table.name}"', '{column.name}'), 
                         COALESCE((SELECT MAX("{column.name}") FROM "{table.name}"), 0) + 1, 
                         false
-                    );
+                    )
+                    WHERE pg_get_serial_sequence('"{table.name}"', '{column.name}') IS NOT NULL;
                     """
                     try:
                         conn.execute(text(query))
                     except Exception as e:
                         print(f"Failed to reset sequence for {table.name}.{column.name}: {e}")
+
+sync_postgres_sequences()
 
 # ─── FastAPI App ───
 app = FastAPI(title="Seva Modern Intranet")
@@ -133,9 +138,15 @@ def health_check():
 
 # ─── Auth ───
 
+@app.get("/api/sync-sequences")
+def trigger_sync_sequences():
+    sync_postgres_sequences()
+    return {"status": "sequences synchronized successfully"}
+
 @app.get("/api/fix-admin")
 def fix_admin(db: Session = Depends(database.get_db)):
     from app.core import auth
+    sync_postgres_sequences()
     admin = db.query(models.User).filter(models.User.username == "admin").first()
     if not admin:
         admin = models.User(
@@ -143,7 +154,7 @@ def fix_admin(db: Session = Depends(database.get_db)):
             hashed_password=auth.get_password_hash("admin"),
             role="admin",
             is_active=True,
-            modules="seva,accounting,inventory,settings",
+            modules=None,
             must_change_password=True
         )
         db.add(admin)

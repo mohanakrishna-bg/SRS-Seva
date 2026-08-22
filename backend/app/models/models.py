@@ -7,7 +7,7 @@ import datetime
 # ─── Auth ───
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     role = Column(String, default="clerk")  # admin, accountant, clerk, storekeeper, viewer
@@ -179,7 +179,7 @@ class LegacyInvoiceDtl(Base):
 
 class Settings(Base):
     __tablename__ = "settings"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     key = Column(String, unique=True, index=True)
     value = Column(JSON)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
