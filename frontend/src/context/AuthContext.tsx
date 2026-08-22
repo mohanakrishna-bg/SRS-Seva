@@ -66,11 +66,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isAuthenticated = !!user;
 
-    // Validate existing token on mount and refresh user data
+    // Validate existing token on mount and refresh user data in background
     useEffect(() => {
         const token = localStorage.getItem(TOKEN_KEY);
-        if (token) {
-            // Fetch user profile with existing token to get latest DB flags (e.g. must_change_password)
+        if (token && user) {
+            // We already have a cached user from localStorage — skip the loading spinner.
+            // Refresh from the server in the background to pick up DB flag changes
+            // (e.g. must_change_password), but don't block the UI.
+            setIsLoading(false);
+            fetch('/api/me', {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+                .then((res) => {
+                    if (res.status === 401) {
+                        // Token is definitively invalid — force logout
+                        localStorage.removeItem(TOKEN_KEY);
+                        localStorage.removeItem(USER_KEY);
+                        setUser(null);
+                        return;
+                    }
+                    if (!res.ok) return; // Network error / server down — keep cached user
+                    return res.json();
+                })
+                .then((data) => {
+                    if (data) {
+                        setUser(data);
+                        localStorage.setItem(USER_KEY, JSON.stringify(data));
+                    }
+                })
+                .catch(() => {
+                    // Network error (e.g. Render cold start timeout) — keep cached user
+                });
+        } else if (token && !user) {
+            // Token exists but no cached user — must fetch before rendering
             fetch('/api/me', {
                 headers: { Authorization: `Bearer ${token}` },
             })
@@ -83,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     localStorage.setItem(USER_KEY, JSON.stringify(data));
                 })
                 .catch(() => {
-                    // Token expired or invalid
                     localStorage.removeItem(TOKEN_KEY);
                     localStorage.removeItem(USER_KEY);
                     setUser(null);
