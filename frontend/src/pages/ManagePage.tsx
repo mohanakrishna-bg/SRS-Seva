@@ -6,6 +6,7 @@ import SevasPage from './SevasPage';
 import SpecialEventsPage from './SpecialEventsPage';
 import SettingsPage from './SettingsPage';
 import UserAdminTab from '../components/UserAdminTab';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const tabs = [
     { id: 'customers', label: 'ಭಕ್ತರು', icon: Users },
@@ -43,14 +44,16 @@ export default function ManagePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
             >
-                <Routes>
-                    <Route path="customers" element={<CustomersPage />} />
-                    <Route path="sevas" element={<SevasPage />} />
-                    <Route path="events" element={<SpecialEventsPage />} />
-                    <Route path="settings" element={<SettingsPage />} />
-                    <Route path="users" element={<UserAdminTab />} />
-                    <Route path="" element={<Navigate to="customers" replace />} />
-                </Routes>
+                <ErrorBoundary fallbackTitle="ನಿರ್ವಹಣೆ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ">
+                    <Routes>
+                        <Route path="customers" element={<CustomersPage />} />
+                        <Route path="sevas" element={<SevasPage />} />
+                        <Route path="events" element={<SpecialEventsPage />} />
+                        <Route path="settings" element={<SettingsPage />} />
+                        <Route path="users" element={<UserAdminTab />} />
+                        <Route path="" element={<Navigate to="customers" replace />} />
+                    </Routes>
+                </ErrorBoundary>
             </motion.div>
         </div>
     );

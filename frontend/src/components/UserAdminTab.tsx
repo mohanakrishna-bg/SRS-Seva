@@ -37,18 +37,19 @@ const DEFAULT_ROLE_MODULES: Record<string, string[]> = {
 };
 
 function getUserModules(user: any): string[] {
+    if (!user) return [];
     if (user.role === 'admin') return DEFAULT_ROLE_MODULES.admin;
     if (user.role === 'viewer') return []; // Special display
 
     const defaults = DEFAULT_ROLE_MODULES[user.role] || [];
-    if (!user.modules) return defaults;
+    if (!user.modules || typeof user.modules !== 'object' || Array.isArray(user.modules)) return defaults;
 
     // Apply overrides
     const result = new Set(defaults);
     Object.entries(user.modules as Record<string, string>).forEach(([mod, perm]) => {
         if (perm === 'none') {
             result.delete(mod);
-        } else {
+        } else if (typeof perm === 'string') {
             result.add(mod);
         }
     });
@@ -92,11 +93,11 @@ export default function UserAdminTab() {
         setIsLoading(true);
         try {
             const res = await usersApi.list();
-            setUsers(res.data);
+            setUsers(Array.isArray(res?.data) ? res.data : []);
             setError('');
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch users:', err);
-            setError('ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ');
+            setError(err?.response?.data?.detail || 'ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ');
         } finally {
             setIsLoading(false);
         }
@@ -106,7 +107,7 @@ export default function UserAdminTab() {
         setAuditLoading(true);
         try {
             const res = await usersApi.getAuditLog(undefined, 50);
-            setAuditLog(res.data);
+            setAuditLog(Array.isArray(res?.data) ? res.data : []);
         } catch (err) {
             console.error('Failed to fetch audit log:', err);
         } finally {
@@ -203,7 +204,7 @@ export default function UserAdminTab() {
                             ) : (
                                 users.map((user) => {
                                     const accessModules = getUserModules(user);
-                                    const hasOverrides = user.modules && Object.keys(user.modules).length > 0;
+                                    const hasOverrides = user.modules && typeof user.modules === 'object' && !Array.isArray(user.modules) && Object.keys(user.modules).length > 0;
 
                                     return (
                                         <motion.tr
@@ -366,7 +367,7 @@ export default function UserAdminTab() {
                                 ) : (
                                     auditLog.map((entry) => {
                                         const actionInfo = ACTION_LABELS[entry.action] || { label: entry.action, color: 'text-gray-500' };
-                                        const ts = entry.timestamp ? new Date(entry.timestamp) : null;
+                                        const ts = entry.timestamp ? (() => { try { const d = new Date(entry.timestamp); return isNaN(d.getTime()) ? null : d; } catch { return null; } })() : null;
 
                                         return (
                                             <div

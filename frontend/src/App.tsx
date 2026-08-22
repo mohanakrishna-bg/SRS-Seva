@@ -10,6 +10,7 @@ import LoginScreen from './components/LoginScreen';
 import ChangePasswordDialog from './components/ChangePasswordDialog';
 import ProtectedRoute from './components/ProtectedRoute';
 import SessionWarningModal from './components/SessionWarningModal';
+import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './pages/LandingPage';
 import ManagePage from './pages/ManagePage';
 import AccountingPage from './pages/AccountingPage';
@@ -64,43 +65,45 @@ export default function App() {
                     <ToastProvider>
                         <BrowserRouter>
                             <AuthGate>
-                                <Routes>
-                                    <Route element={<Layout />}>
-                                        <Route path="/" element={<LandingPage />} />
-                                        <Route path="/seva/*" element={
-                                            <ProtectedRoute module="seva">
-                                                <SevaPage />
-                                            </ProtectedRoute>
-                                        } />
-                                        <Route path="/manage/*" element={
-                                            <ProtectedRoute module="settings">
-                                                <ManagePage />
-                                            </ProtectedRoute>
-                                        } />
-                                        <Route path="/accounting/*" element={
-                                            <ProtectedRoute module="accounting">
-                                                <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
-                                                    <AccountingPage />
-                                                </div>
-                                            </ProtectedRoute>
-                                        } />
-                                        <Route path="/assets" element={
-                                            <ProtectedRoute module="assets">
-                                                <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
-                                                    <AssetsPage />
-                                                </div>
-                                            </ProtectedRoute>
-                                        } />
-                                        <Route path="/consumables" element={
-                                            <ProtectedRoute module="consumables">
-                                                <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
-                                                    <ConsumablesPage />
-                                                </div>
-                                            </ProtectedRoute>
-                                        } />
-                                        <Route path="*" element={<Navigate to="/" replace />} />
-                                    </Route>
-                                </Routes>
+                                <ErrorBoundary fallbackTitle="ಅಪ್ಲಿಕೇಶನ್ ದೋಷ ಸಂಭವಿಸಿದೆ">
+                                    <Routes>
+                                        <Route element={<Layout />}>
+                                            <Route path="/" element={<LandingPage />} />
+                                            <Route path="/seva/*" element={
+                                                <ProtectedRoute module="seva">
+                                                    <SevaPage />
+                                                </ProtectedRoute>
+                                            } />
+                                            <Route path="/manage/*" element={
+                                                <ProtectedRoute module="settings">
+                                                    <ManagePage />
+                                                </ProtectedRoute>
+                                            } />
+                                            <Route path="/accounting/*" element={
+                                                <ProtectedRoute module="accounting">
+                                                    <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
+                                                        <AccountingPage />
+                                                    </div>
+                                                </ProtectedRoute>
+                                            } />
+                                            <Route path="/assets" element={
+                                                <ProtectedRoute module="assets">
+                                                    <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
+                                                        <AssetsPage />
+                                                    </div>
+                                                </ProtectedRoute>
+                                            } />
+                                            <Route path="/consumables" element={
+                                                <ProtectedRoute module="consumables">
+                                                    <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg h-full">
+                                                        <ConsumablesPage />
+                                                    </div>
+                                                </ProtectedRoute>
+                                            } />
+                                            <Route path="*" element={<Navigate to="/" replace />} />
+                                        </Route>
+                                    </Routes>
+                                </ErrorBoundary>
                             </AuthGate>
                         </BrowserRouter>
                     </ToastProvider>
