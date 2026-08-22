@@ -33,8 +33,18 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-# ─── Create tables ───
-models.Base.metadata.create_all(bind=database.engine)
+# ─── FastAPI App ───
+app = FastAPI(title="Seva Modern Intranet")
+
+# ─── CORS ───
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ─── Sync Sequences (PostgreSQL only) ───
 def sync_postgres_sequences():
@@ -44,7 +54,10 @@ def sync_postgres_sequences():
     try:
         with database.engine.begin() as conn:
             # Ensure root admin is ID 0 if present
-            conn.execute(text("UPDATE users SET id = 0 WHERE LOWER(username) = 'admin' AND id != 0;"))
+            try:
+                conn.execute(text("UPDATE users SET id = 0 WHERE LOWER(username) = 'admin' AND id != 0;"))
+            except Exception as e:
+                print(f"Notice: Admin id update skipped: {e}")
 
             query = """
             SELECT 
@@ -72,19 +85,18 @@ def sync_postgres_sequences():
     except Exception as err:
         print(f"Sequence sync error: {err}")
 
-sync_postgres_sequences()
 
-# ─── FastAPI App ───
-app = FastAPI(title="Seva Modern Intranet")
+@app.on_event("startup")
+def on_startup():
+    try:
+        models.Base.metadata.create_all(bind=database.engine)
+    except Exception as e:
+        print(f"Error creating tables on startup: {e}")
 
-# ─── CORS ───
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    try:
+        sync_postgres_sequences()
+    except Exception as e:
+        print(f"Error syncing sequences on startup: {e}")
 
 # ─── Static Files ───
 UPLOAD_DIR = settings.UPLOAD_DIR
