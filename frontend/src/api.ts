@@ -106,10 +106,10 @@ export const authApi = {
 
 // ─── Users API (Admin) ───
 export const usersApi = {
-    list: (role?: string) => api.get('/users/', { params: role ? { role } : {} }),
+    list: (role?: string) => api.get('/users', { params: role ? { role } : {} }),
     get: (id: number) => api.get(`/users/${id}`),
     create: (data: { username: string; password: string; role: string; display_name?: string; modules?: Record<string, string> | null }) =>
-        api.post('/users/', data),
+        api.post('/users', data),
     update: (id: number, data: any) => api.put(`/users/${id}`, data),
     delete: (id: number) => api.delete(`/users/${id}`),
     resetPassword: (id: number, newPassword: string) =>
