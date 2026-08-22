@@ -94,6 +94,7 @@ async def get_available_roles(
     return ALL_ROLES
 
 
+@router.get("", response_model=List[schemas.User])
 @router.get("/", response_model=List[schemas.User])
 async def list_users(
     role: str = None,
@@ -123,6 +124,7 @@ async def get_user(
     return user_dict
 
 
+@router.post("", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_data: schemas.UserCreate,
