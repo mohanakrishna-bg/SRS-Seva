@@ -140,7 +140,7 @@ async def get_current_user(
         raise credentials_exception
 
     user = db.query(models.User).filter(models.User.username == username).first()
-    if user is None:
+    if user is None or getattr(user, "is_deleted", False):
         raise credentials_exception
     if not user.is_active:
         raise HTTPException(

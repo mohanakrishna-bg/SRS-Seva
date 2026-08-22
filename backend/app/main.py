@@ -43,6 +43,9 @@ def sync_postgres_sequences():
     from sqlalchemy import text
     try:
         with database.engine.begin() as conn:
+            # Ensure root admin is ID 0 if present
+            conn.execute(text("UPDATE users SET id = 0 WHERE LOWER(username) = 'admin' AND id != 0;"))
+
             query = """
             SELECT 
                 s.sequence_name,
@@ -59,7 +62,10 @@ def sync_postgres_sequences():
             for seq_name, tbl_name, col_name in rows:
                 if tbl_name and col_name:
                     try:
-                        q = f'SELECT setval(\'"{seq_name}"\'::regclass, COALESCE((SELECT MAX("{col_name}") FROM "{tbl_name}"), 0) + 1, false);'
+                        if tbl_name == "users" and col_name == "id":
+                            q = 'SELECT setval(\'"users_id_seq"\'::regclass, COALESCE((SELECT MAX(id) FROM users WHERE id > 0), 0) + 1, false);'
+                        else:
+                            q = f'SELECT setval(\'"{seq_name}"\'::regclass, COALESCE((SELECT MAX("{col_name}") FROM "{tbl_name}"), 0) + 1, false);'
                         conn.execute(text(q))
                     except Exception as e:
                         print(f"Failed to reset sequence {seq_name} for {tbl_name}.{col_name}: {e}")
@@ -74,7 +80,7 @@ app = FastAPI(title="Seva Modern Intranet")
 # ─── CORS ───
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -153,26 +159,32 @@ def trigger_sync_sequences():
 @app.get("/api/fix-admin")
 def fix_admin(db: Session = Depends(database.get_db)):
     from app.core import auth
-    sync_postgres_sequences()
     admin = db.query(models.User).filter(models.User.username == "admin").first()
     if not admin:
         admin = models.User(
+            id=0,
             username="admin",
             hashed_password=auth.get_password_hash("admin"),
             role="admin",
             is_active=True,
+            is_deleted=False,
             modules=None,
             must_change_password=True
         )
         db.add(admin)
         db.commit()
-        return {"status": "created admin"}
+        sync_postgres_sequences()
+        return {"status": "created admin with ID 0"}
     else:
         # Force reset the password to 'admin'
+        admin.id = 0
+        admin.is_active = True
+        admin.is_deleted = False
         admin.hashed_password = auth.get_password_hash("admin")
         admin.must_change_password = True
         db.commit()
-        return {"status": "admin password forced reset to 'admin'", "is_active": admin.is_active}
+        sync_postgres_sequences()
+        return {"status": "admin password forced reset to 'admin'", "is_active": admin.is_active, "id": admin.id}
 
 @app.post("/api/token")
 async def login_for_access_token(
@@ -183,7 +195,7 @@ async def login_for_access_token(
     username_input = form_data.username.strip()
     user = db.query(models.User).filter(func.lower(models.User.username) == username_input.lower()).first()
     
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+    if not user or getattr(user, "is_deleted", False) or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

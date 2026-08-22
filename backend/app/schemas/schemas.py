@@ -26,6 +26,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     id: int
     is_active: bool = True
+    is_deleted: bool = False
     modules: Optional[Dict[str, str]] = None
     must_change_password: bool = True
     created_at: Optional[datetime] = None

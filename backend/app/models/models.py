@@ -12,6 +12,7 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String, default="clerk")  # admin, accountant, clerk, storekeeper, viewer
     is_active = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False)  # Soft delete to preserve audit trail
     display_name = Column(String, nullable=True)  # Friendly name for UI display
     modules = Column(JSON, nullable=True)  # Fine-grained per-module overrides: {"accounting": "read", "assets": "full"}
     must_change_password = Column(Boolean, default=True)  # Force password change on first login

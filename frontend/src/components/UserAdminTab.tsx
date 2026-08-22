@@ -120,14 +120,15 @@ export default function UserAdminTab() {
     }, []);
 
     const handleDelete = async (id: number, username: string) => {
-        if (currentUser?.id === id) {
-            alert('ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ');
+        if (currentUser?.id === id || id === 0) {
+            alert('ನಿರ್ವಾಹಕ (Admin) ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ');
             return;
         }
         if (window.confirm(`'${username}' ಬಳಕೆದಾರರನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?`)) {
             try {
                 await usersApi.delete(id);
                 fetchUsers();
+                if (showAuditLog) fetchAuditLog();
             } catch (err: any) {
                 alert(err.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
             }
@@ -286,9 +287,9 @@ export default function UserAdminTab() {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(user.id, user.username)}
-                                                        disabled={currentUser?.id === user.id}
+                                                        disabled={currentUser?.id === user.id || user.id === 0}
                                                         className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-30 transition-colors"
-                                                        title="ಅಳಿಸಿ"
+                                                        title={user.id === 0 ? "ನಿರ್ವಾಹಕರನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ" : "ಅಳಿಸಿ"}
                                                     >
                                                         <Trash2 size={15} />
                                                     </button>

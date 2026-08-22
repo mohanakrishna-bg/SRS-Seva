@@ -101,11 +101,11 @@ async def list_users(
     db: Session = Depends(database.get_db),
     _admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
-    """List all users. Optionally filter by role."""
-    query = db.query(models.User)
+    """List all active (non-deleted) users. Optionally filter by role."""
+    query = db.query(models.User).filter(models.User.is_deleted == False)
     if role:
         query = query.filter(models.User.role == role)
-    return query.order_by(models.User.username).all()
+    return query.order_by(models.User.id).all()
 
 
 @router.get("/{user_id}", response_model=schemas.UserWithModules)
@@ -115,7 +115,7 @@ async def get_user(
     _admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Get a user by ID with their accessible modules."""
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id, models.User.is_deleted == False).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -257,21 +257,27 @@ async def delete_user(
     db: Session = Depends(database.get_db),
     admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
-    """Delete a user. Cannot delete yourself."""
+    """Soft-delete a user. Cannot delete yourself or root admin (ID 0). Preserves audit trail."""
     if admin.id == user_id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    if user_id == 0:
+        raise HTTPException(status_code=400, detail="Cannot delete the root admin account")
 
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id, models.User.is_deleted == False).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Audit trail before deletion
+    # Soft delete
+    user.is_deleted = True
+    user.is_active = False
+
+    # Audit trail
     _log_audit(db, admin, user.username, user.id, "delete", {
         "role": user.role,
         "modules": user.modules,
+        "soft_deleted": True,
     })
 
-    db.delete(user)
     db.commit()
 
 
