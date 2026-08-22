@@ -66,11 +66,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isAuthenticated = !!user;
 
-    // Validate existing token on mount
+    // Validate existing token on mount and refresh user data
     useEffect(() => {
         const token = localStorage.getItem(TOKEN_KEY);
-        if (token && !user) {
-            // Try to fetch user profile with existing token
+        if (token) {
+            // Fetch user profile with existing token to get latest DB flags (e.g. must_change_password)
             fetch('/api/me', {
                 headers: { Authorization: `Bearer ${token}` },
             })
