@@ -45,7 +45,14 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [settings, setSettings] = useState<OrgSettings>(defaultSettings);
+    const [settings, setSettings] = useState<OrgSettings>(() => {
+        try {
+            const stored = localStorage.getItem(SETTINGS_KEY);
+            return stored ? JSON.parse(stored) : defaultSettings;
+        } catch {
+            return defaultSettings;
+        }
+    });
     const [loading, setLoading] = useState(true);
 
     const refreshSettings = async () => {
