@@ -10,30 +10,10 @@ interface RoleFormModalProps {
     onSuccess: () => void;
 }
 
-const PERM_BUTTON_STYLES: Record<string, { active: string; inactive: string }> = {
-    none: {
-        active: 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 ring-1 ring-gray-300 dark:ring-gray-500',
-        inactive: 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50',
-    },
-    read: {
-        active: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 ring-1 ring-blue-300 dark:ring-blue-500/50',
-        inactive: 'text-gray-400 dark:text-gray-500 hover:bg-blue-50 dark:hover:bg-blue-500/10',
-    },
-    write: {
-        active: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 ring-1 ring-amber-300 dark:ring-amber-500/50',
-        inactive: 'text-gray-400 dark:text-gray-500 hover:bg-amber-50 dark:hover:bg-amber-500/10',
-    },
-    full: {
-        active: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-300 dark:ring-emerald-500/50',
-        inactive: 'text-gray-400 dark:text-gray-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10',
-    },
-};
-
 const PERM_LABELS: Record<string, string> = {
-    none: 'None',
-    read: 'Read',
-    write: 'Write',
-    full: 'Full',
+    read: 'View Only',
+    write: 'Modify',
+    full: 'Delete',
 };
 
 export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: RoleFormModalProps) {
@@ -45,7 +25,6 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
     const [permissions, setPermissions] = useState<Record<string, string>>({});
 
     const [modulesMeta, setModulesMeta] = useState<Record<string, { label: string; icon: string }>>({});
-    const [permLevels, setPermLevels] = useState<string[]>(['none', 'read', 'write', 'full']);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -55,7 +34,6 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
             rolesApi.getModulesMeta().then(res => {
                 if (res?.data) {
                     setModulesMeta(res.data.modules || {});
-                    setPermLevels(res.data.permission_levels || ['none', 'read', 'write', 'full']);
                 }
             }).catch(err => console.error('Failed to load modules meta:', err));
 
@@ -85,7 +63,17 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
 
     if (!isOpen) return null;
 
-    const handlePermChange = (mod: string, level: string) => {
+    const handleModuleToggle = (mod: string, checked: boolean) => {
+        if (checked) {
+            // Default to read when enabled
+            setPermissions(prev => ({ ...prev, [mod]: 'read' }));
+        } else {
+            setPermissions(prev => ({ ...prev, [mod]: 'none' }));
+        }
+    };
+
+    const handlePermChange = (mod: string, level: string, checked: boolean) => {
+        if (!checked) return; // Ignore unchecking a level (must switch to another or disable module)
         setPermissions(prev => ({ ...prev, [mod]: level }));
     };
 
@@ -116,6 +104,10 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
             }
             onSuccess();
         } catch (err: any) {
+            if (err.response?.status === 404) {
+                setError('Role management is not available. Ensure the latest backend is deployed to production.');
+                return;
+            }
             let detail = err.response?.data?.detail;
             if (Array.isArray(detail)) {
                 detail = detail.map((d: any) => `${d.loc?.slice(1)?.join('.') || 'field'}: ${d.msg}`).join('; ');
@@ -130,20 +122,12 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 z-10 flex flex-col bg-[var(--bg-base)] rounded-2xl overflow-hidden shadow-inner border border-[var(--glass-border)]">
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-                    onClick={onClose}
-                />
-
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    initial={{ opacity: 0, scale: 0.98, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    className="relative w-full max-w-lg bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col max-h-[90vh]"
+                    exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                    className="flex flex-col h-full bg-[var(--glass-card-bg)] backdrop-blur-md"
                 >
                     {/* Header */}
                     <div className="flex justify-between items-center p-5 border-b border-[var(--glass-border)] bg-black/5 dark:bg-white/5">
@@ -234,35 +218,44 @@ export default function RoleFormModal({ isOpen, role, onClose, onSuccess }: Role
                                     Module Permissions
                                 </p>
 
-                                <div className="space-y-2">
+                                <div className="space-y-4">
                                     {Object.entries(modulesMeta).map(([mod, meta]) => {
                                         const currentPerm = effectivePermissions[mod] || 'none';
+                                        const isEnabled = currentPerm !== 'none';
 
                                         return (
-                                            <div key={mod} className="flex items-center gap-2">
-                                                <span className="text-sm w-5 text-center shrink-0">{meta.icon}</span>
-                                                <span className="text-[11px] font-semibold text-[var(--text-primary)] w-24 shrink-0 truncate">
-                                                    {meta.label}
-                                                </span>
-                                                <div className="flex-1 flex gap-0.5 bg-gray-100 dark:bg-gray-800/50 rounded-lg p-0.5">
-                                                    {permLevels.map((level) => {
-                                                        const isActive = currentPerm === level;
-                                                        const styles = PERM_BUTTON_STYLES[level];
+                                            <div key={mod} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--glass-border)]">
+                                                {/* Module Toggle */}
+                                                <label className="flex items-center gap-3 w-40 shrink-0 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isEnabled}
+                                                        onChange={(e) => !isAdminRole && handleModuleToggle(mod, e.target.checked)}
+                                                        disabled={isAdminRole}
+                                                        className="w-4 h-4 rounded text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--glass-border)] cursor-pointer disabled:opacity-50"
+                                                    />
+                                                    <span className="text-sm shrink-0">{meta.icon}</span>
+                                                    <span className="text-xs font-bold text-[var(--text-primary)] truncate">
+                                                        {meta.label}
+                                                    </span>
+                                                </label>
 
-                                                        return (
-                                                            <button
-                                                                key={level}
-                                                                type="button"
-                                                                onClick={() => !isAdminRole && handlePermChange(mod, level)}
-                                                                disabled={isAdminRole}
-                                                                className={`flex-1 px-1 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide transition-all disabled:cursor-not-allowed ${
-                                                                    isActive ? styles.active : styles.inactive
-                                                                }`}
-                                                            >
-                                                                {PERM_LABELS[level] || level}
-                                                            </button>
-                                                        );
-                                                    })}
+                                                {/* Levels (Checkboxes acting like radios) */}
+                                                <div className={`flex flex-wrap items-center gap-4 transition-opacity ${isEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                                                    {['read', 'write', 'full'].map((level) => (
+                                                        <label key={level} className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={currentPerm === level}
+                                                                onChange={(e) => !isAdminRole && handlePermChange(mod, level, e.target.checked)}
+                                                                disabled={isAdminRole || !isEnabled}
+                                                                className="w-4 h-4 rounded text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--glass-border)] cursor-pointer disabled:opacity-50"
+                                                            />
+                                                            <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                                {PERM_LABELS[level]}
+                                                            </span>
+                                                        </label>
+                                                    ))}
                                                 </div>
                                             </div>
                                         );

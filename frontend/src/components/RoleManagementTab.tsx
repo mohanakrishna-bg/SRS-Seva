@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Plus, Pencil, Trash2, AlertCircle, Lock, Users } from 'lucide-react';
+import { Shield, Plus, AlertCircle, Lock, Users } from 'lucide-react';
 import { rolesApi } from '../api';
 import RoleFormModal from './RoleFormModal';
 
@@ -33,7 +33,7 @@ export default function RoleManagementTab() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [formModalState, setFormModalState] = useState<{ isOpen: boolean; role?: RoleData }>({ isOpen: false });
-    const [expandedRole, setExpandedRole] = useState<number | null>(null);
+    const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
 
     const fetchRoles = async () => {
         setIsLoading(true);
@@ -72,12 +72,11 @@ export default function RoleManagementTab() {
         }
     };
 
-    const toggleExpanded = (id: number) => {
-        setExpandedRole(prev => prev === id ? null : id);
-    };
+
 
     return (
-        <div className="space-y-6">
+        <div className="relative min-h-[500px]">
+            <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-lg font-bold text-[var(--text-primary)]">ಪಾತ್ರ ನಿರ್ವಹಣೆ</h2>
@@ -110,7 +109,6 @@ export default function RoleManagementTab() {
             ) : (
                 <div className="grid gap-3">
                     {roles.map((role) => {
-                        const isExpanded = expandedRole === role.id;
                         const isAdmin = role.name === 'admin';
                         const permEntries = Object.entries(role.permissions || {});
 
@@ -120,13 +118,11 @@ export default function RoleManagementTab() {
                                 layout
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl overflow-hidden shadow-sm backdrop-blur-md"
+                                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl overflow-hidden shadow-sm backdrop-blur-md cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                onClick={() => setSelectedRole(role)}
                             >
                                 {/* Role Header */}
-                                <div
-                                    className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                    onClick={() => toggleExpanded(role.id)}
-                                >
+                                <div className="flex items-center gap-4 px-5 py-4">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                                         isAdmin
                                             ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
@@ -187,77 +183,117 @@ export default function RoleManagementTab() {
                                             <span className="text-[9px] text-[var(--text-secondary)]">+{permEntries.length - 4}</span>
                                         )}
                                     </div>
-
-                                    {/* Actions */}
-                                    <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                                        {!isAdmin && (
-                                            <button
-                                                onClick={() => setFormModalState({ isOpen: true, role })}
-                                                className="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                                                title="Edit Role"
-                                            >
-                                                <Pencil size={15} />
-                                            </button>
-                                        )}
-                                        {!role.is_builtin && (
-                                            <button
-                                                onClick={() => handleDelete(role)}
-                                                disabled={role.user_count > 0}
-                                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                title={role.user_count > 0 ? `${role.user_count} user(s) assigned — reassign before deleting` : 'Delete Role'}
-                                            >
-                                                <Trash2 size={15} />
-                                            </button>
-                                        )}
-                                    </div>
                                 </div>
-
-                                {/* Expanded: Permission Details */}
-                                <AnimatePresence>
-                                    {isExpanded && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.25 }}
-                                            className="overflow-hidden"
-                                        >
-                                            <div className="px-5 pb-4 pt-1 border-t border-[var(--glass-border)]">
-                                                <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2 mt-3">
-                                                    Module Permissions
-                                                </p>
-                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                                                    {permEntries.map(([mod, perm]) => {
-                                                        const colors = PERM_COLORS[perm] || PERM_COLORS.none;
-                                                        const icon = MODULE_ICONS[mod] || '📋';
-
-                                                        return (
-                                                            <div
-                                                                key={mod}
-                                                                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg ${colors.bg} transition-colors`}
-                                                            >
-                                                                <span className="text-sm">{icon}</span>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-[10px] font-semibold text-[var(--text-primary)] truncate capitalize">
-                                                                        {mod}
-                                                                    </p>
-                                                                </div>
-                                                                <span className={`text-[8px] font-bold uppercase tracking-wide ${colors.text} whitespace-nowrap`}>
-                                                                    {colors.label}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </motion.div>
                         );
                     })}
                 </div>
             )}
+            </div>
+
+            {/* In-content Details Modal */}
+            <AnimatePresence>
+                {selectedRole && (
+                    <div className="absolute inset-0 z-10 flex flex-col bg-[var(--bg-base)] rounded-2xl overflow-hidden shadow-inner border border-[var(--glass-border)]">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                            className="flex flex-col h-full bg-[var(--glass-card-bg)] backdrop-blur-md"
+                        >
+                            {/* Header */}
+                            <div className="flex justify-between items-center p-5 border-b border-[var(--glass-border)] bg-black/5 dark:bg-white/5">
+                                <div className="flex items-center gap-3 text-[var(--primary)]">
+                                    <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center">
+                                        <Shield size={16} />
+                                    </div>
+                                    <h2 className="font-bold text-[var(--text-primary)]">
+                                        Role Details: {selectedRole.label}
+                                    </h2>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {!selectedRole.is_builtin && (
+                                        <button
+                                            onClick={() => {
+                                                const r = selectedRole;
+                                                setSelectedRole(null);
+                                                handleDelete(r);
+                                            }}
+                                            disabled={selectedRole.user_count > 0}
+                                            className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 text-xs font-bold transition-colors disabled:opacity-50"
+                                            title={selectedRole.user_count > 0 ? `${selectedRole.user_count} user(s) assigned — reassign before deleting` : 'Delete Role'}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
+                                    {selectedRole.name !== 'admin' && (
+                                        <button
+                                            onClick={() => {
+                                                const r = selectedRole;
+                                                setSelectedRole(null);
+                                                setFormModalState({ isOpen: true, role: r });
+                                            }}
+                                            className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 text-xs font-bold transition-colors"
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                    <button onClick={() => setSelectedRole(null)} className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 text-xs font-bold transition-colors">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Content */}
+                            <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--glass-border)]">
+                                        <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Name</p>
+                                        <p className="text-sm font-bold text-[var(--text-primary)] mt-1">{selectedRole.name}</p>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--glass-border)]">
+                                        <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Assigned Users</p>
+                                        <p className="text-sm font-bold text-[var(--text-primary)] mt-1">{selectedRole.user_count}</p>
+                                    </div>
+                                    {selectedRole.description && (
+                                        <div className="p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] col-span-2">
+                                            <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Description</p>
+                                            <p className="text-sm font-medium text-[var(--text-primary)] mt-1">{selectedRole.description}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <p className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">
+                                    Module Permissions
+                                </p>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {Object.entries(selectedRole.permissions || {}).map(([mod, perm]) => {
+                                        const colors = PERM_COLORS[perm] || PERM_COLORS.none;
+                                        const icon = MODULE_ICONS[mod] || '📋';
+
+                                        return (
+                                            <div
+                                                key={mod}
+                                                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl ${colors.bg} transition-colors border border-[var(--glass-border)]`}
+                                            >
+                                                <span className="text-lg">{icon}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-bold text-[var(--text-primary)] truncate capitalize">
+                                                        {mod}
+                                                    </p>
+                                                    <p className={`text-[9px] font-black uppercase tracking-wide ${colors.text} mt-0.5`}>
+                                                        {colors.label}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <RoleFormModal
                 isOpen={formModalState.isOpen}
