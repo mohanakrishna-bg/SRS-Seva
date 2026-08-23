@@ -28,6 +28,54 @@ interface RoleData {
     user_count: number;
 }
 
+const FALLBACK_ROLES: RoleData[] = [
+    {
+        id: -1,
+        name: 'admin',
+        label: 'Manager',
+        description: 'Complete access to all modules',
+        permissions: { seva: 'full', customers: 'full', accounting: 'full', assets: 'full', consumables: 'full', donations: 'full', settings: 'full', users: 'full' },
+        is_builtin: true,
+        user_count: 0
+    },
+    {
+        id: -2,
+        name: 'accountant',
+        label: 'Accountant',
+        description: 'Access to financial modules',
+        permissions: { accounting: 'full', donations: 'full' },
+        is_builtin: true,
+        user_count: 0
+    },
+    {
+        id: -3,
+        name: 'clerk',
+        label: 'Assistant',
+        description: 'Manage sevas, customers and donations',
+        permissions: { seva: 'write', customers: 'write', donations: 'write' },
+        is_builtin: true,
+        user_count: 0
+    },
+    {
+        id: -4,
+        name: 'storekeeper',
+        label: 'Storekeeper',
+        description: 'Manage inventory and assets',
+        permissions: { assets: 'write', consumables: 'write', donations: 'read' },
+        is_builtin: true,
+        user_count: 0
+    },
+    {
+        id: -5,
+        name: 'viewer',
+        label: 'Viewer',
+        description: 'Read-only access to all modules',
+        permissions: { seva: 'read', customers: 'read', accounting: 'read', assets: 'read', consumables: 'read', donations: 'read', settings: 'read', users: 'read' },
+        is_builtin: true,
+        user_count: 0
+    }
+];
+
 export default function RoleManagementTab() {
     const [roles, setRoles] = useState<RoleData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -43,7 +91,12 @@ export default function RoleManagementTab() {
             setError('');
         } catch (err: any) {
             console.error('Failed to fetch roles:', err);
-            setError(err?.response?.data?.detail || 'Failed to load roles');
+            if (err.response?.status === 404) {
+                setRoles(FALLBACK_ROLES);
+                setError('Backend endpoint /api/roles is not deployed yet. Displaying default roles in read-only compatibility mode.');
+            } else {
+                setError(err?.response?.data?.detail || 'Failed to load roles');
+            }
         } finally {
             setIsLoading(false);
         }
