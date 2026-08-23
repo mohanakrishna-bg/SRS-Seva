@@ -52,6 +52,34 @@ class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
+# ─── Roles ───
+class RoleBase(BaseModel):
+    name: str
+    label: str
+    description: Optional[str] = None
+    permissions: Dict[str, str]  # {"seva": "full", "accounting": "none"}
+
+class RoleCreate(RoleBase):
+    pass
+
+class RoleUpdate(BaseModel):
+    label: Optional[str] = None
+    description: Optional[str] = None
+    permissions: Optional[Dict[str, str]] = None
+
+class Role(RoleBase):
+    id: int
+    is_builtin: bool = False
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
+class RoleWithUsers(Role):
+    """Role response that includes count of assigned users."""
+    user_count: int = 0
+
+
 # ─── Devotee ───
 class DevoteeBase(BaseModel):
     Name: str

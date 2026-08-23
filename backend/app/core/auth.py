@@ -74,7 +74,7 @@ MODULE_META = {
 
 PERMISSION_LEVELS = ["none", "read", "write", "full"]
 
-# Default module-to-role permission mapping
+# Default module-to-role permission mapping (fallback when DB is unavailable)
 MODULE_PERMISSIONS = {
     "seva":         {ROLE_ADMIN, ROLE_CLERK},
     "customers":    {ROLE_ADMIN, ROLE_CLERK},
@@ -85,6 +85,102 @@ MODULE_PERMISSIONS = {
     "settings":     {ROLE_ADMIN},
     "users":        {ROLE_ADMIN},
 }
+
+# Built-in role seed data — used to populate the roles table on first startup
+BUILTIN_ROLES = [
+    {
+        "name": ROLE_ADMIN,
+        "label": "Manager",
+        "description": "Full access to all modules and system settings",
+        "permissions": {mod: "full" for mod in MODULE_META},
+    },
+    {
+        "name": ROLE_ACCOUNTANT,
+        "label": "Accountant",
+        "description": "Accounting, financial reports, and donations",
+        "permissions": {
+            "seva": "none", "customers": "none", "accounting": "full",
+            "assets": "none", "consumables": "none", "donations": "full",
+            "settings": "none", "users": "none",
+        },
+    },
+    {
+        "name": ROLE_CLERK,
+        "label": "Assistant",
+        "description": "Seva booking, devotee management, and donations",
+        "permissions": {
+            "seva": "full", "customers": "full", "accounting": "none",
+            "assets": "none", "consumables": "none", "donations": "full",
+            "settings": "none", "users": "none",
+        },
+    },
+    {
+        "name": ROLE_STOREKEEPER,
+        "label": "Storekeeper",
+        "description": "Assets, consumables inventory, and donations",
+        "permissions": {
+            "seva": "none", "customers": "none", "accounting": "none",
+            "assets": "full", "consumables": "full", "donations": "full",
+            "settings": "none", "users": "none",
+        },
+    },
+    {
+        "name": ROLE_VIEWER,
+        "label": "Viewer",
+        "description": "Read-only access to all modules",
+        "permissions": {mod: "read" for mod in MODULE_META},
+    },
+]
+
+
+# ─── DB-Backed Role Lookups ───
+
+def get_role_permissions_from_db(db: Session, role_name: str) -> dict:
+    """Get a role's per-module permissions from the database."""
+    role = db.query(models.Role).filter(models.Role.name == role_name).first()
+    if role and role.permissions:
+        return role.permissions
+    # Fallback to hardcoded defaults
+    return _hardcoded_role_permissions(role_name)
+
+
+def _hardcoded_role_permissions(role_name: str) -> dict:
+    """Fallback: build permissions dict from hardcoded MODULE_PERMISSIONS."""
+    perms = {}
+    for module in MODULE_META:
+        if role_name == ROLE_ADMIN:
+            perms[module] = "full"
+        elif role_name in MODULE_PERMISSIONS.get(module, set()):
+            perms[module] = "full"
+        elif role_name == ROLE_VIEWER:
+            perms[module] = "read"
+        else:
+            perms[module] = "none"
+    return perms
+
+
+def get_all_db_roles(db: Session) -> list:
+    """Get all role names from the database."""
+    roles = db.query(models.Role.name).order_by(models.Role.id).all()
+    if roles:
+        return [r[0] for r in roles]
+    return ALL_ROLES  # Fallback
+
+
+def seed_builtin_roles(db: Session):
+    """Seed built-in roles into the database if they don't exist."""
+    for role_data in BUILTIN_ROLES:
+        existing = db.query(models.Role).filter(models.Role.name == role_data["name"]).first()
+        if not existing:
+            role = models.Role(
+                name=role_data["name"],
+                label=role_data["label"],
+                description=role_data["description"],
+                permissions=role_data["permissions"],
+                is_builtin=True,
+            )
+            db.add(role)
+    db.commit()
 
 
 # ─── Password Utilities ───
@@ -194,8 +290,9 @@ def require_module(module: str, permission: str = "read"):
     """
     Factory that creates a FastAPI dependency restricting access to a specific module.
     Checks:
-    1. The user's role is in the module's default allowed roles
-    2. If the user has per-module overrides in `user.modules`, those take precedence
+    1. Per-user module overrides in `user.modules` (highest priority)
+    2. The role's DB-stored permissions
+    3. Fallback to hardcoded MODULE_PERMISSIONS
 
     Permission levels: "read" (view), "write" (create/update), "full" (all including delete)
 
@@ -204,10 +301,16 @@ def require_module(module: str, permission: str = "read"):
         async def get_journal():
             ...
     """
-    async def _check_module(user: models.User = Depends(get_current_user)) -> models.User:
+    async def _check_module(
+        user: models.User = Depends(get_current_user),
+        db: Session = Depends(database.get_db),
+    ) -> models.User:
         # Admin always has full access
         if user.role == ROLE_ADMIN:
             return user
+
+        perm_levels = {"read": 0, "write": 1, "full": 2}
+        required_level = perm_levels.get(permission, 0)
 
         # Check per-user module overrides first
         if user.modules and module in user.modules:
@@ -217,9 +320,6 @@ def require_module(module: str, permission: str = "read"):
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Access to '{module}' module is explicitly denied for your account.",
                 )
-            # "read" allows read, "write" allows read+write, "full" allows everything
-            perm_levels = {"read": 0, "write": 1, "full": 2}
-            required_level = perm_levels.get(permission, 0)
             user_level = perm_levels.get(user_perm, 0)
             if user_level < required_level:
                 raise HTTPException(
@@ -228,63 +328,69 @@ def require_module(module: str, permission: str = "read"):
                 )
             return user
 
-        # Fall back to default role-based module access
-        allowed = MODULE_PERMISSIONS.get(module, set())
-        # Viewer can always read
-        if permission == "read" and user.role == ROLE_VIEWER:
-            return user
-        if user.role not in allowed:
+        # Fall back to role's DB-stored permissions
+        role_perms = get_role_permissions_from_db(db, user.role)
+        role_perm = role_perms.get(module, "none")
+        role_level = perm_levels.get(role_perm, 0)
+
+        if role_level < required_level:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Your role '{user.role}' does not have access to the '{module}' module.",
+                detail=f"Your role '{user.role}' does not have sufficient access to the '{module}' module.",
             )
         return user
 
     return _check_module
 
 
-def get_user_accessible_modules(user: models.User) -> list[dict]:
+def get_user_accessible_modules(user: models.User, db: Session = None) -> list[dict]:
     """
     Returns a list of modules the user can access, for frontend sidebar rendering.
     Each entry: {"module": "accounting", "permission": "full"|"read"|"write"}
+    Uses DB-backed role permissions when a DB session is provided.
     """
     if user.role == ROLE_ADMIN:
-        return [{"module": m, "permission": "full"} for m in MODULE_PERMISSIONS.keys()]
+        return [{"module": m, "permission": "full"} for m in MODULE_META.keys()]
+
+    # Get role's default permissions from DB or fallback
+    if db:
+        role_perms = get_role_permissions_from_db(db, user.role)
+    else:
+        role_perms = _hardcoded_role_permissions(user.role)
 
     accessible = []
-    for module, allowed_roles in MODULE_PERMISSIONS.items():
-        # Check per-user overrides
+    for module in MODULE_META:
+        # Check per-user overrides first
         if user.modules and module in user.modules:
             perm = user.modules[module]
             if perm != "none":
                 accessible.append({"module": module, "permission": perm})
             continue
 
-        # Default: role-based
-        if user.role in allowed_roles:
-            accessible.append({"module": module, "permission": "full"})
-        elif user.role == ROLE_VIEWER:
-            accessible.append({"module": module, "permission": "read"})
+        # Default: role-based from DB
+        role_perm = role_perms.get(module, "none")
+        if role_perm != "none":
+            accessible.append({"module": module, "permission": role_perm})
 
     return accessible
 
 
-def get_permission_matrix() -> dict:
+def get_permission_matrix(db: Session = None) -> dict:
     """
     Build the full role→module→default-permission matrix for the frontend.
     Returns a dict of {role: {module: permission_level}} for every role.
+    Uses DB-backed roles when a DB session is provided.
     """
+    if db:
+        roles = db.query(models.Role).order_by(models.Role.id).all()
+        if roles:
+            matrix = {}
+            for role in roles:
+                matrix[role.name] = role.permissions or {}
+            return matrix
+
+    # Fallback to hardcoded
     matrix = {}
     for role in ALL_ROLES:
-        modules = {}
-        for module in MODULE_PERMISSIONS:
-            if role == ROLE_ADMIN:
-                modules[module] = "full"
-            elif role in MODULE_PERMISSIONS[module]:
-                modules[module] = "full"
-            elif role == ROLE_VIEWER:
-                modules[module] = "read"
-            else:
-                modules[module] = "none"
-        matrix[role] = modules
+        matrix[role] = _hardcoded_role_permissions(role)
     return matrix

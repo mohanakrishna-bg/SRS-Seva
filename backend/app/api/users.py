@@ -15,6 +15,7 @@ from app.core.auth import (
     require_role,
     get_user_accessible_modules,
     get_permission_matrix,
+    get_all_db_roles,
     ALL_ROLES,
     ROLE_ADMIN,
     ROLE_META,
@@ -45,13 +46,24 @@ def _log_audit(db: Session, admin: models.User, target_username: str, target_use
 
 @router.get("/permissions/matrix")
 async def get_permission_matrix_endpoint(
+    db: Session = Depends(database.get_db),
     _admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Get the full permission matrix with role and module metadata for the UI."""
+    # Build role metadata from DB
+    db_roles = db.query(models.Role).order_by(models.Role.id).all()
+    if db_roles:
+        role_meta = {
+            r.name: {"label": r.label, "description": r.description or ""}
+            for r in db_roles
+        }
+    else:
+        role_meta = ROLE_META
+
     return {
-        "roles": ROLE_META,
+        "roles": role_meta,
         "modules": MODULE_META,
-        "defaults": get_permission_matrix(),
+        "defaults": get_permission_matrix(db),
         "permission_levels": PERMISSION_LEVELS,
     }
 
@@ -88,10 +100,11 @@ async def get_user_audit_log(
 
 @router.get("/roles/available", response_model=List[str])
 async def get_available_roles(
+    db: Session = Depends(database.get_db),
     _admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Get list of valid roles for user creation/assignment."""
-    return ALL_ROLES
+    return get_all_db_roles(db)
 
 
 @router.get("", response_model=List[schemas.User])
@@ -120,7 +133,7 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     user_dict = schemas.User.model_validate(user).model_dump()
-    user_dict["accessible_modules"] = get_user_accessible_modules(user)
+    user_dict["accessible_modules"] = get_user_accessible_modules(user, db)
     return user_dict
 
 
@@ -133,11 +146,12 @@ async def create_user(
 ):
     """Create a new user with optional module permission overrides."""
     from sqlalchemy import func
-    # Validate role
-    if user_data.role not in ALL_ROLES:
+    # Validate role exists in DB
+    valid_roles = get_all_db_roles(db)
+    if user_data.role not in valid_roles:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(ALL_ROLES)}",
+            detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(valid_roles)}",
         )
 
     username_clean = user_data.username.strip()
@@ -206,10 +220,11 @@ async def update_user(
         changes["password"] = {"changed": True}
 
     if user_data.role is not None:
-        if user_data.role not in ALL_ROLES:
+        valid_roles = get_all_db_roles(db)
+        if user_data.role not in valid_roles:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(ALL_ROLES)}",
+                detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(valid_roles)}",
             )
         if user.role != user_data.role:
             changes["role"] = {"old": user.role, "new": user_data.role}

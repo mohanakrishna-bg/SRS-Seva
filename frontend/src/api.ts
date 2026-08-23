@@ -120,6 +120,18 @@ export const usersApi = {
         api.get('/users/audit-log', { params: { target_user_id: targetUserId, limit } }),
 };
 
+// ─── Roles API (Admin) ───
+export const rolesApi = {
+    list: () => api.get('/roles'),
+    get: (id: number) => api.get(`/roles/${id}`),
+    create: (data: { name: string; label: string; description?: string; permissions: Record<string, string> }) =>
+        api.post('/roles', data),
+    update: (id: number, data: { label?: string; description?: string; permissions?: Record<string, string> }) =>
+        api.put(`/roles/${id}`, data),
+    delete: (id: number) => api.delete(`/roles/${id}`),
+    getModulesMeta: () => api.get('/roles/modules-meta'),
+};
+
 // ─── Legacy (backward compat) ───
 export const customerApi = {
     list: (skip = 0, limit = 2000) => api.get(`/customers?skip=${skip}&limit=${limit}`),

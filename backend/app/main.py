@@ -98,6 +98,14 @@ def on_startup():
     except Exception as e:
         print(f"Error syncing sequences on startup: {e}")
 
+    # Seed built-in roles into the database
+    try:
+        db = next(database.get_db())
+        auth.seed_builtin_roles(db)
+        db.close()
+    except Exception as e:
+        print(f"Error seeding built-in roles: {e}")
+
 # ─── Static Files ───
 UPLOAD_DIR = settings.UPLOAD_DIR
 PHOTO_DIR = os.path.join(UPLOAD_DIR, "photos")
@@ -139,6 +147,9 @@ if _should_mount("settings"):
 if _should_mount("users"):
     from app.api.users import router as users_router
     app.include_router(users_router)
+
+    from app.api.roles import router as roles_router
+    app.include_router(roles_router)
 
 # Always mount: test data and image sync (dev tools)
 from app.api.test_data import router as test_data_router
@@ -224,7 +235,7 @@ async def login_for_access_token(
         "modules": user.modules,
     })
     user_data = schemas.UserWithModules.model_validate(user).model_dump()
-    user_data["accessible_modules"] = auth.get_user_accessible_modules(user)
+    user_data["accessible_modules"] = auth.get_user_accessible_modules(user, db)
     user_data["must_change_password"] = user.must_change_password
     return {
         "access_token": access_token,
@@ -236,10 +247,11 @@ async def login_for_access_token(
 @app.get("/api/me")
 async def get_current_user_profile(
     user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db),
 ):
     """Get current authenticated user's profile and accessible modules."""
     user_data = schemas.UserWithModules.model_validate(user).model_dump()
-    user_data["accessible_modules"] = auth.get_user_accessible_modules(user)
+    user_data["accessible_modules"] = auth.get_user_accessible_modules(user, db)
     user_data["must_change_password"] = user.must_change_password
     return user_data
 
@@ -271,7 +283,7 @@ async def change_password(
     db.commit()
     db.refresh(user)
     user_data = schemas.UserWithModules.model_validate(user).model_dump()
-    user_data["accessible_modules"] = auth.get_user_accessible_modules(user)
+    user_data["accessible_modules"] = auth.get_user_accessible_modules(user, db)
     user_data["must_change_password"] = user.must_change_password
     return user_data
 

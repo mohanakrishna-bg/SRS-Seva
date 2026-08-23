@@ -32,6 +32,20 @@ class UserAuditLog(Base):
     details = Column(JSON, nullable=True)  # {field: {old: ..., new: ...}}
 
 
+# ─── Roles ───
+class Role(Base):
+    """Dynamic role definitions with per-module permissions."""
+    __tablename__ = "roles"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String, unique=True, index=True, nullable=False)  # e.g. "clerk"
+    label = Column(String, nullable=False)  # e.g. "Assistant"
+    description = Column(String, nullable=True)
+    permissions = Column(JSON, nullable=False, default={})  # {"seva": "full", "accounting": "none", ...}
+    is_builtin = Column(Boolean, default=False)  # Protect default roles from deletion
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
 # ─── Master: Devotee ───
 class Devotee(Base):
     __tablename__ = "Devotee"
