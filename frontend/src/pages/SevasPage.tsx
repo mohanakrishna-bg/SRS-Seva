@@ -60,11 +60,15 @@ export default function SevasPage() {
     const handleSaveSeva = async (data: SevaItem) => {
         try {
             if (editSeva) {
-                await sevaApi.update(editSeva.SevaCode, data);
+                const res = await sevaApi.update(editSeva.SevaCode, data);
                 showToast('success', `${data.Description} ನವೀಕರಿಸಲಾಗಿದೆ`);
+                const updated = res.data || data;
+                setSevas((prev) => prev.map((s) => (s.SevaCode === editSeva.SevaCode ? updated : s)));
             } else {
-                await sevaApi.create(data);
+                const res = await sevaApi.create(data);
                 showToast('success', `${data.Description} ಸೇರಿಸಲಾಗಿದೆ`);
+                const created = res.data || data;
+                setSevas((prev) => [created, ...prev.filter((s) => s.SevaCode !== created.SevaCode)]);
             }
             setShowForm(false);
             setEditSeva(null);
@@ -80,6 +84,7 @@ export default function SevasPage() {
         try {
             await sevaApi.delete(s.SevaCode);
             showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
+            setSevas((prev) => prev.filter((item) => item.SevaCode !== s.SevaCode));
             fetchSevas();
         } catch (err: any) {
             const detail = err?.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ';
@@ -92,13 +97,25 @@ export default function SevasPage() {
         
         // Filter
         if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase().trim();
-            result = result.filter((s) =>
-                s.Description?.toLowerCase().includes(q) ||
-                s.DescriptionEn?.toLowerCase().includes(q) ||
-                s.SevaCode?.toLowerCase().includes(q) ||
-                (s.Amount !== undefined && s.Amount !== null && s.Amount.toString().includes(q))
-            );
+            const rawQ = searchQuery.toLowerCase().trim();
+            const cleanQ = rawQ.replace(/^[#\s]+/, '');
+            
+            result = result.filter((s) => {
+                const descKn = (s.Description || '').toLowerCase();
+                const descEn = (s.DescriptionEn || '').toLowerCase();
+                const code = (s.SevaCode || '').toLowerCase();
+                const amountStr = (s.Amount !== undefined && s.Amount !== null) ? s.Amount.toString() : '';
+
+                return (
+                    descKn.includes(rawQ) ||
+                    (cleanQ && descKn.includes(cleanQ)) ||
+                    descEn.includes(rawQ) ||
+                    (cleanQ && descEn.includes(cleanQ)) ||
+                    code.includes(rawQ) ||
+                    (cleanQ && code.includes(cleanQ)) ||
+                    (amountStr && amountStr.includes(rawQ))
+                );
+            });
         }
         
         // Sort
