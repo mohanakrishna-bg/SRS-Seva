@@ -206,7 +206,12 @@ export default function SevasPage() {
                             className="glass-card hover:border-[var(--primary)]/30 transition-colors group relative"
                         >
                             <div className="flex justify-between items-start mb-3">
-                                <h3 className="font-bold text-lg leading-tight pr-8">{s.Description}</h3>
+                                <div>
+                                    <span className="inline-block px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs border border-[var(--primary)]/20 mb-1.5">
+                                        #{s.SevaCode}
+                                    </span>
+                                    <h3 className="font-bold text-lg leading-tight pr-4">{s.Description}</h3>
+                                </div>
                                 <span className="text-emerald-400 font-mono text-lg font-bold shrink-0">
                                     ₹{s.Amount?.toLocaleString() ?? '—'}
                                 </span>
@@ -244,7 +249,8 @@ export default function SevasPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-black/10 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">
-                                <th className="pb-3 pt-4 pl-4">ವಿವರಣೆ</th>
+                                <th className="pb-3 pt-4 pl-4 w-28">ಕೋಡ್</th>
+                                <th className="pb-3 pt-4">ವಿವರಣೆ</th>
                                 <th className="pb-3 pt-4 text-right cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={toggleSortOrder}>
                                     <div className="flex items-center justify-end gap-1">
                                         ಶುಲ್ಕ
@@ -261,6 +267,11 @@ export default function SevasPage() {
                                 return (
                                 <tr key={s.SevaCode} className="border-b border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors group">
                                     <td className={`${pyClass} pl-4 transition-all`}>
+                                        <span className="px-2 py-1 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs border border-[var(--primary)]/20">
+                                            {s.SevaCode}
+                                        </span>
+                                    </td>
+                                    <td className={`${pyClass} transition-all`}>
                                         <div className={`font-medium ${pageSize <= 5 ? 'text-lg' : 'text-base'}`}>{s.Description}</div>
                                         {s.DescriptionEn && <div className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)]`}>{s.DescriptionEn}</div>}
                                     </td>

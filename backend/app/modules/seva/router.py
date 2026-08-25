@@ -237,7 +237,22 @@ async def upload_devotee_photo(
     return {"filename": filename, "photo_path": devotee.PhotoPath}
 
 
+import re
 import random
+
+def get_next_seva_code(db: Session, prefix: str = "SV") -> str:
+    """Generate next sequential code like SV001, SV002, SV003..."""
+    all_codes = db.query(models.Seva.SevaCode).all()
+    max_num = 0
+    for (code,) in all_codes:
+        if code:
+            nums = re.findall(r'\d+', code)
+            if nums:
+                num = int(nums[-1])
+                if num > max_num:
+                    max_num = num
+    next_num = max_num + 1
+    return f"{prefix}{next_num:03d}"
 
 # ═══════════════════════════════════════════════════════════
 # SEVA CRUD
@@ -252,16 +267,16 @@ def list_sevas(db: Session = Depends(database.get_db)):
 def create_seva(seva: schemas.SevaCreate, db: Session = Depends(database.get_db)):
     data_dict = seva.model_dump(exclude={"composite_sevas"})
     
-    # Auto-generate SevaCode if empty or whitespace
+    # Auto-generate running sequential SevaCode if empty or whitespace
     if not data_dict.get("SevaCode") or not data_dict["SevaCode"].strip():
-        data_dict["SevaCode"] = f"SV{random.randint(1000, 9999)}"
+        data_dict["SevaCode"] = get_next_seva_code(db)
     else:
         data_dict["SevaCode"] = data_dict["SevaCode"].strip().upper()
         
     # Check duplicate SevaCode
     existing = db.query(models.Seva).filter(models.Seva.SevaCode == data_dict["SevaCode"]).first()
     if existing:
-        data_dict["SevaCode"] = f"{data_dict['SevaCode']}_{random.randint(10, 99)}"
+        data_dict["SevaCode"] = get_next_seva_code(db)
 
     db_seva = models.Seva(**data_dict)
     try:
