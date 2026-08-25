@@ -443,13 +443,12 @@ export default function CustomersPage() {
                                         pageSize <= 5 ? 'py-6 px-4' : pageSize <= 10 ? 'py-4 px-4' : 'py-2 px-4'
                                     }`}
                                 >
-                                     <td className={`pl-4 ${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}></td>
-                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}>
+                                     <td className={`pl-4 ${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} transition-all`}>
                                          {d.PhotoPath ? (
-                                             <img src={d.PhotoPath} alt="" className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-9 h-9'} rounded-full object-cover border-2 border-[var(--glass-border)] transition-all`} />
+                                             <img src={d.PhotoPath} alt="" className={`${pageSize <= 10 ? 'w-12 h-12' : 'w-9 h-9'} rounded-full object-cover border-2 border-[var(--glass-border)] transition-all`} />
                                          ) : (
-                                             <div className={`${pageSize <= 10 ? 'w-16 h-16' : 'w-9 h-9'} rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] transition-all`}>
-                                                 <UserCircle2 size={pageSize <= 10 ? 32 : 20} />
+                                             <div className={`${pageSize <= 10 ? 'w-12 h-12' : 'w-9 h-9'} rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] transition-all`}>
+                                                 <UserCircle2 size={pageSize <= 10 ? 24 : 20} />
                                              </div>
                                          )}
                                      </td>
