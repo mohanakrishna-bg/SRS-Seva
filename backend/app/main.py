@@ -142,6 +142,58 @@ def consolidate_kanike_sevas(db: Session):
         print(f"Notice: Kanike consolidation error: {e}")
 
 
+def consolidate_hastodaka_sevas(db: Session):
+    """Consolidate all Hastodaka Sevas into a single 'ಹಸ್ತೋದಕ' Seva with blank (0.0) amount."""
+    try:
+        from sqlalchemy import or_
+        hastodaka_sevas = db.query(models.Seva).filter(
+            or_(
+                models.Seva.Description.ilike('%ಹಸ್ತೋದಕ%'),
+                models.Seva.DescriptionEn.ilike('%hastodaka%'),
+                models.Seva.SevaCode.ilike('%hast%')
+            )
+        ).order_by(models.Seva.SevaCode).all()
+
+        if hastodaka_sevas:
+            primary = hastodaka_sevas[0]
+            primary.Description = "ಹಸ್ತೋದಕ"
+            primary.DescriptionEn = "Hastodaka"
+            primary.Amount = 0.0
+            master_code = primary.SevaCode
+
+            for redundant in hastodaka_sevas[1:]:
+                if redundant.SevaCode != master_code:
+                    db.query(models.SevaRegistration).filter(
+                        models.SevaRegistration.SevaCode == redundant.SevaCode
+                    ).update({"SevaCode": master_code}, synchronize_session=False)
+
+                    db.query(models.EventComposition).filter(
+                        or_(
+                            models.EventComposition.ParentEventCode == redundant.SevaCode,
+                            models.EventComposition.ChildSevaCode == redundant.SevaCode
+                        )
+                    ).delete(synchronize_session=False)
+
+                    db.delete(redundant)
+                    
+            db.commit()
+            print(f"Hastodaka consolidation: kept primary master '{master_code}', deleted redundant entries.")
+        else:
+            master = models.Seva(
+                SevaCode="SV_HASTODAKA",
+                Description="ಹಸ್ತೋದಕ",
+                DescriptionEn="Hastodaka",
+                Amount=0.0,
+                TPQty=0,
+                PrasadaAddonLimit=0
+            )
+            db.add(master)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Notice: Hastodaka consolidation error: {e}")
+
+
 @app.on_event("startup")
 def on_startup():
     try:
@@ -154,11 +206,12 @@ def on_startup():
     except Exception as e:
         print(f"Error syncing sequences on startup: {e}")
 
-    # Seed built-in roles and consolidate Kanike Sevas
+    # Seed built-in roles and consolidate Kanike & Hastodaka Sevas
     try:
         db = next(database.get_db())
         auth.seed_builtin_roles(db)
         consolidate_kanike_sevas(db)
+        consolidate_hastodaka_sevas(db)
         db.close()
     except Exception as e:
         print(f"Error seeding built-in roles/consolidating sevas: {e}")

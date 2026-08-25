@@ -400,6 +400,7 @@ export default function SevasPage() {
                 onSubmit={handleSaveSeva}
                 initialData={editSeva || undefined}
                 isEdit={!!editSeva}
+                existingSevas={sevas}
                 title={editSeva ? 'ಸೇವೆ ಬದಲಿಸಿ' : 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ'}
             />
         </motion.div>

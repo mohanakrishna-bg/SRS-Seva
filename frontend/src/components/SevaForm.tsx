@@ -20,6 +20,7 @@ interface SevaFormProps {
     initialData?: Partial<SevaFormData>;
     title?: string;
     isEdit?: boolean;
+    existingSevas?: { SevaCode: string }[];
 }
 
 const emptyForm: SevaFormData = {
@@ -31,7 +32,21 @@ const emptyForm: SevaFormData = {
     PrasadaAddonLimit: 0,
 };
 
-export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ', isEdit = false }: SevaFormProps) {
+const getNextSevaCode = (sevasList: { SevaCode: string }[] = []): string => {
+    let maxNum = 0;
+    sevasList.forEach(s => {
+        if (s.SevaCode) {
+            const nums = s.SevaCode.match(/\d+/g);
+            if (nums) {
+                const n = parseInt(nums[nums.length - 1], 10);
+                if (n > maxNum) maxNum = n;
+            }
+        }
+    });
+    return `SV${String(maxNum + 1).padStart(3, '0')}`;
+};
+
+export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ', isEdit = false, existingSevas = [] }: SevaFormProps) {
     const [form, setForm] = useState<SevaFormData>({ ...emptyForm, ...initialData });
 
     const handleChange = (key: keyof SevaFormData, value: string | number) => {
@@ -44,16 +59,17 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
 
         const payload = { ...form };
         if (!payload.SevaCode || !payload.SevaCode.trim()) {
-            payload.SevaCode = `SV${Math.floor(1000 + Math.random() * 9000)}`;
+            payload.SevaCode = getNextSevaCode(existingSevas);
         }
         onSubmit(payload);
     };
 
     React.useEffect(() => {
         if (isOpen) {
-            setForm({ ...emptyForm, ...initialData });
+            const defaultCode = isEdit ? (initialData?.SevaCode || '') : (initialData?.SevaCode || getNextSevaCode(existingSevas));
+            setForm({ ...emptyForm, ...initialData, SevaCode: defaultCode });
         }
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, isEdit, existingSevas]);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-xl">
@@ -62,10 +78,10 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
-                    {/* Description - Kannada (Default Transliterated Input) */}
+                    {/* Description - Kannada */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            ಸೇವೆಯ ವಿವರಣೆ (ಕನ್ನಡ - ಡೀಫಾಲ್ಟ್)
+                            ಸೇವೆಯ ವಿವರಣೆ (ಕನ್ನಡ)
                         </label>
                         <TransliteratedInput
                             value={form.Description}
@@ -76,22 +92,22 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         />
                     </div>
 
-                    {/* Description - English (Optional) */}
+                    {/* Description - English */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            Description (English - Optional / ಐಚ್ಛಿಕ)
+                            ವಿವರಣೆ (ಇಂಗ್ಲಿಷ್ - ಐಚ್ಛಿಕ)
                         </label>
                         <input
                             type="text"
                             value={form.DescriptionEn || ''}
                             onChange={(e) => handleChange('DescriptionEn', e.target.value)}
-                            placeholder="Seva Description in English (Optional)"
+                            placeholder="Seva Description in English"
                             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Seva Code - Only for new or show as read-only for edit */}
+                        {/* Seva Code - Non-editable for both new and edit */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                                 ಸೇವಾ ಕೋಡ್
@@ -99,10 +115,9 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             <input
                                 type="text"
                                 value={form.SevaCode}
-                                onChange={(e) => handleChange('SevaCode', e.target.value.toUpperCase())}
-                                placeholder="E.g. RK01"
-                                disabled={isEdit}
-                                className={`w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors ${isEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                readOnly
+                                disabled
+                                className="w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[var(--text-primary)] font-mono font-bold opacity-80 cursor-not-allowed"
                             />
                         </div>
 

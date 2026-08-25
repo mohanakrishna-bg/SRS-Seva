@@ -170,6 +170,9 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                 } else if (prefillSeva) {
                     const match = mappedData.find((i: SevaItem) => i.Description.includes(prefillSeva) || prefillSeva.includes(i.Description));
                     if (match) setSelectedItemCode(match.ItemCode);
+                    else if (mappedData.length > 0) setSelectedItemCode(mappedData[0].ItemCode);
+                } else if (mappedData.length > 0) {
+                    setSelectedItemCode(mappedData[0].ItemCode);
                 }
             }
         } catch {

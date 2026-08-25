@@ -28,12 +28,6 @@ export default function SevaDetailsStep({
     foodServiceRateStr, setFoodServiceRateStr, defaultFoodRates, calculateTotal
 }: SevaDetailsStepProps) {
     const selectedItem = items.find(i => String(i.ItemCode) === String(selectedItemCode));
-    const isKanike = selectedItem && (
-        selectedItem.Description?.includes('ಕಾಣಿಕೆ') || 
-        selectedItem.DescriptionEn?.toLowerCase().includes('kanike') || 
-        (selectedItem.Amount ?? 0) === 0 || 
-        (selectedItem.Basic ?? 0) === 0
-    );
 
     return (
         <div className="flex flex-col space-y-2.5 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)] h-full">
@@ -60,16 +54,15 @@ export default function SevaDetailsStep({
                 </div>
 
                 <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ಸೇವೆ / ಈವೆಂಟ್ <span className="text-red-500">*</span></label>
+                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ಸೇವೆ <span className="text-red-500">*</span></label>
                     <select
                         value={selectedItemCode}
                         onChange={(e) => setSelectedItemCode(e.target.value)}
-                        className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                        className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
                     >
-                        <option className="bg-[var(--bg-light)] dark:bg-slate-800" value="">-- ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ --</option>
                         {items.map(item => (
                             <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode}>
-                                {item.Description} ({ (item.Basic ?? 0) === 0 ? 'ಬದಲಾಯಿಸಬಹುದಾದ ಮೊತ್ತ / Variable' : `₹${item.Basic}` })
+                                {item.Description} {(item.Basic ?? 0) > 0 ? `(₹${item.Basic})` : ''}
                             </option>
                         ))}
                     </select>
@@ -79,13 +72,8 @@ export default function SevaDetailsStep({
                     <div className="space-y-0.5 sm:col-span-2 bg-orange-50/60 dark:bg-orange-950/20 p-2 rounded-lg border border-orange-200/60 dark:border-orange-900/30">
                         <div className="flex items-center justify-between mb-1">
                             <label className="text-[10px] font-bold text-orange-700 dark:text-orange-300 uppercase block">
-                                ಸೇವಾ ಶುಲ್ಕ / ಕಾಣಿಕೆ ಮೊತ್ತ (₹) <span className="text-red-500">*</span>
+                                ಸೇವಾ ಶುಲ್ಕ (₹) <span className="text-red-500">*</span>
                             </label>
-                            {isKanike && (
-                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-600 dark:text-orange-400">
-                                    ಬದಲಾಯಿಸಬಹುದಾದ ಮೊತ್ತ / Variable Amount
-                                </span>
-                            )}
                         </div>
                         <input
                             type="number"
@@ -96,7 +84,7 @@ export default function SevaDetailsStep({
                                 const val = parseFloat(convertKnNumeralsToEn(e.target.value));
                                 setCustomSevaAmount(isNaN(val) ? '' : val);
                             }}
-                            placeholder={isKanike ? "ಕಾಣಿಕೆ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ (Enter Amount e.g. 101, 501, 1000)" : "ಸೇವಾ ಶುಲ್ಕ"}
+                            placeholder="ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ"
                             className="w-full px-2.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 rounded-lg bg-white dark:bg-black/30 border border-orange-300/40 focus:outline-none focus:border-[var(--primary)] font-mono"
                         />
                     </div>
