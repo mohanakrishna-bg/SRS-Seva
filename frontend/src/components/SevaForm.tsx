@@ -41,7 +41,12 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.Description.trim()) return;
-        onSubmit(form);
+
+        const payload = { ...form };
+        if (!payload.SevaCode || !payload.SevaCode.trim()) {
+            payload.SevaCode = `SV${Math.floor(1000 + Math.random() * 9000)}`;
+        }
+        onSubmit(payload);
     };
 
     React.useEffect(() => {

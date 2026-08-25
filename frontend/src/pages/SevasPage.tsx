@@ -81,8 +81,9 @@ export default function SevasPage() {
             await sevaApi.delete(s.SevaCode);
             showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
             fetchSevas();
-        } catch {
-            showToast('error', 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        } catch (err: any) {
+            const detail = err?.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ';
+            showToast('error', detail);
         }
     };
 

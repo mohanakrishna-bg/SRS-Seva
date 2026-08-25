@@ -237,6 +237,8 @@ async def upload_devotee_photo(
     return {"filename": filename, "photo_path": devotee.PhotoPath}
 
 
+import random
+
 # ═══════════════════════════════════════════════════════════
 # SEVA CRUD
 # ═══════════════════════════════════════════════════════════
@@ -249,6 +251,18 @@ def list_sevas(db: Session = Depends(database.get_db)):
 @router.post("/sevas", response_model=schemas.Seva)
 def create_seva(seva: schemas.SevaCreate, db: Session = Depends(database.get_db)):
     data_dict = seva.model_dump(exclude={"composite_sevas"})
+    
+    # Auto-generate SevaCode if empty or whitespace
+    if not data_dict.get("SevaCode") or not data_dict["SevaCode"].strip():
+        data_dict["SevaCode"] = f"SV{random.randint(1000, 9999)}"
+    else:
+        data_dict["SevaCode"] = data_dict["SevaCode"].strip().upper()
+        
+    # Check duplicate SevaCode
+    existing = db.query(models.Seva).filter(models.Seva.SevaCode == data_dict["SevaCode"]).first()
+    if existing:
+        data_dict["SevaCode"] = f"{data_dict['SevaCode']}_{random.randint(10, 99)}"
+
     db_seva = models.Seva(**data_dict)
     try:
         db.add(db_seva)
@@ -263,7 +277,7 @@ def create_seva(seva: schemas.SevaCreate, db: Session = Depends(database.get_db)
         db.refresh(db_seva)
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"Failed to create Seva: {str(e)}")
     return db_seva
 
 
@@ -273,17 +287,22 @@ def update_seva(seva_code: str, data: schemas.SevaCreate, db: Session = Depends(
     if not seva:
         raise HTTPException(status_code=404, detail="Seva not found")
         
-    data_dict = data.model_dump(exclude={"composite_sevas"}, exclude_unset=True)
+    # Exclude SevaCode and composite_sevas from direct ORM attribute updates
+    data_dict = data.model_dump(exclude={"composite_sevas", "SevaCode"}, exclude_unset=True)
     for key, value in data_dict.items():
         setattr(seva, key, value)
         
-    if data.composite_sevas is not None:
-        db.query(models.EventComposition).filter(models.EventComposition.ParentEventCode == seva_code).delete()
-        for child_code in data.composite_sevas:
-            db.add(models.EventComposition(ParentEventCode=seva_code, ChildSevaCode=child_code))
-            
-    db.commit()
-    db.refresh(seva)
+    try:
+        if data.composite_sevas is not None:
+            db.query(models.EventComposition).filter(models.EventComposition.ParentEventCode == seva_code).delete()
+            for child_code in data.composite_sevas:
+                db.add(models.EventComposition(ParentEventCode=seva_code, ChildSevaCode=child_code))
+                
+        db.commit()
+        db.refresh(seva)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to update Seva: {str(e)}")
     return seva
 
 
@@ -292,9 +311,29 @@ def delete_seva(seva_code: str, db: Session = Depends(database.get_db)):
     seva = db.query(models.Seva).filter(models.Seva.SevaCode == seva_code).first()
     if not seva:
         raise HTTPException(status_code=404, detail="Seva not found")
-    db.query(models.EventComposition).filter(models.EventComposition.ParentEventCode == seva_code).delete()
-    db.delete(seva)
-    db.commit()
+        
+    # Check if there are active registrations linked to this SevaCode
+    reg_count = db.query(models.SevaRegistration).filter(models.SevaRegistration.SevaCode == seva_code).count()
+    if reg_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete '{seva.Description or seva_code}': It has {reg_count} active registration(s)."
+        )
+
+    try:
+        # Delete any child or parent composition links first
+        db.query(models.EventComposition).filter(
+            or_(
+                models.EventComposition.ParentEventCode == seva_code,
+                models.EventComposition.ChildSevaCode == seva_code
+            )
+        ).delete(synchronize_session=False)
+        
+        db.delete(seva)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to delete Seva: {str(e)}")
     return {"detail": "Seva deleted"}
 
 
