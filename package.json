@@ -1,0 +1,7 @@
+{
+  "name": "srs-seva-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend run build"
+  }
+}
