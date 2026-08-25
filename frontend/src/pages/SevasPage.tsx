@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
     HeartHandshake, Grid3X3, List, Loader2, 
-    Plus, Edit3, Trash2, ArrowUpDown, ArrowUp, ArrowDown
+    Plus, Edit3, Trash2, ArrowUpDown, ArrowUp, ArrowDown,
+    ChevronLeft, ChevronRight
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import SevaForm from '../components/SevaForm';
@@ -286,25 +287,72 @@ export default function SevasPage() {
                         </tbody>
                     </table>
 
-                    {/* Pagination Controls */}
+                </div>
+            )}
+
+            {/* Pagination Controls - Visible in both Grid and List views */}
+            {totalPages >= 1 && filteredAndSorted.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between pt-4 mt-4 border-t border-[var(--glass-border)] px-4 pb-3 gap-3">
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-[var(--text-secondary)]">
+                            ಪುಟ {currentPage} / {totalPages} (ಒಟ್ಟು {filteredAndSorted.length} ಸೇವೆಗಳು)
+                        </span>
+                        <div className="flex items-center gap-1.5 ml-2">
+                            <span className="text-xs text-[var(--text-secondary)]">ಸಾಲುಗಳು:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    const newSize = Number(e.target.value);
+                                    setPageSize(newSize);
+                                    localStorage.setItem('seva_page_size_pref', String(newSize));
+                                    setCurrentPage(1);
+                                }}
+                                className="px-2 py-1 rounded-md bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] font-medium"
+                            >
+                                {PAGE_SIZE_OPTIONS.map((s) => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--glass-border)]">
-                            <span className="text-xs text-[var(--text-secondary)]">Showing page {currentPage} of {totalPages}</span>
-                            <div className="flex items-center gap-1">
-                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-1 rounded bg-black/5 dark:bg-white/5 hover:bg-black/10 disabled:opacity-50 transition-colors"><ArrowUpDown size={16} className="rotate-90"/></button>
-                                <div className="flex items-center gap-1 mx-2">
-                                    {Array.from({ length: totalPages }).map((_, i) => {
-                                        const p = i + 1;
-                                        return (
-                                            <button key={p} onClick={() => setCurrentPage(p)}
-                                                className={`w-7 h-7 rounded text-xs font-bold transition-colors ${currentPage === p ? 'bg-[var(--primary)] text-white' : 'hover:bg-black/5'}`}>
-                                                {p}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-1 rounded bg-black/5 dark:bg-white/5 hover:bg-black/10 disabled:opacity-50 transition-colors"><ArrowUpDown size={16} className="-rotate-90"/></button>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
+                                title="Previous Page"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <div className="flex items-center gap-1 mx-1">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                    const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+                                    const p = start + i;
+                                    if (p > totalPages) return null;
+                                    return (
+                                        <button
+                                            key={p}
+                                            onClick={() => setCurrentPage(p)}
+                                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
+                                                currentPage === p
+                                                    ? 'bg-[var(--primary)] text-white'
+                                                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)]'
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    );
+                                })}
                             </div>
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
+                                title="Next Page"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
                         </div>
                     )}
                 </div>
