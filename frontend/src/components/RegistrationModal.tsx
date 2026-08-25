@@ -76,9 +76,21 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     // Seva Step State
     const [items, setItems] = useState<SevaItem[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date>(prefillDate || new Date());
-    const [selectedItemCode, setSelectedItemCode] = useState<string>('');
+    const [selectedItemCode, setSelectedItemCodeState] = useState<string>('');
+    const [customSevaAmount, setCustomSevaAmount] = useState<number | ''>('');
     const [familyMembers, setFamilyMembers] = useState<number>(0);
     const [optPrasada, setOptPrasada] = useState<boolean>(false);
+
+    const setSelectedItemCode = (code: string) => {
+        setSelectedItemCodeState(code);
+        const item = items.find(i => String(i.ItemCode) === String(code));
+        if (item) {
+            const amt = parseFloat(String(item.Amount ?? item.Basic ?? 0));
+            setCustomSevaAmount(amt > 0 ? amt : '');
+        } else {
+            setCustomSevaAmount('');
+        }
+    };
     
     // Parse settings for food service
     const { settings: orgSettings } = useSettings();
@@ -104,7 +116,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             setCustomer(initialCustomer);
             setSearchQuery('');
             setSearchResults([]);
-            setSelectedItemCode('');
+            setSelectedItemCodeState('');
+            setCustomSevaAmount('');
             setFamilyMembers(0);
             setOptPrasada(false);
             setPaymentMode('Cash');
@@ -282,7 +295,10 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     const calculateTotal = () => {
         const item = getSelectedItem();
         if (!item) return 0;
-        let total = parseFloat(String(item.Amount)) || parseFloat(String(item.Basic)) || 0;
+        const baseAmount = (typeof customSevaAmount === 'number' && customSevaAmount > 0)
+            ? customSevaAmount
+            : (parseFloat(String(item.Amount)) || parseFloat(String(item.Basic)) || 0);
+        let total = baseAmount;
         if (optPrasada) {
             // Food service is charged for additional people only
             total += familyMembers * (parseInt(foodServiceRateStr) || 0);
@@ -332,14 +348,19 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
             // 2. Submit SevaRegistration
             const total = calculateTotal();
+            const item = getSelectedItem();
+            const baseAmount = (typeof customSevaAmount === 'number' && customSevaAmount > 0)
+                ? customSevaAmount
+                : (item?.Amount || item?.Basic || 0.0);
+
             const regData = {
                 RegistrationDate: ddmmyy,
                 SevaDate: ddmmyy,
                 DevoteeId: devoteeId,
                 SevaCode: selectedItemCode,
                 Qty: 1,
-                Rate: getSelectedItem()?.Amount || 0.0,
-                Amount: getSelectedItem()?.Amount || 0.0,
+                Rate: baseAmount,
+                Amount: baseAmount,
                 OptTheerthaPrasada: optPrasada,
                 PrasadaCount: optPrasada ? familyMembers : 0,
                 PaymentMode: paymentMode,
@@ -450,6 +471,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                         setSelectedDate={setSelectedDate}
                                                         selectedItemCode={selectedItemCode}
                                                         setSelectedItemCode={setSelectedItemCode}
+                                                        customSevaAmount={customSevaAmount}
+                                                        setCustomSevaAmount={setCustomSevaAmount}
                                                         items={items}
                                                         optPrasada={optPrasada}
                                                         setOptPrasada={setOptPrasada}

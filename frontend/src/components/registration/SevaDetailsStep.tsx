@@ -8,6 +8,8 @@ interface SevaDetailsStepProps {
     setSelectedDate: (d: Date) => void;
     selectedItemCode: string;
     setSelectedItemCode: (c: string) => void;
+    customSevaAmount: number | '';
+    setCustomSevaAmount: (v: number | '') => void;
     items: SevaItem[];
     optPrasada: boolean;
     setOptPrasada: (v: boolean) => void;
@@ -20,10 +22,19 @@ interface SevaDetailsStepProps {
 }
 
 export default function SevaDetailsStep({
-    selectedDate, setSelectedDate, selectedItemCode, setSelectedItemCode, items,
+    selectedDate, setSelectedDate, selectedItemCode, setSelectedItemCode,
+    customSevaAmount, setCustomSevaAmount, items,
     optPrasada, setOptPrasada, familyMembers, setFamilyMembers,
     foodServiceRateStr, setFoodServiceRateStr, defaultFoodRates, calculateTotal
 }: SevaDetailsStepProps) {
+    const selectedItem = items.find(i => String(i.ItemCode) === String(selectedItemCode));
+    const isKanike = selectedItem && (
+        selectedItem.Description?.includes('ಕಾಣಿಕೆ') || 
+        selectedItem.DescriptionEn?.toLowerCase().includes('kanike') || 
+        (selectedItem.Amount ?? 0) === 0 || 
+        (selectedItem.Basic ?? 0) === 0
+    );
+
     return (
         <div className="flex flex-col space-y-2.5 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)] h-full">
             <h3 className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5">
@@ -58,11 +69,38 @@ export default function SevaDetailsStep({
                         <option className="bg-[var(--bg-light)] dark:bg-slate-800" value="">-- ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ --</option>
                         {items.map(item => (
                             <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode}>
-                                {item.Description} (₹{item.Basic})
+                                {item.Description} ({ (item.Basic ?? 0) === 0 ? 'ಬದಲಾಯಿಸಬಹುದಾದ ಮೊತ್ತ / Variable' : `₹${item.Basic}` })
                             </option>
                         ))}
                     </select>
                 </div>
+
+                {selectedItem && (
+                    <div className="space-y-0.5 sm:col-span-2 bg-orange-50/60 dark:bg-orange-950/20 p-2 rounded-lg border border-orange-200/60 dark:border-orange-900/30">
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-bold text-orange-700 dark:text-orange-300 uppercase block">
+                                ಸೇವಾ ಶುಲ್ಕ / ಕಾಣಿಕೆ ಮೊತ್ತ (₹) <span className="text-red-500">*</span>
+                            </label>
+                            {isKanike && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-600 dark:text-orange-400">
+                                    ಬದಲಾಯಿಸಬಹುದಾದ ಮೊತ್ತ / Variable Amount
+                                </span>
+                            )}
+                        </div>
+                        <input
+                            type="number"
+                            min="1"
+                            value={customSevaAmount === 0 || customSevaAmount === '' ? '' : customSevaAmount}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                                const val = parseFloat(convertKnNumeralsToEn(e.target.value));
+                                setCustomSevaAmount(isNaN(val) ? '' : val);
+                            }}
+                            placeholder={isKanike ? "ಕಾಣಿಕೆ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ (Enter Amount e.g. 101, 501, 1000)" : "ಸೇವಾ ಶುಲ್ಕ"}
+                            className="w-full px-2.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 rounded-lg bg-white dark:bg-black/30 border border-orange-300/40 focus:outline-none focus:border-[var(--primary)] font-mono"
+                        />
+                    </div>
+                )}
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-lg p-2 space-y-1.5">

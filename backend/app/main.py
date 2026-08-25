@@ -86,6 +86,49 @@ def sync_postgres_sequences():
         print(f"Sequence sync error: {err}")
 
 
+def consolidate_kanike_sevas(db: Session):
+    """Consolidate multiple fixed denomination Kanike Sevas into a single 'ಸೇವಾ ಕಾಣಿಕೆ' Seva with variable amount."""
+    try:
+        from sqlalchemy import or_
+        kanike_sevas = db.query(models.Seva).filter(
+            or_(
+                models.Seva.Description.ilike('%ಕಾಣಿಕೆ%'),
+                models.Seva.DescriptionEn.ilike('%kanike%'),
+                models.Seva.SevaCode.ilike('%kanik%')
+            )
+        ).all()
+
+        if not kanike_sevas:
+            master = models.Seva(
+                SevaCode="SV_KANIKA",
+                Description="ಸೇವಾ ಕಾಣಿಕೆ",
+                DescriptionEn="Seva Kanike",
+                Amount=0.0,
+                TPQty=0,
+                PrasadaAddonLimit=0
+            )
+            db.add(master)
+            db.commit()
+        else:
+            primary = kanike_sevas[0]
+            primary.Description = "ಸೇವಾ ಕಾಣಿಕೆ"
+            primary.DescriptionEn = "Seva Kanike"
+            primary.Amount = 0.0
+            
+            for redundant in kanike_sevas[1:]:
+                reg_count = db.query(models.SevaRegistration).filter(models.SevaRegistration.SevaCode == redundant.SevaCode).count()
+                if reg_count == 0:
+                    db.delete(redundant)
+                else:
+                    redundant.Description = "ಸೇವಾ ಕಾಣಿಕೆ"
+                    redundant.DescriptionEn = "Seva Kanike"
+                    redundant.Amount = 0.0
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Notice: Kanike consolidation error: {e}")
+
+
 @app.on_event("startup")
 def on_startup():
     try:
@@ -98,13 +141,14 @@ def on_startup():
     except Exception as e:
         print(f"Error syncing sequences on startup: {e}")
 
-    # Seed built-in roles into the database
+    # Seed built-in roles and consolidate Kanike Sevas
     try:
         db = next(database.get_db())
         auth.seed_builtin_roles(db)
+        consolidate_kanike_sevas(db)
         db.close()
     except Exception as e:
-        print(f"Error seeding built-in roles: {e}")
+        print(f"Error seeding built-in roles/consolidating sevas: {e}")
 
 # ─── Static Files ───
 UPLOAD_DIR = settings.UPLOAD_DIR
