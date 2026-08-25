@@ -91,10 +91,12 @@ export default function SevasPage() {
         
         // Filter
         if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
+            const q = searchQuery.toLowerCase().trim();
             result = result.filter((s) =>
                 s.Description?.toLowerCase().includes(q) ||
-                s.SevaCode?.toLowerCase().includes(q)
+                s.DescriptionEn?.toLowerCase().includes(q) ||
+                s.SevaCode?.toLowerCase().includes(q) ||
+                (s.Amount !== undefined && s.Amount !== null && s.Amount.toString().includes(q))
             );
         }
         

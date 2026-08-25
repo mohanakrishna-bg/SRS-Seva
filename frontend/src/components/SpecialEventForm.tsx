@@ -122,25 +122,25 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಘಟನೆಯ ಹೆಸರು
+                                ಘಟನೆಯ ಹೆಸರು (ಕನ್ನಡ - ಡೀಫಾಲ್ಟ್)
                             </label>
                             <TransliteratedInput
                                 value={form.Description}
                                 onChange={(val) => handleChange('Description', val)}
-                                placeholder="ಘಟನೆಯ ಹೆಸರು"
+                                placeholder="ಘಟನೆಯ ಹೆಸರು (ಕನ್ನಡ)"
                                 enableVoice={true}
                             />
                         </div>
 
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                Event Name (English)
+                                Event Name (English - Optional / ಐಚ್ಛಿಕ)
                             </label>
                             <input
                                 type="text"
                                 value={form.DescriptionEn || ''}
                                 onChange={(e) => handleChange('DescriptionEn', e.target.value)}
-                                placeholder="Event Name in English"
+                                placeholder="Event Name in English (Optional)"
                                 className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                             />
                         </div>
@@ -161,13 +161,14 @@ export default function SpecialEventForm({ isOpen, onClose, onSubmit, initialDat
 
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಅಂದಾಜು ಶುಲ್ಕ
+                                ಅಂದಾಜು ಶುಲ್ಕ (₹)
                             </label>
                             <input
                                 type="number"
-                                value={form.Amount}
+                                value={form.Amount === 0 ? '' : form.Amount}
+                                onFocus={(e) => e.target.select()}
                                 onChange={(e) => handleChange('Amount', parseFloat(convertKnNumeralsToEn(e.target.value)) || 0)}
-                                placeholder="0.00"
+                                placeholder="0"
                                 className="w-full px-4 py-2.5 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                             />
                         </div>

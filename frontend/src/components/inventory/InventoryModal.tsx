@@ -232,6 +232,7 @@ export default function InventoryModal({
                                     type="number"
                                     step="0.01"
                                     value={form.WeightGrams}
+                                    onFocus={(e) => e.target.select()}
                                     onChange={e => setForm(prev => ({ ...prev, WeightGrams: e.target.value }))}
                                     className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
                                 />
@@ -247,6 +248,7 @@ export default function InventoryModal({
                                     min="0"
                                     max="100"
                                     value={form.Purity}
+                                    onFocus={(e) => e.target.select()}
                                     onChange={e => setForm(prev => ({ ...prev, Purity: e.target.value }))}
                                     placeholder="e.g. 91.6 for 22K"
                                     className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
@@ -260,6 +262,7 @@ export default function InventoryModal({
                                 type="number"
                                 step="0.01"
                                 value={form.UnitPrice}
+                                onFocus={(e) => e.target.select()}
                                 onChange={e => setForm(prev => ({ ...prev, UnitPrice: e.target.value }))}
                                 className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
                             />
@@ -270,6 +273,7 @@ export default function InventoryModal({
                             <input
                                 type="number"
                                 value={form.Quantity}
+                                onFocus={(e) => e.target.select()}
                                 onChange={e => setForm(prev => ({ ...prev, Quantity: e.target.value }))}
                                 className="w-full px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] font-mono"
                             />

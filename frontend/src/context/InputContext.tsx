@@ -21,9 +21,17 @@ interface InputContextType {
 const InputContext = createContext<InputContextType | undefined>(undefined);
 
 export function InputProvider({ children }: { children: ReactNode }) {
-    const [globalLang, setGlobalLang] = useState<Language>('kn');
+    const [globalLang, setGlobalLangState] = useState<Language>(() => {
+        const saved = localStorage.getItem('seva_input_lang');
+        return (saved === 'en' || saved === 'kn') ? saved : 'kn';
+    });
     const [latestCommand, setLatestCommand] = useState<FormattedText | null>(null);
     const [activeInputId, setActiveInputId] = useState<string | null>(null);
+
+    const setGlobalLang = (lang: Language) => {
+        setGlobalLangState(lang);
+        localStorage.setItem('seva_input_lang', lang);
+    };
 
     const clearCommand = () => setLatestCommand(null);
     

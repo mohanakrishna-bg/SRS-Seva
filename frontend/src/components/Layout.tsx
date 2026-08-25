@@ -8,6 +8,7 @@ import RegistrationModal from './RegistrationModal';
 import DonationModal from './DonationModal';
 import ReceiptGenerator from './ReceiptGenerator';
 import { useToast } from './Toast';
+import GlobalInputToolbar from './GlobalInputToolbar';
 
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
@@ -133,8 +134,9 @@ export default function Layout() {
             
             <div className="px-4 py-4 md:px-8 pb-0 relative z-20 max-w-6xl mx-auto w-full">
                 <Header />
-                {/* Theme Switcher in the top right corner */}
-                <div className="absolute top-6 right-6 md:right-10 hidden lg:block z-50">
+                {/* Global Input Toolbar (Language Switcher) & Theme Switcher */}
+                <div className="absolute top-6 right-6 md:right-10 hidden sm:flex items-center gap-3 z-50">
+                    <GlobalInputToolbar />
                     <button 
                         onClick={toggleTheme} 
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10 transition-all shadow-sm backdrop-blur-md cursor-pointer"

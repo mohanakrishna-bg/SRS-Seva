@@ -57,30 +57,30 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4">
-                    {/* Description - Kannada (Transliteratable) */}
+                    {/* Description - Kannada (Default Transliterated Input) */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            ಸೇವೆಯ ವಿವರಣೆ
+                            ಸೇವೆಯ ವಿವರಣೆ (ಕನ್ನಡ - ಡೀಫಾಲ್ಟ್)
                         </label>
                         <TransliteratedInput
                             value={form.Description}
                             onChange={(val) => handleChange('Description', val)}
-                            placeholder="ಸೇವೆಯ ಹೆಸರು"
+                            placeholder="ಸೇವೆಯ ಹೆಸರು (ಕನ್ನಡ)"
                             enableVoice={true}
                             disableTransliteration={false}
                         />
                     </div>
 
-                    {/* Description - English */}
+                    {/* Description - English (Optional) */}
                     <div className="space-y-1.5">
                         <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                            Description (English)
+                            Description (English - Optional / ಐಚ್ಛಿಕ)
                         </label>
                         <input
                             type="text"
                             value={form.DescriptionEn || ''}
                             onChange={(e) => handleChange('DescriptionEn', e.target.value)}
-                            placeholder="Seva Description in English"
+                            placeholder="Seva Description in English (Optional)"
                             className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                         />
                     </div>
@@ -104,13 +104,14 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         {/* Amount */}
                         <div className="space-y-1.5">
                             <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಶುಲ್ಕ
+                                ಶುಲ್ಕ (₹)
                             </label>
                             <input
                                 type="number"
-                                value={form.Amount}
+                                value={form.Amount === 0 ? '' : form.Amount}
+                                onFocus={(e) => e.target.select()}
                                 onChange={(e) => handleChange('Amount', parseFloat(convertKnNumeralsToEn(e.target.value)) || 0)}
-                                placeholder="0.00"
+                                placeholder="0"
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
@@ -124,8 +125,10 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             </label>
                             <input
                                 type="number"
-                                value={form.TPQty}
+                                value={form.TPQty === 0 ? '' : form.TPQty}
+                                onFocus={(e) => e.target.select()}
                                 onChange={(e) => handleChange('TPQty', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
+                                placeholder="0"
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
@@ -137,8 +140,10 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                             </label>
                             <input
                                 type="number"
-                                value={form.PrasadaAddonLimit}
+                                value={form.PrasadaAddonLimit === 0 ? '' : form.PrasadaAddonLimit}
+                                onFocus={(e) => e.target.select()}
                                 onChange={(e) => handleChange('PrasadaAddonLimit', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
+                                placeholder="0"
                                 className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
