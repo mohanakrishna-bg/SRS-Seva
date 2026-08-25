@@ -87,20 +87,48 @@ def sync_postgres_sequences():
 
 
 def consolidate_kanike_sevas(db: Session):
-    """Consolidate multiple fixed denomination Kanike Sevas into a single 'ಸೇವಾ ಕಾಣಿಕೆ' Seva with variable amount."""
+    """Consolidate all Kanike Sevas into a single 'ಸೇವಾ ಕಾಣಿಕೆ' Seva by reassigning registrations and deleting redundant entries (S29-S35)."""
     try:
         from sqlalchemy import or_
         kanike_sevas = db.query(models.Seva).filter(
             or_(
                 models.Seva.Description.ilike('%ಕಾಣಿಕೆ%'),
                 models.Seva.DescriptionEn.ilike('%kanike%'),
-                models.Seva.SevaCode.ilike('%kanik%')
+                models.Seva.SevaCode.ilike('%kanik%'),
+                models.Seva.SevaCode.in_(["S029", "S030", "S031", "S032", "S033", "S034", "S035", "S29", "S30", "S31", "S32", "S33", "S34", "S35"])
             )
-        ).all()
+        ).order_by(models.Seva.SevaCode).all()
 
-        if not kanike_sevas:
+        if kanike_sevas:
+            primary = kanike_sevas[0]
+            primary.Description = "ಸೇವಾ ಕಾಣಿಕೆ"
+            primary.DescriptionEn = "Seva Kanike"
+            primary.Amount = 0.0
+            master_code = primary.SevaCode
+
+            for redundant in kanike_sevas[1:]:
+                if redundant.SevaCode != master_code:
+                    # Reassign registrations to primary master code
+                    db.query(models.SevaRegistration).filter(
+                        models.SevaRegistration.SevaCode == redundant.SevaCode
+                    ).update({"SevaCode": master_code}, synchronize_session=False)
+
+                    # Delete composition links
+                    db.query(models.EventComposition).filter(
+                        or_(
+                            models.EventComposition.ParentEventCode == redundant.SevaCode,
+                            models.EventComposition.ChildSevaCode == redundant.SevaCode
+                        )
+                    ).delete(synchronize_session=False)
+
+                    # Delete redundant record
+                    db.delete(redundant)
+                    
+            db.commit()
+            print(f"Kanike consolidation: kept primary master '{master_code}', deleted redundant entries.")
+        else:
             master = models.Seva(
-                SevaCode="SV_KANIKA",
+                SevaCode="S029",
                 Description="ಸೇವಾ ಕಾಣಿಕೆ",
                 DescriptionEn="Seva Kanike",
                 Amount=0.0,
@@ -108,21 +136,6 @@ def consolidate_kanike_sevas(db: Session):
                 PrasadaAddonLimit=0
             )
             db.add(master)
-            db.commit()
-        else:
-            primary = kanike_sevas[0]
-            primary.Description = "ಸೇವಾ ಕಾಣಿಕೆ"
-            primary.DescriptionEn = "Seva Kanike"
-            primary.Amount = 0.0
-            
-            for redundant in kanike_sevas[1:]:
-                reg_count = db.query(models.SevaRegistration).filter(models.SevaRegistration.SevaCode == redundant.SevaCode).count()
-                if reg_count == 0:
-                    db.delete(redundant)
-                else:
-                    redundant.Description = "ಸೇವಾ ಕಾಣಿಕೆ"
-                    redundant.DescriptionEn = "Seva Kanike"
-                    redundant.Amount = 0.0
             db.commit()
     except Exception as e:
         db.rollback()

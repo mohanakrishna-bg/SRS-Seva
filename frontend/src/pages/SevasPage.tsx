@@ -212,9 +212,17 @@ export default function SevasPage() {
                                     </span>
                                     <h3 className="font-bold text-lg leading-tight pr-4">{s.Description}</h3>
                                 </div>
-                                <span className="text-emerald-400 font-mono text-lg font-bold shrink-0">
-                                    ₹{s.Amount?.toLocaleString() ?? '—'}
-                                </span>
+                                <div className="shrink-0 text-right">
+                                    {(s.Amount ?? 0) > 0 ? (
+                                        <span className="text-emerald-400 font-mono text-lg font-bold">
+                                            ₹{s.Amount?.toLocaleString()}
+                                        </span>
+                                    ) : (
+                                        <span className="inline-block px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs border border-amber-500/20">
+                                            ಬದಲಾಯಿಸಬಹುದಾದ / Variable
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             
                             {(s.TPQty ?? 0) > 0 && (
@@ -275,7 +283,15 @@ export default function SevasPage() {
                                         <div className={`font-medium ${pageSize <= 5 ? 'text-lg' : 'text-base'}`}>{s.Description}</div>
                                         {s.DescriptionEn && <div className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)]`}>{s.DescriptionEn}</div>}
                                     </td>
-                                    <td className={`${pyClass} text-right text-emerald-400 font-mono font-bold transition-all`}>₹{s.Amount?.toLocaleString() ?? '—'}</td>
+                                    <td className={`${pyClass} text-right font-mono font-bold transition-all`}>
+                                        {(s.Amount ?? 0) > 0 ? (
+                                            <span className="text-emerald-400 font-mono text-base font-bold">₹{s.Amount?.toLocaleString()}</span>
+                                        ) : (
+                                            <span className="px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
+                                                ಬದಲಾಯಿಸಬಹುದಾದ / Variable
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className={`${pyClass} text-right text-sm text-[var(--text-secondary)] hidden md:table-cell transition-all`}>
                                         {(s.TPQty ?? 0) > 0 ? `${s.TPQty} ಜನರು` : '—'}
                                     </td>
