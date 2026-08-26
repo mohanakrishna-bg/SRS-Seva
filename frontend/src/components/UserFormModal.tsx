@@ -114,7 +114,9 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
         } catch (err: any) {
             console.error('User save error:', err);
             let detail = err.response?.data?.detail;
-            if (Array.isArray(detail)) {
+            if (err.response?.status === 401) {
+                detail = 'ಅಧಿವೇಶನದ ಅವಧಿ ಮುಗಿದಿದೆ - ದಯವಿಟ್ಟು ಪುನಃ ಲಾಗಿನ್ ಮಾಡಿ / Session expired (401). Please re-login.';
+            } else if (Array.isArray(detail)) {
                 detail = detail.map((d: any) => `${d.loc?.slice(1)?.join('.') || 'field'}: ${d.msg}`).join('; ');
             } else if (typeof detail === 'object' && detail !== null) {
                 detail = JSON.stringify(detail);

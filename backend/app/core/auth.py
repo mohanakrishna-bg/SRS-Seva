@@ -235,8 +235,13 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(models.User).filter(models.User.username == username).first()
-    if user is None or getattr(user, "is_deleted", False):
+    from sqlalchemy import func, or_
+    user = db.query(models.User).filter(
+        func.lower(models.User.username) == username.lower().strip(),
+        or_(models.User.is_deleted == False, models.User.is_deleted == None)
+    ).first()
+
+    if user is None:
         raise credentials_exception
     if not user.is_active:
         raise HTTPException(
@@ -266,18 +271,11 @@ async def get_current_user_optional(
 def require_role(*allowed_roles: str):
     """
     Factory that creates a FastAPI dependency restricting access to specific roles.
-
-    Usage:
-        @app.get("/admin-only", dependencies=[Depends(require_role("admin"))])
-        async def admin_endpoint():
-            ...
-
-    Or as a direct dependency to get the user:
-        async def handler(user=Depends(require_role("admin", "accountant"))):
-            ...
     """
     async def _check_role(user: models.User = Depends(get_current_user)) -> models.User:
-        if user.role not in allowed_roles:
+        user_role = (user.role or "").lower().strip()
+        normalized_allowed = [r.lower().strip() for r in allowed_roles]
+        if user_role not in normalized_allowed and user_role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Insufficient permissions. Required: {', '.join(allowed_roles)}. Your role: {user.role}",

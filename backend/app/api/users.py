@@ -145,10 +145,13 @@ async def create_user(
     admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Create a new user with optional module permission overrides."""
-    from sqlalchemy import func
-    # Validate role exists in DB
+    from sqlalchemy import func, or_
     valid_roles = get_all_db_roles(db)
-    if user_data.role not in valid_roles:
+    role_lower = user_data.role.strip().lower()
+    role_map = {r.lower(): r for r in valid_roles}
+    if role_lower in role_map:
+        user_data.role = role_map[role_lower]
+    elif user_data.role not in valid_roles:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(valid_roles)}",
@@ -159,7 +162,10 @@ async def create_user(
         raise HTTPException(status_code=400, detail="Username cannot be empty")
 
     # Check duplicate username (case-insensitive)
-    existing = db.query(models.User).filter(func.lower(models.User.username) == username_clean.lower()).first()
+    existing = db.query(models.User).filter(
+        func.lower(models.User.username) == username_clean.lower(),
+        or_(models.User.is_deleted == False, models.User.is_deleted == None)
+    ).first()
     if existing:
         raise HTTPException(status_code=409, detail=f"Username '{username_clean}' already exists")
 
@@ -197,6 +203,7 @@ async def update_user(
     admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
     """Update a user's profile, role, or permissions."""
+    from sqlalchemy import func, or_
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -204,16 +211,20 @@ async def update_user(
     changes = {}  # Track what changed for audit
 
     if user_data.username is not None:
+        username_clean = user_data.username.strip()
+        if not username_clean:
+            raise HTTPException(status_code=400, detail="Username cannot be empty")
         # Check for duplicate
         existing = db.query(models.User).filter(
-            models.User.username == user_data.username,
+            func.lower(models.User.username) == username_clean.lower(),
             models.User.id != user_id,
+            or_(models.User.is_deleted == False, models.User.is_deleted == None)
         ).first()
         if existing:
-            raise HTTPException(status_code=409, detail=f"Username '{user_data.username}' already taken")
-        if user.username != user_data.username:
-            changes["username"] = {"old": user.username, "new": user_data.username}
-        user.username = user_data.username
+            raise HTTPException(status_code=409, detail=f"Username '{username_clean}' already taken")
+        if user.username != username_clean:
+            changes["username"] = {"old": user.username, "new": username_clean}
+        user.username = username_clean
 
     if user_data.password is not None:
         user.hashed_password = get_password_hash(user_data.password)
@@ -221,7 +232,11 @@ async def update_user(
 
     if user_data.role is not None:
         valid_roles = get_all_db_roles(db)
-        if user_data.role not in valid_roles:
+        role_lower = user_data.role.strip().lower()
+        role_map = {r.lower(): r for r in valid_roles}
+        if role_lower in role_map:
+            user_data.role = role_map[role_lower]
+        elif user_data.role not in valid_roles:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid role '{user_data.role}'. Must be one of: {', '.join(valid_roles)}",
