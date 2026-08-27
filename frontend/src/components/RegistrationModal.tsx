@@ -8,7 +8,6 @@ import SevaDetailsStep from './registration/SevaDetailsStep';
 import PaymentStep from './registration/PaymentStep';
 import { useToast } from './Toast';
 import { useSettings } from '../context/SettingsContext';
-import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 import { devoteeApi, registrationApi } from '../api';
 
 export interface SevaItem {
@@ -53,6 +52,13 @@ interface RegistrationModalProps {
     onSuccess: (invoice: any) => void;
 }
 
+export interface SelectedSeva {
+    sevaCode: string;
+    description: string;
+    amount: number | '';
+    isCustomPrice: boolean;
+}
+
 const Step = {
     Details: 1,
     Payment: 2
@@ -76,21 +82,9 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     // Seva Step State
     const [items, setItems] = useState<SevaItem[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date>(prefillDate || new Date());
-    const [selectedItemCode, setSelectedItemCodeState] = useState<string>('');
-    const [customSevaAmount, setCustomSevaAmount] = useState<number | ''>('');
+    const [selectedSevas, setSelectedSevas] = useState<SelectedSeva[]>([]);
     const [familyMembers, setFamilyMembers] = useState<number>(0);
     const [optPrasada, setOptPrasada] = useState<boolean>(false);
-
-    const setSelectedItemCode = (code: string) => {
-        setSelectedItemCodeState(code);
-        const item = items.find(i => String(i.ItemCode) === String(code));
-        if (item) {
-            const amt = parseFloat(String(item.Amount ?? item.Basic ?? 0));
-            setCustomSevaAmount(amt > 0 ? amt : '');
-        } else {
-            setCustomSevaAmount('');
-        }
-    };
     
     // Parse settings for food service
     const { settings: orgSettings } = useSettings();
@@ -116,8 +110,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             setCustomer(initialCustomer);
             setSearchQuery('');
             setSearchResults([]);
-            setSelectedItemCodeState('');
-            setCustomSevaAmount('');
+            setSelectedSevas([]);
             setFamilyMembers(0);
             setOptPrasada(false);
             setPaymentMode('Cash');
@@ -166,14 +159,13 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                 setItems(mappedData);
                 
                 if (prefillEventCode) {
-                    setSelectedItemCode(prefillEventCode);
+                    const match = mappedData.find((i: SevaItem) => String(i.ItemCode) === String(prefillEventCode));
+                    if (match) setSelectedSevas([{ sevaCode: match.ItemCode!, description: match.Description, amount: parseFloat(String(match.Amount ?? match.Basic ?? 0)) || '', isCustomPrice: !(parseFloat(String(match.Amount ?? match.Basic ?? 0)) > 0) }]);
                 } else if (prefillSeva) {
                     const match = mappedData.find((i: SevaItem) => i.Description.includes(prefillSeva) || prefillSeva.includes(i.Description));
-                    if (match) setSelectedItemCode(match.ItemCode);
-                    else if (mappedData.length > 0) setSelectedItemCode(mappedData[0].ItemCode);
-                } else if (mappedData.length > 0) {
-                    setSelectedItemCode(mappedData[0].ItemCode);
+                    if (match) setSelectedSevas([{ sevaCode: match.ItemCode!, description: match.Description, amount: parseFloat(String(match.Amount ?? match.Basic ?? 0)) || '', isCustomPrice: !(parseFloat(String(match.Amount ?? match.Basic ?? 0)) > 0) }]);
                 }
+                // Do not auto-select if no prefill is provided. Start empty.
             }
         } catch {
             showToast('error', 'ಸೇವೆಗಳ ಪಟ್ಟಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ');
@@ -261,7 +253,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     };
 
     const validateSeva = () => {
-        if (!selectedItemCode) { showToast('error', 'ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ'); return false; }
+        if (selectedSevas.length === 0) { showToast('error', 'ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ'); return false; }
         
         // Prevent past dates
         const today = new Date();
@@ -276,16 +268,18 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
         // Special check for event times if it is today
         if (selDate.getTime() === today.getTime()) {
-            const item = getSelectedItem();
-            if (item && item.IsSpecialEvent && item.StartTime && !item.IsAllDay) {
-                const timeParts = item.StartTime.split(':');
-                if (timeParts.length >= 2) {
-                    const hours = parseInt(timeParts[0], 10);
-                    const mins = parseInt(timeParts[1], 10);
-                    const now = new Date();
-                    if (now.getHours() > hours || (now.getHours() === hours && now.getMinutes() >= mins)) {
-                        showToast('error', `ಈ ಸೇವೆಯ ಸಮಯ ಮುಕ್ತಾಯವಾಗಿದೆ (Event time ${item.StartTime} has passed for today)`);
-                        return false;
+            for (const s of selectedSevas) {
+                const item = getSelectedItem(s.sevaCode);
+                if (item && item.IsSpecialEvent && item.StartTime && !item.IsAllDay) {
+                    const timeParts = item.StartTime.split(':');
+                    if (timeParts.length >= 2) {
+                        const hours = parseInt(timeParts[0], 10);
+                        const mins = parseInt(timeParts[1], 10);
+                        const now = new Date();
+                        if (now.getHours() > hours || (now.getHours() === hours && now.getMinutes() >= mins)) {
+                            showToast('error', `ಈ ಸೇವೆಯ ಸಮಯ ಮುಕ್ತಾಯವಾಗಿದೆ (Event time ${item.StartTime} has passed for today)`);
+                            return false;
+                        }
                     }
                 }
             }
@@ -294,16 +288,13 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
         return true;
     };
 
-    const getSelectedItem = () => items.find(i => String(i.ItemCode) === String(selectedItemCode));
+    const getSelectedItem = (code: string | number) => items.find(i => String(i.ItemCode) === String(code));
     const calculateTotal = () => {
-        const item = getSelectedItem();
-        if (!item) return 0;
-        const baseAmount = (typeof customSevaAmount === 'number' && customSevaAmount > 0)
-            ? customSevaAmount
-            : (parseFloat(String(item.Amount)) || parseFloat(String(item.Basic)) || 0);
-        let total = baseAmount;
+        let total = 0;
+        selectedSevas.forEach(s => {
+            if (typeof s.amount === 'number') total += s.amount;
+        });
         if (optPrasada) {
-            // Food service is charged for additional people only
             total += familyMembers * (parseInt(foodServiceRateStr) || 0);
         }
         return total;
@@ -344,58 +335,59 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             }
 
             // Format date as DDMMYY
+            const today = new Date();
+            const regDay = today.getDate().toString().padStart(2, '0');
+            const regMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+            const regYear = today.getFullYear().toString().slice(-2);
+            const regDdmmyy = `${regDay}${regMonth}${regYear}`;
+            
             const day = selectedDate.getDate().toString().padStart(2, '0');
             const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
             const year = selectedDate.getFullYear().toString().slice(-2);
-            const ddmmyy = `${day}${month}${year}`;
+            const sevaDdmmyy = `${day}${month}${year}`;
 
-            // 2. Submit SevaRegistration
-            const total = calculateTotal();
-            const item = getSelectedItem();
-            const baseAmount = (typeof customSevaAmount === 'number' && customSevaAmount > 0)
-                ? customSevaAmount
-                : (item?.Amount || item?.Basic || 0.0);
+            // 2. Submit SevaRegistrations
+            const voucherNo = `VCH-${Date.now()}`;
+            const hastodakaRate = parseInt(foodServiceRateStr) || 0;
+            const hastodakaTotal = optPrasada ? familyMembers * hastodakaRate : 0;
+            
+            const createdRegistrations = [];
+            
+            for (let i = 0; i < selectedSevas.length; i++) {
+                const s = selectedSevas[i];
+                const baseAmount = typeof s.amount === 'number' ? s.amount : 0;
+                
+                // Attach hastodaka to the first seva only to avoid duplicate accounting entries
+                const isFirst = (i === 0);
+                const regTotal = baseAmount + (isFirst ? hastodakaTotal : 0);
+                
+                const regData = {
+                    RegistrationDate: regDdmmyy,
+                    SevaDate: sevaDdmmyy,
+                    DevoteeId: devoteeId,
+                    SevaCode: s.sevaCode,
+                    Qty: 1,
+                    Rate: baseAmount,
+                    Amount: baseAmount,
+                    OptTheerthaPrasada: isFirst ? optPrasada : false,
+                    PrasadaCount: isFirst && optPrasada ? familyMembers : 0,
+                    PaymentMode: paymentMode,
+                    PaymentReference: paymentRef || null,
+                    PaymentDetails: paymentMode === 'UPI' ? upiDetails : 
+                                    (paymentMode === 'Cheque' || paymentMode === 'DD') ? chqDetails :
+                                    paymentMode === 'Netbanking' ? netDetails : null,
+                    VoucherNo: voucherNo,
+                    Remarks: null,
+                    GrandTotal: regTotal
+                };
 
-            const regData = {
-                RegistrationDate: ddmmyy,
-                SevaDate: ddmmyy,
-                DevoteeId: devoteeId,
-                SevaCode: selectedItemCode,
-                Qty: 1,
-                Rate: baseAmount,
-                Amount: baseAmount,
-                OptTheerthaPrasada: optPrasada,
-                PrasadaCount: optPrasada ? familyMembers : 0,
-                PaymentMode: paymentMode,
-                PaymentReference: paymentRef || null,
-                PaymentDetails: paymentMode === 'UPI' ? upiDetails : 
-                                (paymentMode === 'Cheque' || paymentMode === 'DD') ? chqDetails :
-                                paymentMode === 'Netbanking' ? netDetails : null,
-                VoucherNo: `VCH-${Date.now()}`,
-                Remarks: null,
-                GrandTotal: total
-            };
-
-            const invRes = await registrationApi.create(regData);
-            const createdRegistration = invRes.data;
+                const invRes = await registrationApi.create(regData);
+                createdRegistrations.push(invRes.data);
+            }
 
             showToast('success', 'ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ!');
             
-            const trimGotra = (customer.Sgotra || '').trim();
-            const trimNak = (customer.SNakshatra || '').trim();
-            const gotraMatch = GOTRAS.find(g => g.kn === trimGotra || g.en === trimGotra);
-            const nakshatraMatch = NAKSHATRAS.find(n => n.kn === trimNak || n.en === trimNak);
-            
-            const isKannada = (str: string) => str ? /[\u0C80-\u0CFF]/.test(str) : false;
-            const richCustomer = {
-                ...customer,
-                NameEn: customer.NameEn && !isKannada(customer.NameEn) ? customer.NameEn : 
-                        (searchQuery && !isKannada(searchQuery) ? searchQuery : (customer.NameEn || '')),
-                SgotraEn: gotraMatch ? gotraMatch.en : (customer.SgotraEn && !isKannada(customer.SgotraEn) ? customer.SgotraEn : ''),
-                SNakshatraEn: nakshatraMatch ? nakshatraMatch.en : (customer.SNakshatraEn && !isKannada(customer.SNakshatraEn) ? customer.SNakshatraEn : ''),
-            };
-
-            onSuccess({ invoice: createdRegistration, customer: richCustomer, item: getSelectedItem() });
+            onSuccess({ invoices: createdRegistrations, customer: { ...customer, DevoteeId: devoteeId } });
         } catch (err: any) {
             console.error('Registration error:', err?.response?.data || err);
             showToast('error', 'ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ');
@@ -472,10 +464,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                                     <SevaDetailsStep
                                                         selectedDate={selectedDate}
                                                         setSelectedDate={setSelectedDate}
-                                                        selectedItemCode={selectedItemCode}
-                                                        setSelectedItemCode={setSelectedItemCode}
-                                                        customSevaAmount={customSevaAmount}
-                                                        setCustomSevaAmount={setCustomSevaAmount}
+                                                        selectedSevas={selectedSevas}
+                                                        setSelectedSevas={setSelectedSevas}
                                                         items={items}
                                                         optPrasada={optPrasada}
                                                         setOptPrasada={setOptPrasada}
@@ -501,7 +491,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                                         setUpiDetails={setUpiDetails}
                                         setPaymentRef={setPaymentRef}
                                         calculateTotal={calculateTotal}
-                                        getSelectedItem={getSelectedItem}
+                                        selectedSevas={selectedSevas.map(s => getSelectedItem(s.sevaCode)).filter(Boolean) as SevaItem[]}
                                         customer={customer}
                                         optPrasada={optPrasada}
                                         familyMembers={familyMembers}

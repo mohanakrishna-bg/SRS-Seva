@@ -399,9 +399,14 @@ async def change_password(
 
 
 # ─── Startup ───
+from app.core import backup_manager
+scheduler_instance = None
 
 @app.on_event("startup")
 def startup_event():
+    global scheduler_instance
+    scheduler_instance = backup_manager.init_scheduler()
+    
     db = next(database.get_db())
     if not db.query(models.User).filter(models.User.username == "admin").first():
         admin_user = models.User(
@@ -412,3 +417,9 @@ def startup_event():
         )
         db.add(admin_user)
         db.commit()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    global scheduler_instance
+    if scheduler_instance:
+        scheduler_instance.shutdown()

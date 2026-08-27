@@ -12,7 +12,7 @@ interface PaymentStepProps {
     setUpiDetails: (d: any) => void;
     setPaymentRef: (r: string) => void;
     calculateTotal: () => number;
-    getSelectedItem: () => SevaItem | undefined;
+    selectedSevas: SevaItem[];
     customer: any;
     optPrasada: boolean;
     familyMembers: number;
@@ -20,12 +20,17 @@ interface PaymentStepProps {
 
 export default function PaymentStep({
     paymentMode, setPaymentMode, orgSettings, upiDetails, setUpiDetails,
-    setPaymentRef, calculateTotal, getSelectedItem, customer, optPrasada, familyMembers
+    setPaymentRef, calculateTotal, selectedSevas, customer, optPrasada, familyMembers
 }: PaymentStepProps) {
     const totalAmount = calculateTotal();
     const upiId = orgSettings?.upiVpa || 'pinelabs.stq3957386@pineaxis';
     const payeeName = orgSettings?.orgNameEn || orgSettings?.orgName || 'SRS Seva';
-    const note = getSelectedItem()?.Description ? `Seva - ${getSelectedItem()?.Description}` : 'Seva Payment';
+    
+    let note = 'Seva Payment';
+    if (selectedSevas.length > 0) {
+        if (selectedSevas.length === 1) note = `Seva - ${selectedSevas[0].Description}`;
+        else note = `Seva - ${selectedSevas[0].Description} +${selectedSevas.length - 1} more`;
+    }
     const upiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${totalAmount.toFixed(2)}&tn=${encodeURIComponent(note)}&cu=INR`;
 
     return (
@@ -95,7 +100,7 @@ export default function PaymentStep({
             {/* Final Summary */}
             <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--primary)]/30 rounded-xl p-3 flex justify-between items-center shadow-lg shadow-orange-500/5">
                 <div>
-                    <p className="text-xs text-[var(--text-secondary)] font-bold mb-1">ಸೇವೆ: {getSelectedItem()?.Description || '-'}</p>
+                    <p className="text-xs text-[var(--text-secondary)] font-bold mb-1">ಸೇವೆ: {selectedSevas.length > 0 ? (selectedSevas.length === 1 ? selectedSevas[0].Description : `${selectedSevas[0].Description} +${selectedSevas.length - 1} more`) : '-'}</p>
                     <p className="text-xs text-[var(--text-secondary)]">ಭಕ್ತರು: {customer.Name}</p>
                     {optPrasada && familyMembers > 0 && (
                         <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 font-bold">ಹಸ್ತೋದಕ: {familyMembers} ಹೆಚ್ಚುವರಿ ಸದಸ್ಯರು</p>

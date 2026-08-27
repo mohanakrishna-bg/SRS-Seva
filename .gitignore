@@ -24,3 +24,8 @@ backend/app/receipts/
 .continue-here.md
 .vscode/
 
+.vercel
+
+backend/backups/
+*.db.backup_*
+backend/app/*.db.backup_*

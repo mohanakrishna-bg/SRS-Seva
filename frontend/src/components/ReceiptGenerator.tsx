@@ -10,19 +10,20 @@ import { GOTRAS, NAKSHATRAS } from '../constants/panchanga';
 interface ReceiptData {
     voucherNo: string;
     date: string;
+    sevaDate?: string;
     customerName: string;
     customerNameEn?: string;
     gotra?: string;
     gotraEn?: string;
     nakshatra?: string;
     nakshatraEn?: string;
-    sevaDescription: string;
-    sevaDescriptionEn?: string;
+    sevas: { description: string, descriptionEn?: string, amount: number }[];
     amount: number;
-    sevaAmount?: number;
     hastodakaAmount?: number;
     paymentMode: string;
     paymentModeEn?: string;
+    phone?: string;
+    whatsappPhone?: string;
 }
 
 // Removed OrgSettings interface
@@ -88,15 +89,14 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                     const canvas = await html2canvas(receiptRef.current, { scale: 3, backgroundColor: '#ffffff' });
                     const imgData = canvas.toDataURL('image/png');
                     
-                    const pdfWidth = 80;
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    const pdfWidth = 210;
                     
                     const pdf = new jsPDF({
-                        orientation: 'portrait',
+                        orientation: 'landscape',
                         unit: 'mm',
-                        format: [pdfWidth, pdfHeight]
+                        format: [148.5, 210] // A5 half page
                     });
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, (canvas.height * pdfWidth) / canvas.width);
                     const pdfBlob = pdf.output('blob');
                     
                     const formData = new FormData();
@@ -133,7 +133,10 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                 customerName: await transliterateToKannada(receiptData.customerName),
                 gotra: receiptData.gotra ? await transliterateToKannada(receiptData.gotra) : '',
                 nakshatra: receiptData.nakshatra ? await transliterateToKannada(receiptData.nakshatra) : '',
-                sevaDescription: await transliterateToKannada(receiptData.sevaDescription),
+                sevas: await Promise.all(receiptData.sevas.map(async s => ({
+                    ...s,
+                    description: await transliterateToKannada(s.description)
+                }))),
                 paymentMode: await transliterateToKannada(receiptData.paymentMode)
             };
             setKannadaData(knData);
@@ -148,7 +151,10 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         customerName: receiptData.customerNameEn || receiptData.customerName,
         gotra: receiptData.gotraEn || receiptData.gotra,
         nakshatra: receiptData.nakshatraEn || receiptData.nakshatra,
-        sevaDescription: receiptData.sevaDescriptionEn || receiptData.sevaDescription,
+        sevas: receiptData.sevas.map(s => ({
+            ...s,
+            description: s.descriptionEn || s.description
+        })),
         paymentMode: receiptData.paymentModeEn || receiptData.paymentMode
     } : (kannadaData || receiptData);
 
@@ -184,18 +190,29 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         if (currentData.customerName && knRegex.test(currentData.customerName)) {
             currentData.customerName = transliterateKnToEn(currentData.customerName);
         }
-        if (currentData.sevaDescription && knRegex.test(currentData.sevaDescription)) {
-            currentData.sevaDescription = transliterateKnToEn(currentData.sevaDescription);
+        if (currentData.nakshatra && knRegex.test(currentData.nakshatra)) {
+            currentData.nakshatra = transliterateKnToEn(currentData.nakshatra);
+        }
+        currentData.sevas = currentData.sevas.map(s => {
+            if (knRegex.test(s.description)) {
+                return { ...s, description: transliterateKnToEn(s.description) };
+            }
+            return s;
+        });
+        if (knRegex.test(currentData.paymentMode)) {
+            currentData.paymentMode = transliterateKnToEn(currentData.paymentMode);
         }
     }
     
     const activeOrgName = lang === 'en' ? orgNameEn : orgNameKn;
     const activeAddress = lang === 'en' ? (settings.addressEn || settings.address) : settings.address;
     const activeDate = lang === 'en' ? formatDateToEn(receiptData.date) : formatDateToKn(receiptData.date);
+    const activeSevaDate = receiptData.sevaDate ? (lang === 'en' ? formatDateToEn(receiptData.sevaDate) : formatDateToKn(receiptData.sevaDate)) : undefined;
 
     const labels = {
         receiptNo: lang === 'en' ? 'Receipt No' : 'ರಸೀದಿ ಸಂಖ್ಯೆ',
-        date: lang === 'en' ? 'Date' : 'ದಿನಾಂಕ',
+        date: lang === 'en' ? 'Booking Date' : 'ನೋಂದಣಿ ದಿನಾಂಕ',
+        sevaDate: lang === 'en' ? 'Seva Date' : 'ಸೇವಾ ದಿನಾಂಕ',
         devotee: lang === 'en' ? 'Devotee' : 'ಭಕ್ತರು',
         gotra: lang === 'en' ? 'Gotra' : 'ಗೋತ್ರ',
         nakshatra: lang === 'en' ? 'Nakshatra' : 'ನಕ್ಷತ್ರ',
@@ -215,13 +232,16 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         `━━━━━━━━━━━━━━━━━`,
         `${labels.receiptNo}: ${currentData.voucherNo}`,
         `${labels.date}: ${activeDate}`,
+        activeSevaDate ? `${labels.sevaDate}: ${activeSevaDate}` : '',
         `━━━━━━━━━━━━━━━━━`,
         `${labels.devotee}: ${currentData.customerName}`,
         currentData.gotra ? `${labels.gotra}: ${currentData.gotra}` : '',
-        currentData.nakshatra ? `${labels.nakshatra}: ${currentData.nakshatra}` : '',
+        ...(currentData.nakshatra ? [`${labels.nakshatra}: ${currentData.nakshatra}`] : []),
         `━━━━━━━━━━━━━━━━━`,
-        `${labels.seva}: ${currentData.sevaDescription}`,
-        `${labels.amount}: ₹${currentData.amount.toLocaleString()}`,
+        ...currentData.sevas.map(s => `${s.description}: ₹${s.amount}`),
+        ...(currentData.hastodakaAmount ? [`${labels.hastodakaAmount}: ₹${currentData.hastodakaAmount}`] : []),
+        `━━━━━━━━━━━━━━━━━`,
+        `${labels.totalAmount}: ₹${currentData.amount}`,
         `${labels.payment}: ${currentData.paymentMode}`,
         `━━━━━━━━━━━━━━━━━`,
         labels.greeting,
@@ -229,6 +249,9 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
 
     const handlePrint = () => {
         if (!receiptRef.current) return;
+        
+        const printTwoCopies = window.confirm("Do you want to print two copies (Devotee & Office)?\n\nClick OK for both copies, or Cancel for a single copy to save paper.");
+
         const content = receiptRef.current.innerHTML;
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
@@ -238,34 +261,87 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                 <head>
                     <title>Receipt ${currentData.voucherNo}</title>
                     <style>
-                        body { font-family: sans-serif; padding: 20px; font-size: 14px; color: #000; }
+                        @page { size: A4 landscape; margin: 0; }
+                        body { 
+                            font-family: sans-serif; 
+                            margin: 0;
+                            padding: 0;
+                            font-size: 15px; 
+                            line-height: 1.4;
+                            color: #000; 
+                            width: 297mm;
+                            height: 210mm;
+                            display: flex;
+                            overflow: hidden; 
+                        }
+                        .receipt-wrapper {
+                            width: 148.5mm;
+                            height: 210mm;
+                            padding: 24px 28px;
+                            box-sizing: border-box;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                        }
                         * { box-sizing: border-box; }
                         .text-center { text-align: center; }
                         .flex { display: flex; }
+                        .items-center { align-items: center; }
+                        .justify-center { justify-content: center; }
                         .justify-between { justify-content: space-between; }
                         .items-baseline { align-items: baseline; }
+                        .gap-3 { gap: 12px; }
+                        .gap-2 { gap: 8px; }
+                        .mb-2 { margin-bottom: 8px; }
                         .mb-3 { margin-bottom: 12px; }
                         .mb-5 { margin-bottom: 20px; }
                         .font-bold { font-weight: bold; }
+                        .font-medium { font-weight: 500; }
                         .text-base { font-size: 16px; }
+                        .text-sm { font-size: 14px; }
                         .text-xs { font-size: 12px; }
-                        .text-xl { font-size: 20px; }
+                        .text-lg { font-size: 18px; }
+                        .text-xl { font-size: 22px; }
+                        .text-2xl { font-size: 26px; }
                         .pt-2 { padding-top: 8px; }
+                        .pt-2\\.5 { padding-top: 10px; }
+                        .pt-3 { padding-top: 12px; }
+                        .pt-3\\.5 { padding-top: 14px; }
+                        .pb-2 { padding-bottom: 8px; }
+                        .mt-1 { margin-top: 4px; }
+                        .mt-1\\.5 { margin-top: 6px; }
                         .mt-2 { margin-top: 8px; }
+                        .mt-2\\.5 { margin-top: 10px; }
+                        .mt-3 { margin-top: 12px; }
+                        .mt-3\\.5 { margin-top: 14px; }
                         .border-t { border-top: 1px dashed #ccc; }
+                        .border-b { border-bottom: 1px dashed #ccc; }
                         .space-y-1 > * + * { margin-top: 4px; }
-                        .text-secondary { color: #555; }
-                        .text-primary { color: #000; }
-                        .opacity-0 { display: none !important; } /* Hide any elements that should be invisible */
+                        .space-y-1\\.5 > * + * { margin-top: 6px; }
+                        .space-y-2 > * + * { margin-top: 8px; }
+                        .space-y-2\\.5 > * + * { margin-top: 10px; }
+                        .text-secondary, .text-gray-500 { color: #555; }
+                        .text-gray-600 { color: #444; }
+                        .text-gray-700 { color: #333; }
+                        .text-primary, .text-gray-900 { color: #000; }
+                        .opacity-0 { display: none !important; }
+                        img { max-height: 48px; width: auto; object-fit: contain; }
                     </style>
                 </head>
                 <body>
-                    ${content.replace(/var\(--text-secondary\)/g, '#555').replace(/var\(--text-primary\)/g, '#000')}
+                    <div class="receipt-wrapper">
+                        ${content.replace(/var\(--text-secondary\)/g, '#555').replace(/var\(--text-primary\)/g, '#000')}
+                    </div>
+                    ${printTwoCopies ? `
+                    <div class="receipt-wrapper" style="border-left: 1px dashed #ccc;">
+                        ${content.replace(/var\(--text-secondary\)/g, '#555').replace(/var\(--text-primary\)/g, '#000')}
+                    </div>
+                    ` : ''}
                     <script>
-                        window.onload = function() {
+                        setTimeout(function() {
                             window.print();
                             setTimeout(function() { window.close(); }, 500);
-                        }
+                        }, 250);
                     </script>
                 </body>
             </html>
@@ -277,9 +353,18 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
 
     const handleWhatsApp = () => {
         const encodedText = encodeURIComponent(receiptTextSummary);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+        let phone = receiptData?.whatsappPhone || receiptData?.phone;
+        if (phone) {
+            phone = phone.replace(/\D/g, '');
+            if (phone.length === 10) phone = '91' + phone;
+            window.open(`https://wa.me/${phone}?text=${encodedText}`, '_blank');
+        } else {
+            window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+        }
         setShowSendMenu(false);
     };
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     const handleSMS = () => {
         const encodedText = encodeURIComponent(receiptTextSummary);
@@ -302,7 +387,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="glass-card w-full max-w-md max-h-[90vh] overflow-y-auto"
+                        className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -322,78 +407,84 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                         {/* Receipt Preview (Target for printing/HTML2Canvas) */}
                         <div 
                             ref={receiptRef}
-                            className="bg-white dark:bg-white text-black rounded-xl border border-gray-200 p-5 mb-5 font-mono text-sm space-y-1 shadow-inner relative"
+                            className="bg-white dark:bg-white text-black rounded-xl border border-gray-200 p-6 mb-5 font-mono text-base space-y-2.5 shadow-inner relative"
                         >
-                            <div className="text-center mb-3">
-                                <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight pb-1">{activeOrgName}</p>
-                                {activeAddress && <p className="text-xs text-gray-600 break-words">{activeAddress}</p>}
-                                {settings.phone && <p className="text-xs text-gray-600">Ph: {settings.phone}</p>}
+                            {/* Logo & Org Header in single row */}
+                            <div className="flex items-center justify-center gap-3 mb-3 pb-2 border-b border-dashed border-gray-300">
+                                {settings.logoImage && (
+                                    <img src={settings.logoImage} alt="Logo" className="h-12 w-12 object-contain flex-shrink-0" />
+                                )}
+                                <div className="text-center">
+                                    <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight">{activeOrgName}</p>
+                                    {activeAddress && <p className="text-xs text-gray-600 break-words leading-tight">{activeAddress}</p>}
+                                    {settings.phone && <p className="text-xs text-gray-600 leading-tight">Ph: {settings.phone}</p>}
+                                </div>
                             </div>
 
-                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
+                            <div className="border-t border-dashed border-gray-300 pt-2.5 space-y-1.5 mt-2">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">{labels.receiptNo}</span>
+                                    <span className="text-gray-500 font-medium">{labels.receiptNo}</span>
                                     <span className="text-gray-900 font-bold">{currentData.voucherNo}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">{labels.date}</span>
+                                    <span className="text-gray-500 font-medium">{labels.date}</span>
                                     <span className="text-gray-900">{activeDate}</span>
                                 </div>
+                                {activeSevaDate && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 font-medium">{labels.sevaDate}</span>
+                                        <span className="text-gray-900 font-bold">{activeSevaDate}</span>
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
+                            <div className="border-t border-dashed border-gray-300 pt-2.5 space-y-1.5 mt-2">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">{labels.devotee}</span>
-                                    <span className="text-gray-900 font-bold">{currentData.customerName}</span>
+                                    <span className="text-gray-500 font-medium">{labels.devotee}</span>
+                                    <span className="text-gray-900 font-bold text-lg">{currentData.customerName}</span>
                                 </div>
                                 {currentData.gotra && (
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">{labels.gotra}</span>
+                                        <span className="text-gray-500 font-medium">{labels.gotra}</span>
                                         <span className="text-gray-900">{currentData.gotra}</span>
                                     </div>
                                 )}
                                 {currentData.nakshatra && (
                                     <div className="flex justify-between">
-                                        <span className="text-gray-500">{labels.nakshatra}</span>
+                                        <span className="text-gray-500 font-medium">{labels.nakshatra}</span>
                                         <span className="text-gray-900">{currentData.nakshatra}</span>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="border-t border-dashed border-gray-300 pt-2 space-y-1 mt-2">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">{labels.seva}</span>
-                                    <span className="text-gray-900 font-bold max-w-[60%] text-right leading-tight">{currentData.sevaDescription}</span>
-                                </div>
-                                {currentData.sevaAmount != null && currentData.hastodakaAmount != null && currentData.hastodakaAmount > 0 ? (
-                                    <>
-                                        <div className="flex justify-between mt-1">
-                                            <span className="text-gray-500 text-xs">{labels.sevaAmount}</span>
-                                            <span className="text-gray-700">₹{currentData.sevaAmount.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-500 text-xs">{labels.hastodakaAmount}</span>
-                                            <span className="text-gray-700">₹{currentData.hastodakaAmount.toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between items-baseline mt-1 pt-1 border-t border-gray-100">
-                                            <span className="text-gray-500">{labels.totalAmount}</span>
-                                            <span className="text-xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex justify-between items-baseline mt-2 pt-1 border-t border-gray-100">
-                                        <span className="text-gray-500">{labels.amount}</span>
-                                        <span className="text-xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
+                            <div className="border-t border-dashed border-gray-300 pt-2.5 space-y-1.5 mt-2">
+                                <span className="text-gray-500 font-medium block border-b border-gray-100 pb-1 mb-1">{labels.seva}</span>
+                                {currentData.sevas.map((s, idx) => (
+                                    <div key={idx} className="flex justify-between mt-1">
+                                        <span className="text-gray-900 font-bold text-sm max-w-[70%] leading-tight">{s.description}</span>
+                                        <span className="text-gray-700">₹{s.amount.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                                
+                                {currentData.hastodakaAmount != null && currentData.hastodakaAmount > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 text-sm">{labels.hastodakaAmount}</span>
+                                        <span className="text-gray-700">₹{currentData.hastodakaAmount.toLocaleString()}</span>
                                     </div>
                                 )}
+
+                                <div className="flex justify-between items-baseline mt-1.5 pt-1.5 border-t border-gray-100">
+                                    <span className="text-gray-500 font-medium">{labels.totalAmount}</span>
+                                    <span className="text-2xl font-bold text-gray-900">₹{currentData.amount.toLocaleString()}</span>
+                                </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-500">{labels.payment}</span>
+                                    <span className="text-gray-500 font-medium">{labels.payment}</span>
                                     <span className="text-gray-900">{currentData.paymentMode}</span>
                                 </div>
                             </div>
 
-                            <div className="border-t border-dashed border-gray-300 pt-3 mt-3 text-center">
-                                <p className="text-gray-600 font-bold text-xs">{labels.greeting}</p>
+                            <div className="border-t border-dashed border-gray-300 pt-3.5 mt-3.5 text-center">
+                                <p className="text-gray-600 font-bold text-sm">{labels.greeting}</p>
                             </div>
                         </div>
 
@@ -412,16 +503,18 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 <div className="flex flex-col gap-1.5 justify-center h-full">
                                     <button
                                         onClick={handleWhatsApp}
-                                        className="w-full py-1.5 rounded-lg bg-[#25D366]/20 text-[#075E54] hover:bg-[#25D366]/30 transition-all text-xs font-bold border border-[#25D366]/30 flex items-center justify-center gap-1"
+                                        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#25D366]/10 text-[#075E54] dark:bg-[#25D366]/20 dark:text-[#25D366] hover:bg-[#25D366]/20 transition-colors font-bold border border-[#25D366]/20"
                                     >
-                                        WhatsApp
+                                        <MessageCircle size={18} /> WhatsApp
                                     </button>
-                                    <button
-                                        onClick={handleSMS}
-                                        className="w-full py-1.5 rounded-lg bg-blue-500/20 text-blue-700 hover:bg-blue-500/30 transition-all text-xs font-bold border border-blue-500/30 flex items-center justify-center gap-1"
-                                    >
-                                        SMS
-                                    </button>
+                                    {isMobile && (
+                                        <button
+                                            onClick={handleSMS}
+                                            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 transition-colors font-bold border border-blue-200/50"
+                                        >
+                                            <MessageCircle size={18} /> SMS
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <button

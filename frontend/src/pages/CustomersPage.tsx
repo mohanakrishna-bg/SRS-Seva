@@ -651,15 +651,30 @@ export default function CustomersPage() {
                 prefillDevotee={bookingDevotee}
                 onSuccess={(data) => {
                     setShowBooking(false);
+                    
+                    const firstInvoice = data.invoices[0];
+                    const sevas = data.invoices.map((inv: any) => ({
+                        description: inv.seva?.Description || inv.SevaCode,
+                        amount: inv.Amount || 0
+                    }));
+                    
+                    // Hastodaka is attached to the first invoice
+                    const hastodakaAmount = ((firstInvoice.GrandTotal || 0) - (firstInvoice.Amount || 0));
+                    const totalAmount = data.invoices.reduce((sum: number, inv: any) => sum + (inv.Amount || 0), 0) + (hastodakaAmount > 0 ? hastodakaAmount : 0);
+
                     setReceiptData({
-                        voucherNo: data.invoice.VoucherNo,
-                        date: data.invoice.RegistrationDate || data.invoice.Date,
-                        customerName: data.customer.Name,
-                        gotra: data.customer.Gotra || data.customer.Sgotra,
-                        nakshatra: data.customer.Nakshatra || data.customer.SNakshatra,
-                        sevaDescription: data.item.Description,
-                        amount: data.invoice.GrandTotal || data.invoice.TotalAmount,
-                        paymentMode: data.invoice.PaymentMode || data.invoice.Payment_Mode
+                        voucherNo: firstInvoice.VoucherNo || firstInvoice.RegistrationId?.toString() || 'VCH-XXX',
+                        date: firstInvoice.RegistrationDate || firstInvoice.Date || new Date().toISOString(),
+                        sevaDate: firstInvoice.SevaDate,
+                        customerName: data.customer.Name || 'Unknown',
+                        gotra: data.customer.Gotra || data.customer.Sgotra || '',
+                        nakshatra: data.customer.Nakshatra || data.customer.SNakshatra || '',
+                        sevas: sevas,
+                        amount: totalAmount,
+                        hastodakaAmount: hastodakaAmount > 0 ? hastodakaAmount : undefined,
+                        paymentMode: firstInvoice.PaymentMode || firstInvoice.Payment_Mode || 'Cash',
+                        phone: data.customer.Phone || '',
+                        whatsappPhone: data.customer.WhatsApp_Phone || ''
                     });
                     setShowReceipt(true);
                 }}

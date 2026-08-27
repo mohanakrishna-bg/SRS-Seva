@@ -1,15 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Receipt } from 'lucide-react';
-import type { SevaItem } from '../RegistrationModal';
+import type { SevaItem, SelectedSeva } from '../RegistrationModal';
 import { convertKnNumeralsToEn } from './DevoteeSelectionStep';
+import { Trash2 } from 'lucide-react';
 
 interface SevaDetailsStepProps {
     selectedDate: Date;
     setSelectedDate: (d: Date) => void;
-    selectedItemCode: string;
-    setSelectedItemCode: (c: string) => void;
-    customSevaAmount: number | '';
-    setCustomSevaAmount: (v: number | '') => void;
+    selectedSevas: SelectedSeva[];
+    setSelectedSevas: (sevas: SelectedSeva[]) => void;
     items: SevaItem[];
     optPrasada: boolean;
     setOptPrasada: (v: boolean) => void;
@@ -22,12 +21,45 @@ interface SevaDetailsStepProps {
 }
 
 export default function SevaDetailsStep({
-    selectedDate, setSelectedDate, selectedItemCode, setSelectedItemCode,
-    customSevaAmount, setCustomSevaAmount, items,
+    selectedDate, setSelectedDate, selectedSevas, setSelectedSevas,
+    items,
     optPrasada, setOptPrasada, familyMembers, setFamilyMembers,
     foodServiceRateStr, setFoodServiceRateStr, defaultFoodRates, calculateTotal
 }: SevaDetailsStepProps) {
-    const selectedItem = items.find(i => String(i.ItemCode) === String(selectedItemCode));
+
+    const handleAddSeva = (code: string) => {
+        if (!code) return;
+        if (selectedSevas.length >= 4) return;
+        if (selectedSevas.find(s => s.sevaCode === code)) return;
+        
+        const item = items.find(i => String(i.ItemCode) === String(code));
+        if (item) {
+            const baseAmount = parseFloat(String(item.Amount ?? item.Basic ?? 0)) || 0;
+            setSelectedSevas([
+                ...selectedSevas, 
+                { 
+                    sevaCode: code, 
+                    description: item.Description, 
+                    amount: baseAmount > 0 ? baseAmount : '', 
+                    isCustomPrice: baseAmount <= 0 
+                }
+            ]);
+        }
+    };
+
+    const handleRemoveSeva = (code: string) => {
+        setSelectedSevas(selectedSevas.filter(s => s.sevaCode !== code));
+    };
+
+    const handleUpdateAmount = (code: string, amountStr: string) => {
+        const val = parseFloat(convertKnNumeralsToEn(amountStr));
+        setSelectedSevas(selectedSevas.map(s => {
+            if (s.sevaCode === code) {
+                return { ...s, amount: isNaN(val) ? '' : val };
+            }
+            return s;
+        }));
+    };
 
     return (
         <div className="flex flex-col space-y-2.5 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)] h-full">
@@ -35,9 +67,9 @@ export default function SevaDetailsStep({
                 <Receipt className="text-[var(--primary)]" size={14} /> ಸೇವಾ ವಿವರಗಳು
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-2 overflow-y-auto pr-1">
                 <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ದಿನಾಂಕ</label>
+                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ಸೇವಾ ದಿನಾಂಕ (Seva Date) <span className="text-red-500">*</span></label>
                     <input
                         type="date"
                         min={new Date().toLocaleDateString('en-CA')}
@@ -53,40 +85,54 @@ export default function SevaDetailsStep({
                     />
                 </div>
 
-                <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase block">ಸೇವೆ <span className="text-red-500">*</span></label>
+                <div className="space-y-0.5 mt-1">
+                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase flex justify-between">
+                        <span>ಸೇವೆ ಸೇರಿಸಿ (Add Seva) <span className="text-red-500">*</span></span>
+                        <span>{selectedSevas.length}/4</span>
+                    </label>
                     <select
-                        value={selectedItemCode}
-                        onChange={(e) => setSelectedItemCode(e.target.value)}
-                        className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
+                        value=""
+                        onChange={(e) => handleAddSeva(e.target.value)}
+                        disabled={selectedSevas.length >= 4}
+                        className="w-full px-2 py-1.5 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
                     >
+                        <option value="" disabled>-- ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ --</option>
                         {items.map(item => (
-                            <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode}>
+                            <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode} disabled={!!selectedSevas.find(s => s.sevaCode === String(item.ItemCode))}>
                                 {item.Description} {(item.Basic ?? 0) > 0 ? `(₹${item.Basic})` : ''}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                {selectedItem && (
-                    <div className="space-y-0.5 sm:col-span-2 bg-orange-50/60 dark:bg-orange-950/20 p-2 rounded-lg border border-orange-200/60 dark:border-orange-900/30">
-                        <div className="flex items-center justify-between mb-1">
-                            <label className="text-[10px] font-bold text-orange-700 dark:text-orange-300 uppercase block">
-                                ಸೇವಾ ಶುಲ್ಕ (₹) <span className="text-red-500">*</span>
-                            </label>
-                        </div>
-                        <input
-                            type="number"
-                            min="1"
-                            value={customSevaAmount === 0 || customSevaAmount === '' ? '' : customSevaAmount}
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) => {
-                                const val = parseFloat(convertKnNumeralsToEn(e.target.value));
-                                setCustomSevaAmount(isNaN(val) ? '' : val);
-                            }}
-                            placeholder="ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ"
-                            className="w-full px-2.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 rounded-lg bg-white dark:bg-black/30 border border-orange-300/40 focus:outline-none focus:border-[var(--primary)] font-mono"
-                        />
+                {selectedSevas.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                        {selectedSevas.map(seva => (
+                            <div key={seva.sevaCode} className="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded-lg border border-[var(--glass-border)]">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-[var(--text-primary)] truncate">{seva.description}</p>
+                                    {!seva.isCustomPrice && <p className="text-[10px] text-[var(--text-secondary)]">₹{seva.amount}</p>}
+                                </div>
+                                {seva.isCustomPrice && (
+                                    <div className="w-24">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            placeholder="ಮೊತ್ತ (₹)"
+                                            value={seva.amount}
+                                            onChange={(e) => handleUpdateAmount(seva.sevaCode, e.target.value)}
+                                            className="w-full px-2 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 rounded border border-orange-300/40 focus:outline-none focus:border-[var(--primary)]"
+                                        />
+                                    </div>
+                                )}
+                                <button
+                                    onClick={() => handleRemoveSeva(seva.sevaCode)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
@@ -146,7 +192,7 @@ export default function SevaDetailsStep({
             </div>
 
             <div className="flex-1 min-h-[16px]" />
-            {selectedItemCode && (
+            {selectedSevas.length > 0 && (
                 <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--primary)]/30 rounded-xl p-2.5 flex justify-between items-center bg-gradient-to-r from-[var(--glass-bg)] to-orange-50 dark:to-orange-900/10 shrink-0">
                     <span className="font-medium text-[var(--text-secondary)] uppercase text-xs">ಒಟ್ಟು ಮೊತ್ತ</span>
                     <span className="text-sm font-black text-[var(--primary)]">₹{calculateTotal()}</span>

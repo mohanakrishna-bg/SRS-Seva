@@ -135,13 +135,16 @@ export default function BookedSevasTab() {
                 setAdditionalReceiptData({
                     voucherNo: `VCH-ADD-${selectedReg.RegistrationId}`,
                     date: selectedReg.RegistrationDate,
+                    sevaDate: selectedReg.SevaDate,
                     customerName: selectedReg.devotee?.Name || '',
                     gotra: selectedReg.devotee?.Gotra || '',
                     nakshatra: selectedReg.devotee?.Nakshatra || '',
-                    sevaDescription: selectedReg.seva?.Description || selectedReg.SevaCode,
+                    sevas: [{
+                        description: selectedReg.seva?.Description || selectedReg.SevaCode,
+                        amount: 0
+                    }],
                     amount: additionalAmount,
                     hastodakaAmount: additionalAmount,
-                    sevaAmount: 0,
                     paymentMode: modifyPaymentMode,
                 });
                 setShowAdditionalReceipt(true);
@@ -565,18 +568,38 @@ export default function BookedSevasTab() {
             <ReceiptGenerator
                 isOpen={showReceipt}
                 onClose={() => setShowReceipt(false)}
-                receiptData={selectedReg ? {
-                    voucherNo: selectedReg.VoucherNo || `REG-${selectedReg.RegistrationId}`,
-                    date: selectedReg.RegistrationDate,
-                    customerName: selectedReg.devotee?.Name,
-                    gotra: selectedReg.devotee?.Gotra,
-                    nakshatra: selectedReg.devotee?.Nakshatra,
-                    sevaDescription: selectedReg.seva?.Description || selectedReg.SevaCode,
-                    amount: selectedReg.GrandTotal,
-                    sevaAmount: selectedReg.Amount,
-                    hastodakaAmount: (selectedReg.GrandTotal || 0) - (selectedReg.Amount || 0),
-                    paymentMode: selectedReg.PaymentMode
-                } : null}
+                receiptData={(() => {
+                    if (!selectedReg) return null;
+                    
+                    const voucherNo = selectedReg.VoucherNo || `REG-${selectedReg.RegistrationId}`;
+                    const groupedRegs = registrations.filter((r: any) => 
+                        (r.VoucherNo === voucherNo) || (r.RegistrationId === selectedReg.RegistrationId)
+                    );
+                    
+                    const sevas = groupedRegs.map((r: any) => ({
+                        description: r.seva?.Description || r.SevaCode,
+                        amount: r.Amount || 0
+                    }));
+                    
+                    const firstReg = groupedRegs[0];
+                    const hastodakaAmount = ((firstReg.GrandTotal || 0) - (firstReg.Amount || 0));
+                    const totalAmount = groupedRegs.reduce((sum: number, r: any) => sum + (r.Amount || 0), 0) + (hastodakaAmount > 0 ? hastodakaAmount : 0);
+
+                    return {
+                        voucherNo: voucherNo,
+                        date: firstReg.RegistrationDate,
+                        sevaDate: firstReg.SevaDate,
+                        customerName: firstReg.devotee?.Name,
+                        gotra: firstReg.devotee?.Gotra,
+                        nakshatra: firstReg.devotee?.Nakshatra,
+                        sevas: sevas,
+                        amount: totalAmount,
+                        hastodakaAmount: hastodakaAmount > 0 ? hastodakaAmount : undefined,
+                        paymentMode: firstReg.PaymentMode,
+                        phone: firstReg.devotee?.Phone,
+                        whatsappPhone: firstReg.devotee?.WhatsApp_Phone
+                    };
+                })()}
             />
 
             {/* Additional Payment Receipt */}
