@@ -65,7 +65,15 @@ const Step = {
 } as const;
 type Step = typeof Step[keyof typeof Step];
 
-export default function RegistrationModal({ isOpen, onClose, prefillDate, prefillSeva, prefillEventCode, prefillDevotee, onSuccess }: RegistrationModalProps) {
+export default function RegistrationModal({
+    isOpen,
+    onClose,
+    prefillDate: _prefillDate,
+    prefillSeva: _prefillSeva,
+    prefillEventCode: _prefillEventCode,
+    prefillDevotee,
+    onSuccess
+}: RegistrationModalProps) {
     const { showToast } = useToast();
     const [step, setStep] = useState<Step>(Step.Details);
     const [loading, setLoading] = useState(false);
@@ -81,7 +89,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
     // Seva Step State
     const [items, setItems] = useState<SevaItem[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date>(prefillDate || new Date());
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedSevas, setSelectedSevas] = useState<SelectedSeva[]>([]);
     const [familyMembers, setFamilyMembers] = useState<number>(0);
     const [optPrasada, setOptPrasada] = useState<boolean>(false);
@@ -111,6 +119,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             setSearchQuery('');
             setSearchResults([]);
             setSelectedSevas([]);
+            setSelectedDate(null);
             setFamilyMembers(0);
             setOptPrasada(false);
             setPaymentMode('Cash');
@@ -121,7 +130,8 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
 
             setIsNewCustomer(true);
         } else {
-            if (prefillDate) setSelectedDate(prefillDate);
+            setSelectedDate(null);
+            setSelectedSevas([]);
             if (prefillDevotee) {
                 setCustomer({
                     Name: prefillDevotee.Name || '',
@@ -141,7 +151,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
             }
             fetchItems();
         }
-    }, [isOpen, prefillDate, prefillDevotee]);
+    }, [isOpen, prefillDevotee]);
 
     const fetchItems = async () => {
         try {
@@ -157,15 +167,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
                     Prasada_Addon_Limit: i.PrasadaAddonLimit
                 }));
                 setItems(mappedData);
-                
-                if (prefillEventCode) {
-                    const match = mappedData.find((i: SevaItem) => String(i.ItemCode) === String(prefillEventCode));
-                    if (match) setSelectedSevas([{ sevaCode: match.ItemCode!, description: match.Description, amount: parseFloat(String(match.Amount ?? match.Basic ?? 0)) || '', isCustomPrice: !(parseFloat(String(match.Amount ?? match.Basic ?? 0)) > 0) }]);
-                } else if (prefillSeva) {
-                    const match = mappedData.find((i: SevaItem) => i.Description.includes(prefillSeva) || prefillSeva.includes(i.Description));
-                    if (match) setSelectedSevas([{ sevaCode: match.ItemCode!, description: match.Description, amount: parseFloat(String(match.Amount ?? match.Basic ?? 0)) || '', isCustomPrice: !(parseFloat(String(match.Amount ?? match.Basic ?? 0)) > 0) }]);
-                }
-                // Do not auto-select if no prefill is provided. Start empty.
+                // In Step 1, do not preselect seva date and seva type - user explicitly selects them
             }
         } catch {
             showToast('error', 'ಸೇವೆಗಳ ಪಟ್ಟಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ');
@@ -253,7 +255,14 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     };
 
     const validateSeva = () => {
-        if (selectedSevas.length === 0) { showToast('error', 'ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ'); return false; }
+        if (!selectedDate) {
+            showToast('error', 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva date)');
+            return false;
+        }
+        if (selectedSevas.length === 0) {
+            showToast('error', 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva)');
+            return false;
+        }
         
         // Prevent past dates
         const today = new Date();
@@ -301,7 +310,7 @@ export default function RegistrationModal({ isOpen, onClose, prefillDate, prefil
     };
 
     const handleSubmit = async () => {
-        if (!validateDevotee() || !validateSeva()) return;
+        if (!validateDevotee() || !validateSeva() || !selectedDate) return;
 
         if (paymentMode === 'UPI') {
             if (!upiDetails.transactionId) { showToast('error', 'Transaction ID is required'); return; }

@@ -5,8 +5,8 @@ import { convertKnNumeralsToEn } from './DevoteeSelectionStep';
 import { Trash2 } from 'lucide-react';
 
 interface SevaDetailsStepProps {
-    selectedDate: Date;
-    setSelectedDate: (d: Date) => void;
+    selectedDate: Date | null;
+    setSelectedDate: (d: Date | null) => void;
     selectedSevas: SelectedSeva[];
     setSelectedSevas: (sevas: SelectedSeva[]) => void;
     items: SevaItem[];
@@ -73,12 +73,14 @@ export default function SevaDetailsStep({
                     <input
                         type="date"
                         min={new Date().toLocaleDateString('en-CA')}
-                        value={selectedDate.toLocaleDateString('en-CA')}
+                        value={selectedDate ? selectedDate.toLocaleDateString('en-CA') : ''}
                         onChange={(e) => {
                             const d = e.target.value;
                             if (d) {
                                 const [y, m, day] = d.split('-');
                                 setSelectedDate(new Date(Number(y), Number(m) - 1, Number(day)));
+                            } else {
+                                setSelectedDate(null);
                             }
                         }}
                         className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
@@ -87,7 +89,7 @@ export default function SevaDetailsStep({
 
                 <div className="space-y-0.5 mt-1">
                     <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase flex justify-between">
-                        <span>ಸೇವೆ ಸೇರಿಸಿ (Add Seva) <span className="text-red-500">*</span></span>
+                        <span>ಸೇವಾ ಪ್ರಕಾರ / ಸೇವೆ ಸೇರಿಸಿ (Add Seva) <span className="text-red-500">*</span></span>
                         <span>{selectedSevas.length}/4</span>
                     </label>
                     <select
@@ -96,7 +98,7 @@ export default function SevaDetailsStep({
                         disabled={selectedSevas.length >= 4}
                         className="w-full px-2 py-1.5 text-xs rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)]"
                     >
-                        <option value="" disabled>-- ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ --</option>
+                        <option value="" disabled>-- ಸೇವಾ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Select Seva) --</option>
                         {items.map(item => (
                             <option className="bg-[var(--bg-light)] dark:bg-slate-800" key={item.ItemCode} value={item.ItemCode} disabled={!!selectedSevas.find(s => s.sevaCode === String(item.ItemCode))}>
                                 {item.Description} {(item.Basic ?? 0) > 0 ? `(₹${item.Basic})` : ''}
