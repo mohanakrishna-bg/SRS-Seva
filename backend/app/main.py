@@ -208,7 +208,8 @@ def on_startup():
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR;",
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS modules JSON;",
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT TRUE;",
-                    'ALTER TABLE "Seva" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;'
+                    'ALTER TABLE "Seva" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;',
+                    'ALTER TABLE "Devotee" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;'
                 ]:
                     try:
                         conn.execute(text(stmt))
@@ -222,7 +223,8 @@ def on_startup():
                     "ALTER TABLE users ADD COLUMN display_name VARCHAR;",
                     "ALTER TABLE users ADD COLUMN modules JSON;",
                     "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 1;",
-                    'ALTER TABLE "Seva" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;'
+                    'ALTER TABLE "Seva" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;',
+                    'ALTER TABLE "Devotee" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;'
                 ]:
                     try:
                         conn.execute(text(stmt))
