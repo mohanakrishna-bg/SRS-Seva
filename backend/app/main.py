@@ -198,6 +198,26 @@ def consolidate_hastodaka_sevas(db: Session):
 def on_startup():
     try:
         models.Base.metadata.create_all(bind=database.engine)
+        
+        # Lightweight auto-migration for newly added columns on the 'users' table
+        from sqlalchemy import text
+        with database.engine.begin() as conn:
+            if settings.is_postgres:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS modules JSON;"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT TRUE;"))
+            else:
+                for stmt in [
+                    "ALTER TABLE users ADD COLUMN is_deleted BOOLEAN DEFAULT 0;",
+                    "ALTER TABLE users ADD COLUMN display_name VARCHAR;",
+                    "ALTER TABLE users ADD COLUMN modules JSON;",
+                    "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 1;"
+                ]:
+                    try:
+                        conn.execute(text(stmt))
+                    except Exception:
+                        pass
     except Exception as e:
         print(f"Error creating tables on startup: {e}")
 
