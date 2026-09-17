@@ -2,12 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
     HeartHandshake, Loader2, 
-    Plus, Edit3, Trash2, ArrowUpDown, ArrowUp, ArrowDown,
+    Plus, ArrowUpDown, ArrowUp, ArrowDown,
     ChevronLeft, ChevronRight, Printer
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import SevaForm from '../components/SevaForm';
 import SevaDetailsModal from '../components/SevaDetailsModal';
+import PrintConfigModal from '../components/PrintConfigModal';
 import { sevaApi } from '../api';
 import { useToast } from '../components/Toast';
 
@@ -38,6 +39,7 @@ export default function SevasPage() {
     const [showForm, setShowForm] = useState(false);
     const [editSeva, setEditSeva] = useState<SevaItem | null>(null);
     const [viewSeva, setViewSeva] = useState<SevaItem | null>(null);
+    const [showPrintModal, setShowPrintModal] = useState(false);
     
     const { showToast } = useToast();
 
@@ -180,10 +182,11 @@ export default function SevasPage() {
                     </button>
 
                     <button
-                        onClick={() => window.print()}
-                        className="px-4 py-2.5 rounded-xl border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors flex items-center gap-2 font-bold shrink-0"
+                        onClick={() => setShowPrintModal(true)}
+                        className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0 print:hidden"
+                        title="Print List"
                     >
-                        <Printer size={16} /> <span className="hidden sm:inline">Print</span>
+                        <Printer size={18} />
                     </button>
                     
                     <button
@@ -216,12 +219,11 @@ export default function SevasPage() {
                                 <th className="pb-3 pt-4">ವಿವರಣೆ</th>
                                 <th className="pb-3 pt-4 text-right cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={toggleSortOrder}>
                                     <div className="flex items-center justify-end gap-1">
-                                        ಶುಲ್ಕ
-                                        <ArrowUpDown size={12} />
+                                         ಶುಲ್ಕ
+                                         <ArrowUpDown size={12} />
                                     </div>
                                 </th>
-                                <th className="pb-3 pt-4 text-right hidden md:table-cell">ಪ್ರಸಾದ</th>
-                                <th className="pb-3 pt-4 text-right pr-4">ಕ್ರಿಯೆಗಳು</th>
+                                <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell">ಪ್ರಸಾದ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -243,24 +245,8 @@ export default function SevasPage() {
                                             <span className="text-emerald-400 font-mono text-base font-bold">₹{s.Amount?.toLocaleString()}</span>
                                         )}
                                     </td>
-                                    <td className={`${pyClass} text-right text-sm text-[var(--text-secondary)] hidden md:table-cell transition-all`}>
+                                    <td className={`${pyClass} text-right pr-4 text-sm text-[var(--text-secondary)] hidden md:table-cell transition-all`}>
                                         {(s.TPQty ?? 0) > 0 ? `${s.TPQty} ಜನರು` : '—'}
-                                    </td>
-                                    <td className={`${pyClass} text-right pr-4 transition-all`}>
-                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); setEditSeva(s); setShowForm(true); }}
-                                                className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors"
-                                            >
-                                                <Edit3 size={14} />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDeleteSeva(s); }}
-                                                className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
                                     </td>
                                 </tr>
                                 );
@@ -361,6 +347,21 @@ export default function SevasPage() {
                 onSave={handleSaveSeva}
                 onDelete={handleDeleteSeva}
                 existingSevas={sevas}
+            />
+
+            {/* Print Configuration Modal */}
+            <PrintConfigModal
+                isOpen={showPrintModal}
+                onClose={() => setShowPrintModal(false)}
+                totalItems={filteredAndSorted.length}
+                defaultPageSize={pageSize}
+                onPrint={(chosenSize) => {
+                    setPageSize(chosenSize);
+                    localStorage.setItem('seva_page_size_pref', String(chosenSize));
+                    setTimeout(() => {
+                        window.print();
+                    }, 250);
+                }}
             />
         </motion.div>
     );

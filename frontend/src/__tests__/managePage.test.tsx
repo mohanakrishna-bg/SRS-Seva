@@ -44,4 +44,31 @@ describe('ManagePage', () => {
         );
         expect(screen.getByText('ಬಳಕೆದಾರರು')).toBeDefined();
     });
+
+    it('renders customers tab without inline action buttons in rows', async () => {
+        render(
+            <AuthProvider>
+                <MemoryRouter initialEntries={['/manage/customers']}>
+                    <ManagePage />
+                </MemoryRouter>
+            </AuthProvider>
+        );
+        expect(screen.getByText('ಭಕ್ತರು')).toBeDefined();
+        // Actions column header should not exist
+        expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
+    });
+
+    it('renders sevas tab without inline action buttons in rows', async () => {
+        render(
+            <AuthProvider>
+                <MemoryRouter initialEntries={['/manage/sevas']}>
+                    <ManagePage />
+                </MemoryRouter>
+            </AuthProvider>
+        );
+        expect(screen.getByText('ಸೇವೆಗಳು')).toBeDefined();
+        // Actions column header should not exist
+        expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
+    });
 });
+

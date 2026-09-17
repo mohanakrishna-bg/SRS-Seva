@@ -9,6 +9,7 @@ interface ModalProps {
     children: React.ReactNode;
     maxWidth?: string;
     contentBounded?: boolean;
+    isLocked?: boolean;
 }
 
 export default function Modal({
@@ -17,7 +18,8 @@ export default function Modal({
     title,
     children,
     maxWidth = 'max-w-lg',
-    contentBounded = true
+    contentBounded = true,
+    isLocked = false
 }: ModalProps) {
     const containerClasses = contentBounded
         ? "fixed inset-0 top-[5.5rem] lg:left-72 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 z-30 overflow-y-auto"
@@ -31,7 +33,11 @@ export default function Modal({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className={containerClasses}
-                    onClick={(e) => e.target === e.currentTarget && onClose()}
+                    onClick={(e) => {
+                        if (!isLocked && e.target === e.currentTarget) {
+                            onClose();
+                        }
+                    }}
                 >
                     <motion.div
                         initial={{ scale: 0.95, y: 15 }}

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Phone, Mail, ChevronLeft, ChevronRight,
-    Trash2, Edit3, Users, Search, Filter, X,
+    Users, Search, Filter, X,
     DatabaseZap, UserCircle2, Printer
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
@@ -10,6 +10,7 @@ import CustomerForm from '../components/CustomerForm';
 import DevoteeDetailsModal from '../components/DevoteeDetailsModal';
 import RegistrationModal from '../components/RegistrationModal';
 import ReceiptGenerator from '../components/ReceiptGenerator';
+import PrintConfigModal from '../components/PrintConfigModal';
 import { devoteeApi, sevaApi, lookupApi } from '../api';
 import { useToast } from '../components/Toast';
 
@@ -52,6 +53,7 @@ export default function CustomersPage() {
     const [showBooking, setShowBooking] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
     const [showReceipt, setShowReceipt] = useState(false);
+    const [showPrintModal, setShowPrintModal] = useState(false);
 
     const [totalCount, setTotalCount] = useState(0);
 
@@ -270,7 +272,7 @@ export default function CustomersPage() {
                         <Plus size={18} /> <span className="hidden sm:inline">Add New</span>
                     </button>
                     <button
-                        onClick={() => window.print()}
+                        onClick={() => setShowPrintModal(true)}
                         className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0 print:hidden"
                         title="Print List"
                     >
@@ -437,8 +439,7 @@ export default function CustomersPage() {
                                 <th className="pb-3 pt-3 w-12 pl-4"></th>
                                 <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">ಹೆಸರು / ಗೋತ್ರ</th>
                                 <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">ಸಂಪರ್ಕ</th>
-                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider hidden lg:table-cell">ನಗರ / ಪಿನ್</th>
-                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider text-right pr-4">ಕ್ರಿಯೆಗಳು</th>
+                                <th className="pb-3 pt-3 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider hidden lg:table-cell pr-4">ನಗರ / ಪಿನ್</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -480,28 +481,10 @@ export default function CustomersPage() {
                                              {!d.Phone && !d.Email && <span className="text-slate-400">—</span>}
                                          </div>
                                      </td>
-                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-sm text-[var(--text-secondary)] hidden lg:table-cell transition-all`}>
+                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-sm text-[var(--text-secondary)] hidden lg:table-cell pr-4 transition-all`}>
                                          <div>
                                              {d.City || '—'}
                                              {d.PinCode ? ` - ${d.PinCode}` : ''}
-                                         </div>
-                                     </td>
-                                     <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-right pr-4 transition-all`}>
-                                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <button
-                                                 onClick={(e) => { e.stopPropagation(); setEditDevotee(d); setShowForm(true); }}
-                                                 className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-[var(--text-secondary)] hover:text-blue-600 transition-colors"
-                                                 title="Edit"
-                                             >
-                                                 <Edit3 size={14} />
-                                             </button>
-                                             <button
-                                                 onClick={(e) => { e.stopPropagation(); handleSoftDelete(d); }}
-                                                 className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-500 transition-colors"
-                                                 title="Delete"
-                                             >
-                                                 <Trash2 size={14} />
-                                             </button>
                                          </div>
                                      </td>
                                  </tr>
@@ -556,21 +539,6 @@ export default function CustomersPage() {
                                         )}
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex justify-end gap-3" onClick={e => e.stopPropagation()}>
-                                <button
-                                    onClick={() => { setEditDevotee(d); setShowForm(true); setViewDevotee(null); }}
-                                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-blue-500/10 text-blue-500 text-xs font-bold hover:bg-blue-500/20 transition-all"
-                                >
-                                    <Edit3 size={12} /> Edit
-                                </button>
-                                <button
-                                    onClick={() => handleSoftDelete(d)}
-                                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold hover:bg-red-500/20 transition-all"
-                                >
-                                    <Trash2 size={12} /> Delete
-                                </button>
                             </div>
                         </div>
                     ))}
@@ -713,6 +681,21 @@ export default function CustomersPage() {
                 initialData={editDevotee || undefined}
                 title={editDevotee ? `${editDevotee.Name} ಬದಲಿಸಿ` : 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ'}
                 loading={loading}
+            />
+
+            {/* Print Configuration Modal */}
+            <PrintConfigModal
+                isOpen={showPrintModal}
+                onClose={() => setShowPrintModal(false)}
+                totalItems={totalCount}
+                defaultPageSize={pageSize}
+                onPrint={(chosenSize) => {
+                    setPageSize(chosenSize);
+                    localStorage.setItem('seva_page_size', String(chosenSize));
+                    setTimeout(() => {
+                        window.print();
+                    }, 250);
+                }}
             />
         </motion.div>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Edit3, Trash2, HeartHandshake } from 'lucide-react';
+import { Edit3, Trash2, HeartHandshake, ArrowLeft } from 'lucide-react';
+import Modal from './Modal';
 import SevaForm from './SevaForm';
 
 interface SevaItem {
@@ -54,108 +54,95 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
     }
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/60 backdrop-blur-sm overflow-y-auto">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-[var(--glass-border)] flex flex-col max-h-[85vh]"
-                    >
-                        {isEditing ? (
-                            <div className="flex flex-col h-full">
-                                <div className="bg-gradient-to-r from-[var(--primary)] to-amber-500 p-6 sm:p-8 text-white relative shrink-0">
-                                    <button 
-                                        onClick={() => setIsEditing(false)}
-                                        className="absolute right-4 top-4 sm:right-6 sm:top-6 p-2 rounded-full hover:bg-white/20 transition-colors"
-                                    >
-                                        <X size={24} />
-                                    </button>
-                                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">ಸೇವೆ ಬದಲಿಸಿ</h2>
-                                </div>
-                                <div className="p-6 sm:p-8 overflow-y-auto flex-1">
-                                    <SevaForm
-                                        isOpen={true}
-                                        onClose={() => setIsEditing(false)}
-                                        onSubmit={async (data) => {
-                                            await onSave(data);
-                                            setIsEditing(false);
-                                        }}
-                                        initialData={seva}
-                                        isEdit={true}
-                                        existingSevas={existingSevas}
-                                        title=""
-                                        inline={true}
-                                    />
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            title={isEditing ? 'ಸೇವೆ ಬದಲಿಸಿ (Edit Seva)' : (seva.Description || 'ಸೇವಾ ವಿವರ (Seva Details)')}
+            maxWidth="max-w-2xl"
+            contentBounded={true}
+            isLocked={true}
+        >
+            {isEditing ? (
+                <SevaForm
+                    isOpen={true}
+                    onClose={() => setIsEditing(false)}
+                    onSubmit={async (data) => {
+                        await onSave(data);
+                        setIsEditing(false);
+                    }}
+                    initialData={seva}
+                    isEdit={true}
+                    existingSevas={existingSevas}
+                    title=""
+                    inline={true}
+                />
+            ) : (
+                <div className="space-y-6">
+                    {/* Header Summary */}
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-[var(--glass-border)]">
+                        <div className="w-14 h-14 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/20 shrink-0">
+                            <HeartHandshake size={28} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="text-xl font-bold text-[var(--text-primary)] truncate">{seva.Description}</h4>
+                            <p className="text-xs text-[var(--text-secondary)] font-mono mt-0.5">
+                                #{seva.SevaCode} {seva.DescriptionEn ? `• ${seva.DescriptionEn}` : ''}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[45vh] overflow-y-auto pr-1">
+                        {details.map((d, i) => (
+                            <div key={i} className="p-3.5 rounded-xl bg-white dark:bg-black/20 border border-black/5 dark:border-white/10 space-y-1">
+                                <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{d.label}</p>
+                                <div className="flex items-center gap-2 text-[var(--text-primary)]">
+                                    <span className="text-sm font-semibold break-words">{d.value}</span>
                                 </div>
                             </div>
-                        ) : (
-                            <>
-                                {/* Header */}
-                                <div className="bg-gradient-to-r from-[var(--primary)] to-amber-500 p-6 sm:p-8 text-white relative shrink-0">
-                                    <button 
-                                        onClick={handleClose}
-                                        className="absolute right-4 top-4 sm:right-6 sm:top-6 p-2 rounded-full hover:bg-white/20 transition-colors"
-                                    >
-                                        <X size={24} />
-                                    </button>
-                                    <div className="flex items-center gap-4 sm:gap-6">
-                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 flex items-center justify-center border-4 border-white/30 text-white shadow-xl shrink-0">
-                                            <HeartHandshake size={32} className="sm:w-10 sm:h-10" />
-                                        </div>
-                                        <div className="overflow-hidden pr-8">
-                                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{seva.Description}</h2>
-                                            <p className="text-white/80 text-sm sm:text-base font-medium mt-1 font-mono">#{seva.SevaCode}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                        ))}
+                    </div>
 
-                                {/* Details */}
-                                <div className="p-6 sm:p-8 overflow-y-auto bg-slate-50/50 dark:bg-black/10 flex-1">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                        {details.map((d, i) => (
-                                            <div key={i} className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 shadow-sm space-y-1.5">
-                                                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">{d.label}</p>
-                                                <div className="flex items-center gap-3 text-[var(--text-primary)]">
-                                                    <span className="text-sm sm:text-base font-semibold break-words">{d.value}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                    {/* Action Buttons: Edit, Delete, Return to list view */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[var(--glass-border)]">
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] border border-black/10 dark:border-white/10 transition-colors"
+                        >
+                            <ArrowLeft size={16} /> ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ (Back to List)
+                        </button>
 
-                                {/* Actions */}
-                                <div className="p-5 sm:p-6 bg-slate-50 dark:bg-black/20 border-t border-black/5 dark:border-white/5 flex flex-wrap gap-2 justify-between shrink-0">
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setIsEditing(true)}
-                                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 transition-all"
-                                        >
-                                            <Edit3 size={16} /> ಬದಲಿಸಿ
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                onDelete(seva);
-                                                handleClose();
-                                            }}
-                                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 transition-all"
-                                        >
-                                            <Trash2 size={16} /> ಅಳಿಸಿ
-                                        </button>
-                                    </div>
-                                    <button
-                                        onClick={handleClose}
-                                        className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
-                                    >
-                                        ಮುಚ್ಚಿ (Close)
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </motion.div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-sm font-bold transition-all border border-blue-500/20"
+                            >
+                                <Edit3 size={15} /> ಬದಲಿಸಿ (Edit)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onDelete(seva);
+                                    handleClose();
+                                }}
+                                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-sm font-bold transition-all border border-red-500/20"
+                            >
+                                <Trash2 size={15} /> ಅಳಿಸಿ (Delete)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-orange-500/20 transition-all"
+                            >
+                                ಮುಚ್ಚಿ (Close)
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-        </AnimatePresence>
+        </Modal>
     );
 }
+
