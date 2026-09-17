@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Phone, Mail, ChevronLeft, ChevronRight,
     Trash2, Edit3, Users, Search, Filter, X,
-    DatabaseZap, UserCircle2
+    DatabaseZap, UserCircle2, Printer
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import CustomerForm from '../components/CustomerForm';
@@ -269,6 +269,13 @@ export default function CustomersPage() {
                     >
                         <Plus size={18} /> <span className="hidden sm:inline">Add New</span>
                     </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0 print:hidden"
+                        title="Print List"
+                    >
+                        <Printer size={18} />
+                    </button>
                 </div>
             </div>
 
@@ -480,7 +487,7 @@ export default function CustomersPage() {
                                          </div>
                                      </td>
                                      <td className={`${pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2'} text-right pr-4 transition-all`}>
-                                         <div className="flex items-center justify-end gap-1">
+                                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                              <button
                                                  onClick={(e) => { e.stopPropagation(); setEditDevotee(d); setShowForm(true); }}
                                                  className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-[var(--text-secondary)] hover:text-blue-600 transition-colors"
@@ -639,7 +646,18 @@ export default function CustomersPage() {
                 isOpen={!!viewDevotee}
                 onClose={() => setViewDevotee(null)}
                 devotee={viewDevotee}
-                onEdit={(d) => { setEditDevotee(d); setShowForm(true); setViewDevotee(null); }}
+                onSave={async (data) => {
+                    if (!viewDevotee) return;
+                    try {
+                        await devoteeApi.update(viewDevotee.DevoteeId, data);
+                        showToast('success', `${data.Name || viewDevotee.Name} ನವೀಕರಿಸಲಾಗಿದೆ`);
+                        setViewDevotee(null);
+                        setRefreshTrigger(p => p + 1);
+                    } catch (err: any) {
+                        const detail = err?.response?.data?.detail;
+                        showToast('error', detail || 'ನವೀಕರಣ ವಿಫಲ');
+                    }
+                }}
                 onDelete={(d) => handleSoftDelete(d)}
                 onBookSeva={(d) => { setBookingDevotee(d); setShowBooking(true); setViewDevotee(null); }}
             />

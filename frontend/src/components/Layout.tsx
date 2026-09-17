@@ -147,9 +147,9 @@ export default function Layout() {
                 </div>
             </div>
 
-            <div className="flex flex-1 relative max-w-6xl mx-auto w-full px-4 md:px-8 py-2 md:py-6 gap-6">
+            <div className="flex flex-1 relative max-w-6xl mx-auto w-full px-4 md:px-8 py-2 md:py-6 gap-6 print:p-0 print:m-0 print:max-w-none">
                 {/* Global Navigation Sidebar */}
-                <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20">
+                <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20 print:hidden">
                     <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`} end>
                         <span className="flex items-center justify-center w-5 h-5">🏠</span>
                         ಮುಖಪುಟ

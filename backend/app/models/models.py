@@ -77,6 +77,7 @@ class Seva(Base):
     Amount = Column(Float, nullable=True)             # INR, 2 decimal
     TPQty = Column(Integer, default=0)                # Default eligible prasada heads
     PrasadaAddonLimit = Column(Integer, default=0)    # Max additional prasada
+    IsDeleted = Column(Boolean, default=False)        # Soft delete flag
 
     # Special Event Fields
     IsSpecialEvent = Column(Boolean, default=False)

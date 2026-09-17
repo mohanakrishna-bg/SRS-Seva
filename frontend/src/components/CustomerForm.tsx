@@ -36,6 +36,7 @@ interface CustomerFormProps {
     initialData?: Partial<DevoteeFormData>;
     title?: string;
     loading?: boolean;
+    inline?: boolean;
 }
 
 const fields: {
@@ -59,7 +60,7 @@ const fields: {
     { key: 'PinCode', label: 'ಪಿನ್ ಕೋಡ್', type: 'text', placeholder: '570001' },
 ];
 
-export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ', loading = false }: CustomerFormProps) {
+export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಭಕ್ತರನ್ನು ಸೇರಿಸಿ', loading = false, inline = false }: CustomerFormProps) {
     const { control, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<DevoteeFormData>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -165,12 +166,12 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
 
     const displayTitle = devoteeId && !initialData ? `${watchName} ನವೀಕರಿಸಿ` : title;
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={displayTitle} maxWidth="max-w-2xl">
+    const content = (
+        <>
             <div className="mb-4 flex justify-end">
                 <GlobalInputToolbar />
             </div>
-            <form onSubmit={handleSubmit(submitForm)} className="space-y-4">
+            <form onSubmit={handleSubmit(submitForm)} className="space-y-6">
                 {/* Photo Section */}
                 <div className="flex items-center gap-4 mb-2">
                     <div className="relative group">
@@ -297,6 +298,16 @@ export default function CustomerForm({ isOpen, onClose, onSubmit, initialData, t
                     </button>
                 </div>
             </form>
+        </>
+    );
+
+    if (inline) {
+        return <div className="w-full">{content}</div>;
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={displayTitle} maxWidth="max-w-2xl">
+            {content}
         </Modal>
     );
 }

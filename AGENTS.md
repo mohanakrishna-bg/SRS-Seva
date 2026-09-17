@@ -42,3 +42,13 @@ This project is indexed by GitNexus as **SRS-Seva** (2285 symbols, 3681 relation
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## UI Consistency Pattern for Entity Management
+
+For managing collections of entities (e.g., Devotees, Sevas, etc.), follow these UI consistency guidelines:
+- **List View**: Display entities in a unified list view (no grid views).
+- **Row Click**: Clicking an item in the list opens a centralized detail view in a locked modal.
+- **Modal Constraints**: Detail modals must be constrained in size (`max-w-2xl`, `max-h-[85vh]`) and centered horizontally and vertically to prevent overlapping with navigation bars while maintaining readability.
+- **Inline Editing**: Within the modal, provide buttons to exit, edit, or delete. Clicking 'edit' switches the modal into an inline editing mode with a form and save/cancel options.
+- **Soft Deletes**: Deleting an item should perform a soft delete (`IsDeleted = True`) on the backend. Items flagged for deletion are hidden from the frontend immediately.
+- **Printing**: Provide a print option (`window.print()`) in the list views. Ensure the printout matches the table layout cleanly by hiding navigation, sidebars, and unnecessary UI elements (`print:hidden`).

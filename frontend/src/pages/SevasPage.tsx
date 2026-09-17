@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
-    HeartHandshake, Grid3X3, List, Loader2, 
+    HeartHandshake, Loader2, 
     Plus, Edit3, Trash2, ArrowUpDown, ArrowUp, ArrowDown,
-    ChevronLeft, ChevronRight
+    ChevronLeft, ChevronRight, Printer
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import SevaForm from '../components/SevaForm';
+import SevaDetailsModal from '../components/SevaDetailsModal';
 import { sevaApi } from '../api';
 import { useToast } from '../components/Toast';
 
@@ -23,7 +24,6 @@ export default function SevasPage() {
     const [sevas, setSevas] = useState<SevaItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     
     // Pagination state
@@ -34,9 +34,10 @@ export default function SevasPage() {
     });
     const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
     
-    // Form state
+    // Form & Modal state
     const [showForm, setShowForm] = useState(false);
     const [editSeva, setEditSeva] = useState<SevaItem | null>(null);
+    const [viewSeva, setViewSeva] = useState<SevaItem | null>(null);
     
     const { showToast } = useToast();
 
@@ -72,6 +73,7 @@ export default function SevasPage() {
             }
             setShowForm(false);
             setEditSeva(null);
+            setViewSeva(null);
             fetchSevas();
         } catch (err: any) {
             const detail = err?.response?.data?.detail || 'ಕಾರ್ಯ ವಿಫಲ';
@@ -85,6 +87,7 @@ export default function SevasPage() {
             await sevaApi.delete(s.SevaCode);
             showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
             setSevas((prev) => prev.filter((item) => item.SevaCode !== s.SevaCode));
+            if (viewSeva?.SevaCode === s.SevaCode) setViewSeva(null);
             fetchSevas();
         } catch (err: any) {
             const detail = err?.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ';
@@ -176,21 +179,13 @@ export default function SevasPage() {
                         ₹
                     </button>
 
-                    <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-black/10 dark:border-white/10 overflow-hidden shrink-0">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--primary)]'}`}
-                        >
-                            <Grid3X3 size={16} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-[var(--primary)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--primary)]'}`}
-                        >
-                            <List size={16} />
-                        </button>
-                    </div>
-
+                    <button
+                        onClick={() => window.print()}
+                        className="px-4 py-2.5 rounded-xl border border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-colors flex items-center gap-2 font-bold shrink-0"
+                    >
+                        <Printer size={16} /> <span className="hidden sm:inline">Print</span>
+                    </button>
+                    
                     <button
                         onClick={() => { setEditSeva(null); setShowForm(true); }}
                         className="px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--primary)] to-amber-500 text-white font-bold shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2 shrink-0"
@@ -212,61 +207,8 @@ export default function SevasPage() {
                 </select>
             </div>
 
-            {/* Grid View */}
-            {viewMode === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {paginatedSevas.map((s) => (
-                        <motion.div
-                            key={s.SevaCode}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="glass-card hover:border-[var(--primary)]/30 transition-colors group relative"
-                        >
-                            <div className="flex justify-between items-start mb-3">
-                                <div>
-                                    <span className="inline-block px-2 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs border border-[var(--primary)]/20 mb-1.5">
-                                        #{s.SevaCode}
-                                    </span>
-                                    <h3 className="font-bold text-lg leading-tight pr-4">{s.Description}</h3>
-                                </div>
-                                <div className="shrink-0 text-right">
-                                    {(s.Amount ?? 0) > 0 && (
-                                        <span className="text-emerald-400 font-mono text-lg font-bold">
-                                            ₹{s.Amount?.toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {(s.TPQty ?? 0) > 0 && (
-                                <div className="flex items-center gap-2 text-sm bg-[var(--glass-bg)] p-2 rounded-lg mb-4">
-                                    <span className="w-2 h-2 rounded-full bg-[var(--accent-saffron)]" />
-                                    ಪ್ರಸಾದ: {s.TPQty} ಜನರಿಗೆ
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={() => { setEditSeva(s); setShowForm(true); }}
-                                    className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors"
-                                >
-                                    <Edit3 size={14} />
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteSeva(s)}
-                                    className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 transition-colors"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
-
             {/* List View */}
-            {viewMode === 'list' && (
-                <div className="glass-card overflow-hidden">
+            <div className="glass-card overflow-hidden print:shadow-none print:border-none print:bg-transparent">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-black/10 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">
@@ -286,7 +228,7 @@ export default function SevasPage() {
                             {paginatedSevas.map((s) => {
                                 const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
                                 return (
-                                <tr key={s.SevaCode} className="border-b border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors group">
+                                <tr key={s.SevaCode} className="border-b border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors group cursor-pointer" onClick={() => setViewSeva(s)}>
                                     <td className={`${pyClass} pl-4 transition-all`}>
                                         <span className="px-2 py-1 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs border border-[var(--primary)]/20">
                                             {s.SevaCode}
@@ -305,15 +247,15 @@ export default function SevasPage() {
                                         {(s.TPQty ?? 0) > 0 ? `${s.TPQty} ಜನರು` : '—'}
                                     </td>
                                     <td className={`${pyClass} text-right pr-4 transition-all`}>
-                                        <div className="flex items-center justify-end gap-1">
+                                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
-                                                onClick={() => { setEditSeva(s); setShowForm(true); }}
+                                                onClick={(e) => { e.stopPropagation(); setEditSeva(s); setShowForm(true); }}
                                                 className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-600 transition-colors"
                                             >
                                                 <Edit3 size={14} />
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteSeva(s)}
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteSeva(s); }}
                                                 className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 transition-colors"
                                             >
                                                 <Trash2 size={14} />
@@ -327,7 +269,6 @@ export default function SevasPage() {
                     </table>
 
                 </div>
-            )}
 
             {/* Pagination Controls - Visible in both Grid and List views */}
             {totalPages >= 1 && filteredAndSorted.length > 0 && (
@@ -411,6 +352,15 @@ export default function SevasPage() {
                 isEdit={!!editSeva}
                 existingSevas={sevas}
                 title={editSeva ? 'ಸೇವೆ ಬದಲಿಸಿ' : 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ'}
+            />
+            
+            <SevaDetailsModal
+                isOpen={!!viewSeva}
+                onClose={() => setViewSeva(null)}
+                seva={viewSeva}
+                onSave={handleSaveSeva}
+                onDelete={handleDeleteSeva}
+                existingSevas={sevas}
             />
         </motion.div>
     );

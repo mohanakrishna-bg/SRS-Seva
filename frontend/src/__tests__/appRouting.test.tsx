@@ -6,6 +6,7 @@ import ManagePage from '../pages/ManagePage';
 import Layout from '../components/Layout';
 import { AuthProvider } from '../context/AuthContext';
 import { SettingsProvider } from '../context/SettingsContext';
+import { InputProvider } from '../context/InputContext';
 
 // Mock APIs
 vi.mock('../api', () => ({
@@ -53,13 +54,15 @@ describe('App Routing to /manage/users', () => {
         render(
             <AuthProvider>
                 <SettingsProvider>
-                    <MemoryRouter initialEntries={['/manage/users']}>
-                        <Routes>
-                            <Route element={<Layout />}>
-                                <Route path="/manage/*" element={<ManagePage />} />
-                            </Route>
-                        </Routes>
-                    </MemoryRouter>
+                    <InputProvider>
+                        <MemoryRouter initialEntries={['/manage/users']}>
+                            <Routes>
+                                <Route element={<Layout />}>
+                                    <Route path="/manage/*" element={<ManagePage />} />
+                                </Route>
+                            </Routes>
+                        </MemoryRouter>
+                    </InputProvider>
                 </SettingsProvider>
             </AuthProvider>
         );

@@ -29,3 +29,4 @@ backend/app/receipts/
 backend/backups/
 *.db.backup_*
 backend/app/*.db.backup_*
+*.log

@@ -21,6 +21,7 @@ interface SevaFormProps {
     title?: string;
     isEdit?: boolean;
     existingSevas?: { SevaCode: string }[];
+    inline?: boolean;
 }
 
 const emptyForm: SevaFormData = {
@@ -46,7 +47,7 @@ const getNextSevaCode = (sevasList: { SevaCode: string }[] = []): string => {
     return `SV${String(maxNum + 1).padStart(3, '0')}`;
 };
 
-export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ', isEdit = false, existingSevas = [] }: SevaFormProps) {
+export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title = 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ', isEdit = false, existingSevas = [], inline = false }: SevaFormProps) {
     const [form, setForm] = useState<SevaFormData>({ ...emptyForm, ...initialData });
 
     const handleChange = (key: keyof SevaFormData, value: string | number) => {
@@ -71,8 +72,8 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
         }
     }, [isOpen, initialData, isEdit, existingSevas]);
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-xl">
+    const content = (
+        <>
             <div className="mb-4 flex justify-end">
                 <GlobalInputToolbar />
             </div>
@@ -186,6 +187,16 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                     </button>
                 </div>
             </form>
+        </>
+    );
+
+    if (inline) {
+        return <div className="w-full">{content}</div>;
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-xl">
+            {content}
         </Modal>
     );
 }

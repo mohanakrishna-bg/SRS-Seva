@@ -1,35 +1,36 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Mail, MapPin, Edit3, Trash2, Receipt, UserCircle2 } from 'lucide-react';
-import CustomerForm from './CustomerForm';
+import { X, Edit3, Trash2, HeartHandshake } from 'lucide-react';
+import SevaForm from './SevaForm';
 
-interface Devotee {
-    DevoteeId: number;
-    Name: string;
-    Phone?: string;
-    WhatsApp_Phone?: string;
-    Email?: string;
-    Gotra?: string;
-    Nakshatra?: string;
-    Address?: string;
-    City?: string;
-    PinCode?: string;
-    PhotoPath?: string;
+interface SevaItem {
+    SevaCode: string;
+    Description: string;
+    DescriptionEn?: string;
+    Amount: number;
+    TPQty: number;
+    PrasadaAddonLimit?: number;
+    IsSpecialEvent?: boolean;
+    EventDate?: string;
+    StartTime?: string;
+    EndTime?: string;
+    IsAllDay?: boolean;
+    RecurrenceRule?: string;
 }
 
-interface DevoteeDetailsModalProps {
+interface SevaDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    devotee: Devotee | null;
-    onSave: (data: any) => Promise<void>;
-    onDelete: (d: Devotee) => void;
-    onBookSeva: (d: Devotee) => void;
+    seva: SevaItem | null;
+    onSave: (d: SevaItem) => Promise<void>;
+    onDelete: (d: SevaItem) => void;
+    existingSevas: SevaItem[];
 }
 
-export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, onDelete, onBookSeva }: DevoteeDetailsModalProps) {
+export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDelete, existingSevas }: SevaDetailsModalProps) {
     const [isEditing, setIsEditing] = useState(false);
 
-    if (!devotee) return null;
+    if (!seva) return null;
 
     const handleClose = () => {
         setIsEditing(false);
@@ -37,16 +38,20 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
     };
 
     const details = [
-        { label: 'ಹೆಸರು', value: devotee.Name, icon: UserCircle2 },
-        { label: 'ಫೋನ್', value: devotee.Phone, icon: Phone },
-        { label: 'ವಾಟ್ಸ್ಆಪ್', value: devotee.WhatsApp_Phone, icon: Phone },
-        { label: 'ಇಮೇಲ್', value: devotee.Email, icon: Mail },
-        { label: 'ಗೋತ್ರ', value: devotee.Gotra },
-        { label: 'ನಕ್ಷತ್ರ', value: devotee.Nakshatra },
-        { label: 'ನಗರ', value: devotee.City, icon: MapPin },
-        { label: 'ಪಿನ್ ಕೋಡ್', value: devotee.PinCode },
-        { label: 'ವಿಳಾಸ', value: devotee.Address, icon: MapPin, full: true },
-    ].filter(d => d.value);
+        { label: 'ವಿವರಣೆ (Kannada)', value: seva.Description },
+        { label: 'Description (English)', value: seva.DescriptionEn },
+        { label: 'ಶುಲ್ಕ (Amount)', value: seva.Amount > 0 ? `₹${seva.Amount.toLocaleString()}` : 'ಉಚಿತ' },
+        { label: 'ಪ್ರಸಾದ (TPQty)', value: (seva.TPQty ?? 0) > 0 ? `${seva.TPQty} ಜನರಿಗೆ` : '—' },
+        { label: 'ಹೆಚ್ಚುವರಿ ಪ್ರಸಾದ ಮಿತಿ', value: seva.PrasadaAddonLimit || '—' },
+    ].filter(d => d.value !== undefined);
+
+    if (seva.IsSpecialEvent) {
+        details.push({ label: 'ದಿನಾಂಕ', value: seva.EventDate || '—' });
+        if (!seva.IsAllDay) {
+            details.push({ label: 'ಸಮಯ', value: `${seva.StartTime || ''} - ${seva.EndTime || ''}` });
+        }
+        details.push({ label: 'Recurrence', value: seva.RecurrenceRule || '—' });
+    }
 
     return (
         <AnimatePresence>
@@ -67,19 +72,21 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                     >
                                         <X size={24} />
                                     </button>
-                                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">ಭಕ್ತರ ವಿವರ ಬದಲಿಸಿ</h2>
+                                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">ಸೇವೆ ಬದಲಿಸಿ</h2>
                                 </div>
                                 <div className="p-6 sm:p-8 overflow-y-auto flex-1">
-                                    <CustomerForm
+                                    <SevaForm
                                         isOpen={true}
                                         onClose={() => setIsEditing(false)}
                                         onSubmit={async (data) => {
                                             await onSave(data);
                                             setIsEditing(false);
                                         }}
-                                        initialData={devotee}
-                                        inline={true}
+                                        initialData={seva}
+                                        isEdit={true}
+                                        existingSevas={existingSevas}
                                         title=""
+                                        inline={true}
                                     />
                                 </div>
                             </div>
@@ -94,16 +101,12 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                         <X size={24} />
                                     </button>
                                     <div className="flex items-center gap-4 sm:gap-6">
-                                        {devotee.PhotoPath ? (
-                                            <img src={devotee.PhotoPath} alt="" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-white/50 shadow-xl shrink-0" />
-                                        ) : (
-                                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white/30 text-white shadow-xl shrink-0">
-                                                <UserCircle2 size={40} className="sm:w-12 sm:h-12" />
-                                            </div>
-                                        )}
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 flex items-center justify-center border-4 border-white/30 text-white shadow-xl shrink-0">
+                                            <HeartHandshake size={32} className="sm:w-10 sm:h-10" />
+                                        </div>
                                         <div className="overflow-hidden pr-8">
-                                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{devotee.Name}</h2>
-                                            <p className="text-white/80 text-sm sm:text-base font-medium mt-1">{devotee.DevoteeId ? `ID: ${devotee.DevoteeId}` : ''}</p>
+                                            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">{seva.Description}</h2>
+                                            <p className="text-white/80 text-sm sm:text-base font-medium mt-1 font-mono">#{seva.SevaCode}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -112,10 +115,9 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                 <div className="p-6 sm:p-8 overflow-y-auto bg-slate-50/50 dark:bg-black/10 flex-1">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                         {details.map((d, i) => (
-                                            <div key={i} className={`p-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 shadow-sm space-y-1.5 ${d.full ? 'sm:col-span-2' : ''}`}>
+                                            <div key={i} className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-black/5 dark:border-white/5 shadow-sm space-y-1.5">
                                                 <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest opacity-60">{d.label}</p>
                                                 <div className="flex items-center gap-3 text-[var(--text-primary)]">
-                                                    {d.icon && <d.icon size={18} className="text-[var(--primary)] shrink-0 opacity-80" />}
                                                     <span className="text-sm sm:text-base font-semibold break-words">{d.value}</span>
                                                 </div>
                                             </div>
@@ -134,7 +136,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                         </button>
                                         <button
                                             onClick={() => {
-                                                onDelete(devotee);
+                                                onDelete(seva);
                                                 handleClose();
                                             }}
                                             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 transition-all"
@@ -143,13 +145,10 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                         </button>
                                     </div>
                                     <button
-                                        onClick={() => {
-                                            onBookSeva(devotee);
-                                            handleClose();
-                                        }}
-                                        className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                        onClick={handleClose}
+                                        className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-lg transition-all"
                                     >
-                                        <Receipt size={16} /> ಸೇವಾ ಬುಕಿಂಗ್
+                                        ಮುಚ್ಚಿ (Close)
                                     </button>
                                 </div>
                             </>

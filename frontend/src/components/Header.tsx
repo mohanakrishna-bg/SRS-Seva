@@ -26,7 +26,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
             <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between mb-6 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-black/40 border border-[var(--glass-border)] backdrop-blur-xl shadow-sm"
+                className="flex items-center justify-between mb-6 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-black/40 border border-[var(--glass-border)] backdrop-blur-xl shadow-sm print:hidden"
             >
                 <div className="flex items-center gap-3">
                     <button
@@ -65,7 +65,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
         <motion.header
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative"
+            className="relative print:hidden"
         >
             <div className="relative z-10 flex flex-col items-center text-center gap-4">
                 <Link 

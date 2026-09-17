@@ -260,7 +260,10 @@ def get_next_seva_code(db: Session, prefix: str = "SV") -> str:
 
 @router.get("/sevas", response_model=List[schemas.Seva])
 def list_sevas(db: Session = Depends(database.get_db)):
-    return db.query(models.Seva).order_by(models.Seva.SevaCode).all()
+    from sqlalchemy import or_
+    return db.query(models.Seva).filter(
+        or_(models.Seva.IsDeleted == False, models.Seva.IsDeleted == None)
+    ).order_by(models.Seva.SevaCode).all()
 
 
 @router.post("/sevas", response_model=schemas.Seva)
@@ -336,20 +339,13 @@ def delete_seva(seva_code: str, db: Session = Depends(database.get_db)):
         )
 
     try:
-        # Delete any child or parent composition links first
-        db.query(models.EventComposition).filter(
-            or_(
-                models.EventComposition.ParentEventCode == seva_code,
-                models.EventComposition.ChildSevaCode == seva_code
-            )
-        ).delete(synchronize_session=False)
-        
-        db.delete(seva)
+        # Soft delete instead of hard delete
+        seva.IsDeleted = True
         db.commit()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to delete Seva: {str(e)}")
-    return {"detail": "Seva deleted"}
+    return {"detail": "Seva deleted (soft)"}
 
 
 # ═══════════════════════════════════════════════════════════
