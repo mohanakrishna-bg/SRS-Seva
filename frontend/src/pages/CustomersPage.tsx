@@ -11,6 +11,7 @@ import DevoteeDetailsModal from '../components/DevoteeDetailsModal';
 import RegistrationModal from '../components/RegistrationModal';
 import ReceiptGenerator from '../components/ReceiptGenerator';
 import PrintConfigModal from '../components/PrintConfigModal';
+import { printTabularReport } from '../utils/printReport';
 import { devoteeApi, sevaApi, lookupApi } from '../api';
 import { useToast } from '../components/Toast';
 
@@ -689,12 +690,55 @@ export default function CustomersPage() {
                 onClose={() => setShowPrintModal(false)}
                 totalItems={totalCount}
                 defaultPageSize={pageSize}
-                onPrint={(chosenSize) => {
-                    setPageSize(chosenSize);
-                    localStorage.setItem('seva_page_size', String(chosenSize));
-                    setTimeout(() => {
-                        window.print();
-                    }, 250);
+                onPrint={async (chosenSize) => {
+                    try {
+                        let printItems: Devotee[] = [];
+                        if (searchQuery.trim()) {
+                            printItems = allDevotees;
+                        } else {
+                            // Fetch all active devotees for full report printing
+                            const res = await devoteeApi.list(0, 5000);
+                            printItems = res.data.items || res.data || [];
+                        }
+
+                        printTabularReport<Devotee>({
+                            title: 'Devotees List',
+                            items: printItems,
+                            itemsPerPage: chosenSize,
+                            columns: [
+                                {
+                                    header: '#',
+                                    className: 'text-center font-mono',
+                                    headerClassName: 'text-center',
+                                    render: (_, idx) => idx
+                                },
+                                {
+                                    header: 'ಹೆಸರು (Name)',
+                                    className: 'font-bold',
+                                    render: (d) => d.Name || '—'
+                                },
+                                {
+                                    header: 'ಗೋತ್ರ (Gotra)',
+                                    render: (d) => d.Gotra || '—'
+                                },
+                                {
+                                    header: 'ನಕ್ಷತ್ರ (Nakshatra)',
+                                    render: (d) => d.Nakshatra || '—'
+                                },
+                                {
+                                    header: 'ಫೋನ್ (Phone)',
+                                    className: 'font-mono',
+                                    render: (d) => d.Phone || d.WhatsApp_Phone || '—'
+                                },
+                                {
+                                    header: 'ನಗರ (City)',
+                                    render: (d) => [d.City, d.PinCode].filter(Boolean).join(' - ') || '—'
+                                }
+                            ]
+                        });
+                    } catch (err) {
+                        showToast('error', 'ಮುದ್ರಣ ವರದಿ ಸಿದ್ಧಪಡಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ');
+                    }
                 }}
             />
         </motion.div>

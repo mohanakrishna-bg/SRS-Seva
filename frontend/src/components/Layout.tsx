@@ -323,7 +323,7 @@ export default function Layout() {
             )}
 
             {/* Mobile Bottom Navigation Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--glass-card-bg)] border-t border-[var(--glass-border)] backdrop-blur-xl shadow-2xl px-4 py-2 flex items-center justify-around h-16 safe-bottom">
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--glass-card-bg)] border-t border-[var(--glass-border)] backdrop-blur-xl shadow-2xl px-4 py-2 flex items-center justify-around h-16 safe-bottom print:hidden">
                 <NavLink to="/" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-[var(--text-secondary)]'}`} end>
                     <span className="text-xl">🏠</span>
                     <span>ಮುಖಪುಟ</span>
@@ -357,7 +357,7 @@ export default function Layout() {
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 100 }}
-                        className="lg:hidden fixed bottom-20 left-4 right-4 z-30 bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-4 backdrop-blur-2xl shadow-2xl flex flex-col gap-3"
+                        className="lg:hidden fixed bottom-20 left-4 right-4 z-30 bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-4 backdrop-blur-2xl shadow-2xl flex flex-col gap-3 print:hidden"
                     >
                         <div className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--glass-border)] pb-2 mb-1">
                             ಹೆಚ್ಚಿನ ಆಯ್ಕೆಗಳು

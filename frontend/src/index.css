@@ -167,3 +167,20 @@ li[class*="_Active_"] {
 .divide-y > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--glass-border) !important;
 }
+
+/* Global Print Overrides: Hide navigation bars, sidebars, headers, mobile docks, and toolbars */
+@media print {
+  aside,
+  nav,
+  header,
+  .print\:hidden,
+  [data-dropdown-trigger],
+  .fixed {
+    display: none !important;
+  }
+
+  body, html {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}

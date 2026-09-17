@@ -9,6 +9,7 @@ import SearchBar from '../components/SearchBar';
 import SevaForm from '../components/SevaForm';
 import SevaDetailsModal from '../components/SevaDetailsModal';
 import PrintConfigModal from '../components/PrintConfigModal';
+import { printTabularReport } from '../utils/printReport';
 import { sevaApi } from '../api';
 import { useToast } from '../components/Toast';
 
@@ -356,11 +357,45 @@ export default function SevasPage() {
                 totalItems={filteredAndSorted.length}
                 defaultPageSize={pageSize}
                 onPrint={(chosenSize) => {
-                    setPageSize(chosenSize);
-                    localStorage.setItem('seva_page_size_pref', String(chosenSize));
-                    setTimeout(() => {
-                        window.print();
-                    }, 250);
+                    printTabularReport<SevaItem>({
+                        title: 'Sevas List',
+                        items: filteredAndSorted,
+                        itemsPerPage: chosenSize,
+                        columns: [
+                            {
+                                header: '#',
+                                className: 'text-center font-mono',
+                                headerClassName: 'text-center',
+                                render: (_, idx) => idx
+                            },
+                            {
+                                header: 'ಸೇವಾ ಕೋಡ್ (Code)',
+                                className: 'font-mono font-bold',
+                                render: (s) => s.SevaCode || '—'
+                            },
+                            {
+                                header: 'ವಿವರಣೆ (Kannada)',
+                                className: 'font-bold',
+                                render: (s) => s.Description || '—'
+                            },
+                            {
+                                header: 'Description (English)',
+                                render: (s) => s.DescriptionEn || '—'
+                            },
+                            {
+                                header: 'ಮೊತ್ತ (Amount)',
+                                className: 'text-right font-mono font-bold',
+                                headerClassName: 'text-right',
+                                render: (s) => `₹${s.Amount}`
+                            },
+                            {
+                                header: 'ತೀರ್ಥ ಪ್ರಸಾದ (TP Qty)',
+                                className: 'text-center font-mono',
+                                headerClassName: 'text-center',
+                                render: (s) => s.TPQty ?? 0
+                            }
+                        ]
+                    });
                 }}
             />
         </motion.div>
