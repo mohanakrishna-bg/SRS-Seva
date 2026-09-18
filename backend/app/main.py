@@ -239,15 +239,17 @@ def on_startup():
     except Exception as e:
         print(f"Error syncing sequences on startup: {e}")
 
-    # Seed built-in roles and consolidate Kanike & Hastodaka Sevas
+    # Seed built-in roles, master data (Settings & 42 Sevas), and consolidate Kanike & Hastodaka Sevas
     try:
         db = next(database.get_db())
         auth.seed_builtin_roles(db)
+        from app.core.master_seed import seed_master_data
+        seed_master_data(db)
         consolidate_kanike_sevas(db)
         consolidate_hastodaka_sevas(db)
         db.close()
     except Exception as e:
-        print(f"Error seeding built-in roles/consolidating sevas: {e}")
+        print(f"Error seeding built-in roles/master data/consolidating sevas: {e}")
 
 # ─── Static Files ───
 UPLOAD_DIR = settings.UPLOAD_DIR

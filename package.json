@@ -2,6 +2,8 @@
   "name": "srs-seva-monorepo",
   "private": true,
   "scripts": {
-    "build": "npm --prefix frontend run build"
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix frontend test",
+    "db:sync-prod": "python3 backend/sync_from_prod.py"
   }
 }

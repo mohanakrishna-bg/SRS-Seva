@@ -15,6 +15,13 @@ def get_all_settings(db: Session = Depends(get_db)):
 def get_setting(key: str, db: Session = Depends(get_db)):
     setting = db.query(Settings).filter(Settings.key == key).first()
     if not setting:
+        if key == "seva_org_settings":
+            from app.core.master_seed import DEFAULT_ORG_SETTINGS
+            setting = Settings(key="seva_org_settings", value=DEFAULT_ORG_SETTINGS)
+            db.add(setting)
+            db.commit()
+            db.refresh(setting)
+            return setting
         raise HTTPException(status_code=404, detail="Setting not found")
     return setting
 

@@ -2,12 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, NavLink } from 'react-router-dom';
 import { Moon, Sun, Menu, X, MapPin, Phone, Clock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePublicSettings } from '../../hooks/usePublicSettings';
+import { useSettings, type OrgSettings } from '../../context/SettingsContext';
 
 export type PublicLayoutContextType = {
     lang: 'kn' | 'en';
     t: (kn: string, en: string) => string;
-    settings: ReturnType<typeof usePublicSettings>['settings'];
+    settings: OrgSettings;
 };
 
 /**
@@ -16,7 +16,7 @@ export type PublicLayoutContextType = {
  * the authenticated app shell so preferences carry across boundaries.
  */
 export default function PublicLayout() {
-    const { settings } = usePublicSettings();
+    const { settings } = useSettings();
 
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
         return (localStorage.getItem('seva_theme') as 'light' | 'dark') || 'light';
