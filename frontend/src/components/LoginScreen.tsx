@@ -1,10 +1,16 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 
-export default function LoginScreen() {
+interface LoginScreenProps {
+    /** Called after a successful login (e.g. to navigate to /app). */
+    onSuccess?: () => void;
+}
+
+export default function LoginScreen({ onSuccess }: LoginScreenProps = {}) {
     const { login } = useAuth();
     const { settings } = useSettings();
     const orgName = settings.orgName || 'ಶ್ರೀ ಮಠ ಆಡಳಿತ';
@@ -23,6 +29,7 @@ export default function LoginScreen() {
 
         try {
             await login(username, password);
+            onSuccess?.();
         } catch (err: any) {
             const detail = err.response?.data?.detail;
             if (detail === 'User account is deactivated') {
@@ -38,8 +45,8 @@ export default function LoginScreen() {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Blurred background — the home page is rendered behind */}
-            <div className="absolute inset-0 bg-[var(--bg-dark)]/80 backdrop-blur-md" />
+            {/* Background overlay */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
             {/* Login Card */}
             <motion.div
@@ -163,6 +170,17 @@ export default function LoginScreen() {
                                 )}
                             </button>
                         </form>
+
+                        {/* Back to public site */}
+                        <div className="mt-4 text-center">
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors"
+                            >
+                                <ArrowLeft size={12} />
+                                ಮುಖಪುಟಕ್ಕೆ ಹಿಂದಿರುಗಿ
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </motion.div>

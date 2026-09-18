@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: light;
-  /* Light Saffron theme */
+  /* Light Saffron theme (App) */
   --primary: #e67e22;
   --primary-hover: #d35400;
   --bg-dark: #fdf6ee;
@@ -24,7 +24,37 @@
   --color-gold: #D4AF37;
   --color-income: #00E676;
   --color-expense: #FF5252;
+
+  /* === Public Site Palette — Temple Warm Tones === */
+  --pub-saffron:        #E8652A;
+  --pub-saffron-light:  #F08C5A;
+  --pub-saffron-dark:   #C44E18;
+  --pub-gold:           #D4A843;
+  --pub-gold-light:     #E8C96A;
+  --pub-maroon:         #6B1D2A;
+  --pub-maroon-light:   #8C3040;
+  --pub-cream:          #FFF8F0;
+  --pub-cream-dark:     #F5EDE0;
+  --pub-ink:            #2D1810;
+  --pub-ink-light:      #5A3D30;
+  --pub-ink-muted:      #8B7268;
+
+  /* Semantic public site colors (light mode) */
+  --pub-bg:             var(--pub-cream);
+  --pub-bg-card:        #FFFFFF;
+  --pub-text:           var(--pub-ink);
+  --pub-text-muted:     var(--pub-ink-muted);
+  --pub-border:         rgba(107, 29, 42, 0.12);
+  --pub-accent:         var(--pub-saffron);
+  --pub-hero-from:      var(--pub-saffron);
+  --pub-hero-to:        var(--pub-maroon);
+  --pub-header-bg:      rgba(255, 248, 240, 0.92);
+  --pub-shadow:         0 4px 24px rgba(107, 29, 42, 0.08);
+  --pub-shadow-hover:   0 8px 32px rgba(107, 29, 42, 0.14);
+  --pub-font-heading:   'Noto Serif Kannada', 'Noto Serif', Georgia, serif;
+  --pub-font-body:      'Noto Sans Kannada', 'Inter', system-ui, sans-serif;
 }
+
 
 [data-theme='dark'] {
   color-scheme: dark;
@@ -40,6 +70,17 @@
   --accent-purple: #c0392b;
   --accent-saffron: #ff8c00;
   --glass-card-bg: rgba(44, 24, 16, 0.98);
+
+  /* Public site dark overrides */
+  --pub-bg:          #1A0E0A;
+  --pub-bg-card:     #2D1810;
+  --pub-text:        #F5EDE0;
+  --pub-text-muted:  #8B7268;
+  --pub-border:      rgba(212, 168, 67, 0.15);
+  --pub-accent:      var(--pub-saffron-light);
+  --pub-header-bg:   rgba(26, 14, 10, 0.92);
+  --pub-hero-from:   #8C3040;
+  --pub-hero-to:     #2D1810;
 }
 
 * {

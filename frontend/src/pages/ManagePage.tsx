@@ -20,6 +20,7 @@ const tabs = [
 
 export default function ManagePage() {
     const location = useLocation();
+    const basePath = location.pathname.startsWith('/app/manage') ? '/app/manage' : '/manage';
 
     return (
         <div className="space-y-6">
@@ -27,7 +28,7 @@ export default function ManagePage() {
                 {tabs.map((tab) => (
                     <NavLink
                         key={tab.id}
-                        to={`/manage/${tab.id}`}
+                        to={`${basePath}/${tab.id}`}
                         className={({ isActive }) => `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                             isActive
                                 ? 'bg-[var(--primary)] text-white shadow-lg shadow-orange-500/20'

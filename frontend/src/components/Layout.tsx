@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Link, Outlet } from 'react-router-dom';
 import { ClipboardList, Moon, Sun, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './Header';
@@ -150,34 +150,34 @@ export default function Layout() {
             <div className="flex flex-1 relative max-w-6xl mx-auto w-full px-4 md:px-8 py-2 md:py-6 gap-6 print:p-0 print:m-0 print:max-w-none">
                 {/* Global Navigation Sidebar */}
                 <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 space-y-2 flex-col h-[calc(100vh-8rem)] sticky top-24 backdrop-blur-md shadow-lg z-20 print:hidden">
-                    <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`} end>
+                    <NavLink to="/app" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`} end>
                         <span className="flex items-center justify-center w-5 h-5">🏠</span>
                         ಮುಖಪುಟ
                     </NavLink>
 
                     {can('seva') && (
-                        <NavLink to="/seva" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                        <NavLink to="/app/seva" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <ClipboardList size={20} />
                             ಸೇವಾ ಸಂಬಂಧಿತ ಕ್ರಿಯೆಗಳು
                         </NavLink>
                     )}
 
                     {can('accounting') && (
-                        <NavLink to="/accounting" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                        <NavLink to="/app/accounting" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <span className="flex items-center justify-center w-5 h-5">📊</span>
                             ಲೆಕ್ಕಪತ್ರ
                         </NavLink>
                     )}
 
                     {can('assets') && (
-                        <NavLink to="/assets" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                        <NavLink to="/app/assets" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <span className="flex items-center justify-center w-5 h-5">🏛️</span>
                             ಆಸ್ತಿಗಳು
                         </NavLink>
                     )}
 
                     {can('consumables') && (
-                        <NavLink to="/consumables" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                        <NavLink to="/app/consumables" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <span className="flex items-center justify-center w-5 h-5">📦</span>
                             ಬಳಕೆ ವಸ್ತುಗಳು
                         </NavLink>
@@ -191,13 +191,21 @@ export default function Layout() {
                     )}
 
                     {can('settings') && (
-                        <NavLink to="/manage" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
+                        <NavLink to="/app/manage" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}>
                             <ClipboardList size={20} />
                             ನಿರ್ವಹಣೆ
                         </NavLink>
                     )}
 
                     <div className="mt-auto space-y-3">
+                        <Link
+                            to="/"
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--primary)] hover:bg-[var(--glass-border)] transition-all"
+                        >
+                            <span>🌐</span>
+                            <span>ಸಾರ್ವಜನಿಕ ತಾಣ (Public Site)</span>
+                        </Link>
+
                         {/* User Badge */}
                         {user && (
                             <div className="border-t border-[var(--glass-border)] pt-3">
@@ -324,12 +332,12 @@ export default function Layout() {
 
             {/* Mobile Bottom Navigation Bar */}
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--glass-card-bg)] border-t border-[var(--glass-border)] backdrop-blur-xl shadow-2xl px-4 py-2 flex items-center justify-around h-16 safe-bottom print:hidden">
-                <NavLink to="/" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-[var(--text-secondary)]'}`} end>
+                <NavLink to="/app" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-orange-500' : 'text-[var(--text-secondary)]'}`} end>
                     <span className="text-xl">🏠</span>
                     <span>ಮುಖಪುಟ</span>
                 </NavLink>
 
-                <NavLink to="/assets" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
+                <NavLink to="/app/assets" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
                     <span className="text-xl">🏛️</span>
                     <span>ಆಸ್ತಿಗಳು</span>
                 </NavLink>
@@ -339,7 +347,7 @@ export default function Layout() {
                     <span className="-mt-3">ಸೇವೆ ಬುಕ್ ಮಾಡಿ</span>
                 </button>
 
-                <NavLink to="/consumables" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
+                <NavLink to="/app/consumables" className={({ isActive }) => `flex flex-col items-center justify-center flex-1 text-[10px] font-bold ${isActive ? 'text-emerald-500' : 'text-[var(--text-secondary)]'}`}>
                     <span className="text-xl">📦</span>
                     <span>ಬಳಕೆ ವಸ್ತುಗಳು</span>
                 </NavLink>
@@ -372,7 +380,7 @@ export default function Layout() {
                         </button>
 
                         <NavLink 
-                            to="/accounting" 
+                            to="/app/accounting" 
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
                         >
@@ -381,13 +389,22 @@ export default function Layout() {
                         </NavLink>
 
                         <NavLink 
-                            to="/manage" 
+                            to="/app/manage" 
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left ${isActive ? 'bg-amber-500/10 text-[var(--primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)]'}`}
                         >
-                            <ClipboardList size={18} />
+                            <ClipboardList size={20} />
                             ನಿರ್ವಹಣೆ
                         </NavLink>
+
+                        <Link
+                            to="/"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 p-3 rounded-xl font-bold transition-all text-left text-[var(--text-secondary)] hover:bg-[var(--glass-border)] text-xs"
+                        >
+                            <span>🌐</span>
+                            <span>ಸಾರ್ವಜನಿಕ ತಾಣ (Public Site)</span>
+                        </Link>
 
                         <div className="border-t border-[var(--glass-border)] pt-3 space-y-3">
                             {/* User Badge — Mobile */}

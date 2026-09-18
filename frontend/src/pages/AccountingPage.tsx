@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Routes, Route, Navigate } from 'react-router-dom';
+import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, BookOpen, Building2, BarChart3, CheckCircle2, 
     AlertCircle, X, TrendingUp, TrendingDown, Wallet, PiggyBank, 
@@ -47,6 +47,8 @@ const SummaryCard = ({
 );
 
 const AccountingPage: React.FC = () => {
+    const location = useLocation();
+    const basePath = location.pathname.startsWith('/app/accounting') ? '/app/accounting' : '/accounting';
     const [loading, setLoading] = useState(false);
     const [summary, setSummary] = useState<DailySummary | null>(null);
     const [selectedDrilldown, setSelectedDrilldown] = useState<{ id: string | number; name: string } | null>(null);
@@ -369,12 +371,12 @@ const AccountingPage: React.FC = () => {
             {/* Pill-style Tab Nav */}
             <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-1 flex gap-1 overflow-x-auto no-print">
                 {[
-                    { to: '/accounting/dashboard', icon: <LayoutDashboard size={15} />, label: 'Dashboard' },
-                    { to: '/accounting/journal', icon: <BookOpen size={15} />, label: 'Journal' },
-                    { to: '/accounting/vouchers', icon: <ClipboardList size={15} />, label: 'Payment Vouchers' },
-                    { to: '/accounting/bank', icon: <Building2 size={15} />, label: 'Bank & Cash' },
-                    { to: '/accounting/reconcile', icon: <Landmark size={15} />, label: 'Reconciliation' },
-                    { to: '/accounting/reports', icon: <BarChart3 size={15} />, label: 'Reports' },
+                    { to: `${basePath}/dashboard`, icon: <LayoutDashboard size={15} />, label: 'Dashboard' },
+                    { to: `${basePath}/journal`, icon: <BookOpen size={15} />, label: 'Journal' },
+                    { to: `${basePath}/vouchers`, icon: <ClipboardList size={15} />, label: 'Payment Vouchers' },
+                    { to: `${basePath}/bank`, icon: <Building2 size={15} />, label: 'Bank & Cash' },
+                    { to: `${basePath}/reconcile`, icon: <Landmark size={15} />, label: 'Reconciliation' },
+                    { to: `${basePath}/reports`, icon: <BarChart3 size={15} />, label: 'Reports' },
                 ].map(tab => (
                     <NavLink
                         key={tab.to}

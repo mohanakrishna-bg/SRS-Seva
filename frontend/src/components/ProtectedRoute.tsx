@@ -20,7 +20,7 @@ export default function ProtectedRoute({ module, permission = 'read', children }
     const { isAuthenticated, can } = useAuth();
 
     if (!isAuthenticated) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     if (!can(module, permission)) {
@@ -44,7 +44,7 @@ export default function ProtectedRoute({ module, permission = 'read', children }
                     </p>
 
                     <Link
-                        to="/"
+                        to="/app"
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm hover:brightness-110 transition-all shadow-md"
                     >
                         <Home size={16} />

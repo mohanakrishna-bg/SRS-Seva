@@ -37,7 +37,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
                         <ArrowLeft size={18} />
                     </button>
                     <Link 
-                        to="/" 
+                        to="/app" 
                         className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity cursor-pointer"
                     >
                         {logoImage ? (
@@ -69,7 +69,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
         >
             <div className="relative z-10 flex flex-col items-center text-center gap-4">
                 <Link 
-                    to="/" 
+                    to="/app" 
                     className="flex flex-col md:flex-row items-center gap-5 mb-1 hover:opacity-80 transition-opacity cursor-pointer"
                 >
                     {logoImage ? (
