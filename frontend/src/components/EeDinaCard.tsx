@@ -187,16 +187,15 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card relative flex flex-col md:flex-row gap-2 p-3 h-[330px]"
-            style={{ overflow: 'visible' }}
+            className="glass-card relative flex flex-col lg:flex-row items-stretch justify-between gap-6 p-4 md:p-5 w-full min-h-[340px]"
         >
             {/* Background Accent */}
             <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-orange-400/10 dark:bg-orange-500/5 rounded-full blur-3xl" />
             </div>
 
-            {/* ═══ Left Column: Info ═══ */}
-            <div className="flex-1 flex flex-col gap-2 min-w-0">
+            {/* ═══ Left Column: Panchanga Info ═══ */}
+            <div className="flex-1 flex flex-col justify-between gap-3 min-w-0">
                 {/* Clock */}
                 <div className="relative z-10 flex items-end gap-2 text-left">
                     <span className="text-4xl font-black tracking-tighter text-[var(--primary)] font-mono leading-none">
@@ -237,19 +236,19 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                             <Calendar size={10} />
                             {isToday ? 'ಈ ದಿನ' : 'ಇಂದು ಮರುಹೊಂದಿಸಿ'}
                         </motion.button>
-                        <span className="text-lg font-bold text-[var(--text-primary)] leading-tight">
+                        <span className="text-base md:text-lg font-bold text-[var(--text-primary)] leading-tight">
                             {formattedDate}
                         </span>
                     </div>
 
-                    <span className="text-lg font-bold text-[var(--accent-saffron)] italic leading-tight">
+                    <span className="text-base md:text-lg font-bold text-[var(--accent-saffron)] italic leading-tight">
                         {panchanga?.indianDate}
                     </span>
                 </div>
 
-                {/* Panchanga Info Pills — Larger grid, less white space */}
+                {/* Panchanga Info Pills — Side-by-side responsive grid without horizontal overlap */}
                 {panchanga ? (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 relative z-10 w-full lg:w-fit">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10 w-full">
                         <InfoPill icon={<Moon size={16} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
                         <InfoPill icon={<Star size={16} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
                         <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
@@ -260,7 +259,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                 )}
 
                 {/* Daily Schedule Trigger */}
-                <div className="mt-auto pt-1.5 border-t border-[var(--glass-border)] relative z-20 w-fit" ref={routineRef}>
+                <div className="pt-2 border-t border-[var(--glass-border)] relative z-20 w-fit" ref={routineRef}>
                     <button 
                         onClick={() => setShowRoutine(!showRoutine)}
                         className="text-xs font-bold text-[var(--accent-saffron)] hover:text-orange-600 flex items-center gap-2 transition-colors"
@@ -312,8 +311,8 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
             </div>
 
             {/* ═══ Right Column: Compact Persistent Calendar ═══ */}
-            <div className="shrink-0 relative z-10 w-[300px]" ref={calendarRef}>
-                <div className="h-full p-0.5 bg-[var(--primary)]/5 dark:bg-white/5 rounded-2xl border border-[var(--primary)]/10">
+            <div className="shrink-0 relative z-10 w-full lg:w-[310px] self-center lg:self-stretch flex flex-col justify-center" ref={calendarRef}>
+                <div className="h-full p-1 bg-[var(--primary)]/5 dark:bg-white/5 rounded-2xl border border-[var(--primary)]/10 flex items-center justify-center">
                     <CalendarWidget selectedDate={activeDate} onChange={handleCalendarSelect} compact={true} />
                 </div>
             </div>
@@ -323,13 +322,13 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
 
 function InfoPill({ icon, label, value, color }: { icon: ReactNode; label: string; value: string; color: string }) {
     return (
-        <div className="flex items-center gap-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-2.5 hover:bg-white/40 dark:hover:bg-black/20 transition-colors min-w-[170px]">
-            <div className={`w-9 h-9 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm shrink-0 ${color}`}>
+        <div className="flex items-center gap-2.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-2.5 hover:bg-white/40 dark:hover:bg-black/20 transition-colors min-w-0 flex-1 shadow-sm">
+            <div className={`w-8 h-8 md:w-9 md:h-9 rounded-full bg-white dark:bg-black/40 flex items-center justify-center shadow-sm shrink-0 ${color}`}>
                 {icon}
             </div>
-            <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold leading-none mb-1.5">{label}</p>
-                <p className="text-sm font-black text-[var(--text-primary)] whitespace-nowrap">{value}</p>
+            <div className="min-w-0 flex-1">
+                <p className="text-[10px] md:text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold leading-none mb-1">{label}</p>
+                <p className="text-xs md:text-sm font-black text-[var(--text-primary)] truncate" title={value}>{value}</p>
             </div>
         </div>
     );

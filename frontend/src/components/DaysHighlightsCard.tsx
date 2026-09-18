@@ -1,28 +1,42 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Clock, Users, Utensils, Pencil, Trash2, Maximize2, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Clock, Users, Utensils, Pencil, Trash2, Maximize2, Check, X } from 'lucide-react';
 import { eventsApi, statsApi } from '../api';
 import EventModal from './EventModal';
 import TransliteratedInput from './TransliteratedInput';
+import { useAuth } from '../context/AuthContext';
 
 interface DaysHighlightsCardProps {
     date?: Date;
     onRegisterSpecialEvent?: (eventName: string, eventCode: string) => void;
+    editable?: boolean;
 }
 
-export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: DaysHighlightsCardProps) {
+export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, editable }: DaysHighlightsCardProps) {
+    const { isAuthenticated } = useAuth();
+    const isEditable = editable !== undefined ? editable : isAuthenticated;
+
     const [events, setEvents] = useState<any[]>([]);
     const [localHighlights, setLocalHighlights] = useState<any[]>([]);
     const [hiddenEvents, setHiddenEvents] = useState<string[]>([]);
     const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<Record<string, { sevakartas: number; prasada: number }>>({});
     
-    // Inline editing state
+    // Inline editing state (only for authenticated users)
     const [isEditingInline, setIsEditingInline] = useState(false);
     const [newText, setNewText] = useState('');
     const [newTime, setNewTime] = useState('');
 
     const activeDate = date || new Date();
+
+    const formattedDate = activeDate.toLocaleDateString('kn-IN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
 
     const getHiddenKey = () => `seva_hidden_events_kn_${activeDate.toDateString()}`;
     const getLocalKey = () => `seva_highlights_kn_${activeDate.toDateString()}`;
@@ -44,6 +58,16 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
             setHiddenEvents([]);
         }
     };
+
+    // Lock body scroll when maximized modal is open
+    useEffect(() => {
+        if (isMaximized) {
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = '';
+            };
+        }
+    }, [isMaximized]);
 
     // Prevent booking past dates
     const today = new Date();
@@ -85,19 +109,21 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
     };
 
     const hideDbEvent = (sevaCode: string) => {
+        if (!isEditable) return;
         const newHidden = [...hiddenEvents, sevaCode];
         setHiddenEvents(newHidden);
         localStorage.setItem(getHiddenKey(), JSON.stringify(newHidden));
     };
 
     const removeLocalHighlight = (id: number) => {
+        if (!isEditable) return;
         const newLocals = localHighlights.filter(h => h.id !== id);
         setLocalHighlights(newLocals);
         localStorage.setItem(getLocalKey(), JSON.stringify(newLocals));
     };
 
     const handleAddLocal = () => {
-        if (!newText.trim()) return;
+        if (!isEditable || !newText.trim()) return;
         const item = { id: Date.now(), text: newText.trim(), time: newTime.trim() || undefined };
         const newLocals = [...localHighlights, item];
         setLocalHighlights(newLocals);
@@ -111,9 +137,10 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
 
     // Filter events: must have a StartTime and not be hidden
     const visibleDbEvents = events.filter(evt => evt.StartTime && !hiddenEvents.includes(evt.SevaCode));
+    const totalEvents = visibleDbEvents.length + localHighlights.length;
 
     return (
-        <div className="glass-card relative overflow-hidden border-2 border-[var(--accent-saffron)]/30 w-full h-[420px] flex flex-col">
+        <div className="glass-card relative overflow-hidden border-2 border-[var(--accent-saffron)]/30 w-full min-h-[340px] max-h-[460px] flex flex-col">
             {/* Background Accent */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--accent-saffron)]/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -124,22 +151,26 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                     <h3 className="font-bold text-lg">ದಿನದ ವಿಶೇಷಗಳು</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    {(visibleDbEvents.length > 0 || localHighlights.length > 0) && !isEditingInline && (
+                    {totalEvents > 0 && !isEditingInline && (
                         <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] border border-[var(--glass-border)] px-2 py-1 rounded-full mr-1">
-                            {visibleDbEvents.length + localHighlights.length} ಈವೆಂಟ್{visibleDbEvents.length + localHighlights.length > 1 ? 'ಗಳು' : ''}
+                            {totalEvents} ಈವೆಂಟ್{totalEvents > 1 ? 'ಗಳು' : ''}
                         </span>
                     )}
+                    {/* Inline edit button only visible for authenticated staff */}
+                    {isEditable && (
+                        <button
+                            onClick={() => setIsEditingInline(!isEditingInline)}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isEditingInline ? 'bg-[var(--primary)] text-white shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--primary)]'}`}
+                            title="ಇಲ್ಲಿಯೇ ಸಂಪಾದಿಸಿ (Inline Edit)"
+                        >
+                            <Pencil size={16} />
+                        </button>
+                    )}
+                    {/* Maximize option: pops up locked modal with full card content */}
                     <button
-                        onClick={() => setIsEditingInline(!isEditingInline)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isEditingInline ? 'bg-[var(--primary)] text-white shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--primary)]'}`}
-                        title="ಇಲ್ಲಿಯೇ ಸಂಪಾದಿಸಿ (Inline Edit)"
-                    >
-                        <Pencil size={16} />
-                    </button>
-                    <button
-                        onClick={() => setIsEventModalOpen(true)}
+                        onClick={() => setIsMaximized(true)}
                         className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors cursor-pointer"
-                        title="ದೊಡ್ಡ ಪರದೆಯಲ್ಲಿ ಸಂಪಾದಿಸಿ (Expand)"
+                        title="ದೊಡ್ಡ ಪರದೆಯಲ್ಲಿ ವೀಕ್ಷಿಸಿ (Maximize)"
                     >
                         <Maximize2 size={16} />
                     </button>
@@ -148,8 +179,8 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
 
             {/* Events list */}
             <div className="relative z-10 p-4 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                {visibleDbEvents.length === 0 && localHighlights.length === 0 && !isEditingInline && (
-                    <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] opacity-60">
+                {totalEvents === 0 && !isEditingInline && (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[140px] text-[var(--text-secondary)] opacity-60">
                         <Sparkles size={32} className="mb-2" />
                         <p className="text-sm">ಈ ದಿನ ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆಗಳಿಲ್ಲ.</p>
                     </div>
@@ -170,7 +201,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                 )}
                             </div>
                         </div>
-                        {isEditingInline && (
+                        {isEditable && isEditingInline && (
                             <button onClick={() => removeLocalHighlight(h.id)} className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors" title="ಅಳಿಸಿ (Delete)">
                                 <Trash2 size={14} />
                             </button>
@@ -194,8 +225,8 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                         {formatSchedule(evt)}
                                     </span>
                                 </div>
-                                {/* Devotee Stats */}
-                                {s && (
+                                {/* Devotee Stats (Staff only) */}
+                                {isAuthenticated && s && (
                                     <div className="flex items-center gap-4 pl-3.5 mt-1">
                                         <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                             <Users size={12} />
@@ -211,16 +242,16 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
 
                             {/* Actions (Register or Delete) */}
                             <div className="flex items-center gap-2 shrink-0 pt-0.5">
-                                {isEditingInline ? (
+                                {isEditable && isEditingInline ? (
                                     <button onClick={() => hideDbEvent(evt.SevaCode)} className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors" title="ಮರೆಮಾಡಿ (Hide)">
                                         <Trash2 size={14} />
                                     </button>
-                                ) : (
+                                ) : onRegisterSpecialEvent ? (
                                     <button
                                         disabled={isPastDate}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            if (onRegisterSpecialEvent) onRegisterSpecialEvent(evt.Description, evt.SevaCode);
+                                            onRegisterSpecialEvent(evt.Description, evt.SevaCode);
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all ${
                                             isPastDate
@@ -230,14 +261,14 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                     >
                                         ನೋಂದಾಯಿಸಿ
                                     </button>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     );
                 })}
 
-                {/* Inline Add Form */}
-                {isEditingInline && (
+                {/* Inline Add Form (Staff only) */}
+                {isEditable && isEditingInline && (
                     <div className="mt-4 p-4 bg-black/5 dark:bg-white/5 rounded-xl space-y-3 border border-[var(--glass-border)]">
                         <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">ಹೊಸ ಘಟನೆ ಸೇರಿಸಿ</h4>
                         <div className="flex flex-col gap-2.5">
@@ -255,7 +286,175 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                 )}
             </div>
 
-            {isEventModalOpen && (
+            {/* ═══ Maximized Locked Modal (fits visible screen area with scrollbar) ═══ */}
+            <AnimatePresence>
+                {isMaximized && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/70 backdrop-blur-sm"
+                        onClick={() => setIsMaximized(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            transition={{ duration: 0.2 }}
+                            className="relative w-full max-w-4xl max-h-[85vh] bg-white dark:bg-slate-900 border border-[var(--glass-border)] rounded-3xl shadow-2xl flex flex-col overflow-hidden text-[var(--text-primary)]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between p-4 md:p-5 border-b border-[var(--glass-border)] bg-[var(--pub-cream-dark,#fbf5ee)] dark:bg-slate-800/80 shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-orange-500/15 flex items-center justify-center text-orange-500">
+                                        <Sparkles size={22} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg md:text-xl text-[var(--text-primary)]">
+                                            ದಿನದ ವಿಶೇಷಗಳು — Day's Highlights
+                                        </h3>
+                                        <p className="text-xs text-[var(--text-secondary)]">
+                                            {formattedDate}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] border border-[var(--glass-border)] px-3 py-1 rounded-full">
+                                        {totalEvents} ಈವೆಂಟ್{totalEvents !== 1 ? 'ಗಳು' : ''}
+                                    </span>
+                                    {isEditable && (
+                                        <button
+                                            onClick={() => setIsEventModalOpen(true)}
+                                            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 transition-all shadow-sm"
+                                        >
+                                            <Pencil size={13} />
+                                            ಸಂಪಾದಿಸಿ
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setIsMaximized(false)}
+                                        className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                                        aria-label="Close modal"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Modal Body with scrollbar */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                                {totalEvents === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)] opacity-60">
+                                        <Sparkles size={48} className="mb-3 text-[var(--primary)] opacity-40" />
+                                        <p className="text-base font-medium">ಈ ದಿನ ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆಗಳಿಲ್ಲ.</p>
+                                        <p className="text-xs mt-1">No special events scheduled for this day.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {/* Local highlights */}
+                                        {localHighlights.map((h) => (
+                                            <div
+                                                key={`modal-local-${h.id}`}
+                                                className="p-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] flex items-start justify-between gap-4 shadow-sm"
+                                            >
+                                                <div className="flex-1 flex flex-col gap-1">
+                                                    <div className="flex items-baseline gap-2.5 flex-wrap">
+                                                        <span className="w-2 h-2 rounded-full bg-[var(--primary)] shrink-0 self-center" />
+                                                        <span className="font-bold text-base md:text-lg text-[var(--text-primary)] leading-tight">
+                                                            {h.text}
+                                                        </span>
+                                                        {h.time && (
+                                                            <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-[var(--text-secondary)] px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">
+                                                                <Clock size={12} />
+                                                                {h.time}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {/* Database events */}
+                                        {visibleDbEvents.map((evt) => {
+                                            const s = stats[evt.SevaCode];
+                                            return (
+                                                <div
+                                                    key={`modal-db-${evt.SevaCode}`}
+                                                    className="p-4 rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm hover:border-[var(--primary)]/30 transition-all"
+                                                >
+                                                    <div className="flex-1 flex flex-col gap-1.5">
+                                                        <div className="flex items-baseline gap-2.5 flex-wrap">
+                                                            <span className="w-2 h-2 rounded-full bg-[var(--accent-saffron)] shrink-0 self-center" />
+                                                            <span className="font-bold text-base md:text-lg text-[var(--text-primary)] leading-tight">
+                                                                {evt.Description}
+                                                            </span>
+                                                            <span className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[var(--primary)] px-2.5 py-0.5 rounded-md bg-[var(--primary)]/10">
+                                                                <Clock size={12} />
+                                                                {formatSchedule(evt)}
+                                                            </span>
+                                                        </div>
+                                                        {evt.DescriptionEn && (
+                                                            <p className="text-xs text-[var(--text-secondary)] pl-4.5">
+                                                                {evt.DescriptionEn}
+                                                            </p>
+                                                        )}
+                                                        {/* Devotee stats (staff only) */}
+                                                        {isAuthenticated && s && (
+                                                            <div className="flex items-center gap-4 pl-4.5 mt-1 text-xs font-bold">
+                                                                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                                                    <Users size={13} />
+                                                                    ಸೇವಾಕರ್ತರು: {s.sevakartas || 0}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
+                                                                    <Utensils size={13} />
+                                                                    ತೀರ್ಥ ಪ್ರಸಾದ: {s.prasada || 0}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {onRegisterSpecialEvent && (
+                                                        <div className="shrink-0 sm:self-center">
+                                                            <button
+                                                                disabled={isPastDate}
+                                                                onClick={() => {
+                                                                    setIsMaximized(false);
+                                                                    onRegisterSpecialEvent(evt.Description, evt.SevaCode);
+                                                                }}
+                                                                className={`px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all ${
+                                                                    isPastDate
+                                                                        ? 'bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] opacity-50 cursor-not-allowed'
+                                                                        : 'bg-[var(--accent-saffron)] text-white hover:bg-orange-600 hover:shadow-md'
+                                                                }`}
+                                                            >
+                                                                ನೋಂದಾಯಿಸಿ
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-4 border-t border-[var(--glass-border)] bg-black/5 dark:bg-white/5 flex items-center justify-between shrink-0">
+                                <span className="text-xs text-[var(--text-secondary)]">
+                                    {totalEvents > 0 ? `${totalEvents} ಘಟನೆಗಳು` : 'ಯಾವುದೇ ಘಟನೆಗಳಿಲ್ಲ'}
+                                </span>
+                                <button
+                                    onClick={() => setIsMaximized(false)}
+                                    className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 transition-all shadow-md"
+                                >
+                                    ಮುಚ್ಚಿ (Close)
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Staff Edit Modal */}
+            {isEventModalOpen && isEditable && (
                 <EventModal
                     isOpen={isEventModalOpen}
                     date={activeDate}

@@ -141,13 +141,14 @@ export default function PublicHomePage() {
                             {t('ಇಂದಿನ ಮುಹೂರ್ತ, ತಿಥಿ ಮತ್ತು ವಿಶೇಷ ಮಾಹಿತಿ', 'Muhurtha, tithi and highlights for today')}
                         </p>
                     </motion.div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-6">
                         <motion.div
                             variants={fadeUp}
                             initial="hidden"
                             whileInView="visible"
                             custom={0.1}
                             viewport={{ once: true, amount: 0.1 }}
+                            className="w-full"
                         >
                             <EeDinaCard date={selectedDate} onDateChange={setSelectedDate} />
                         </motion.div>
@@ -157,6 +158,7 @@ export default function PublicHomePage() {
                             whileInView="visible"
                             custom={0.2}
                             viewport={{ once: true, amount: 0.1 }}
+                            className="w-full"
                         >
                             <DaysHighlightsCard
                                 date={selectedDate}
