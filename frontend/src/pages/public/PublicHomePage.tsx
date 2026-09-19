@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
+import { MapPin, Phone, Globe } from 'lucide-react';
 import type { PublicLayoutContextType } from '../../components/public/PublicLayout';
 import EeDinaCard from '../../components/EeDinaCard';
 import DaysHighlightsCard from '../../components/DaysHighlightsCard';
@@ -20,6 +21,9 @@ export default function PublicHomePage() {
     const orgName = lang === 'en'
         ? (settings.orgNameEn || settings.orgName || 'Sri Raghavendra Swamy Matha')
         : (settings.orgName || 'ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ');
+    const orgAddress = lang === 'en'
+        ? (settings.addressEn || settings.address || '')
+        : (settings.address || '');
 
     const services = [
         {
@@ -31,6 +35,16 @@ export default function PublicHomePage() {
             ),
             link: '/sevas',
             linkLabel: t('ಸೇವೆಗಳನ್ನು ನೋಡಿ →', 'View Sevas →'),
+        },
+        {
+            icon: '🏛️',
+            title: t('ಸೌಲಭ್ಯಗಳು', 'Facilities'),
+            desc: t(
+                'ಕಲ್ಪವೃಕ್ಷ ಪ್ರಾರ್ಥನಾ ಮಂದಿರ, ಪುರೋಹಿತ ಸೇವೆಗಳು ಮತ್ತು ಅಡುಗೆ-ಉಪಾಹಾರ ಸೌಲಭ್ಯಗಳು.',
+                'Kalpavruksha function hall, priest services, and cooking & catering for private functions.'
+            ),
+            link: '/facilities',
+            linkLabel: t('ಸೌಲಭ್ಯಗಳನ್ನು ನೋಡಿ →', 'View Facilities →'),
         },
         {
             icon: '📅',
@@ -101,6 +115,38 @@ export default function PublicHomePage() {
                             {t('ಸೇವೆ · ಭಕ್ತಿ · ಸಮರ್ಪಣೆ', 'Service · Devotion · Dedication')}
                         </p>
                     </div>
+
+                    {/* Address & Contact Details in Hero Banner */}
+                    {(orgAddress || settings.phone || settings.website) && (
+                        <div className="bg-black/25 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 text-white/95 text-xs sm:text-sm shadow-xl flex flex-wrap items-center justify-center gap-x-6 gap-y-2 max-w-2xl mx-auto">
+                            {orgAddress && (
+                                <div className="flex items-center gap-1.5 text-center sm:text-left">
+                                    <MapPin size={15} className="text-amber-300 shrink-0" />
+                                    <span>{orgAddress}</span>
+                                </div>
+                            )}
+                            {settings.phone && (
+                                <a
+                                    href={`tel:${settings.phone}`}
+                                    className="flex items-center gap-1.5 hover:text-amber-200 transition-colors"
+                                >
+                                    <Phone size={14} className="text-amber-300 shrink-0" />
+                                    <span className="font-semibold">{settings.phone}</span>
+                                </a>
+                            )}
+                            {settings.website && (
+                                <a
+                                    href={settings.website.startsWith('http') ? settings.website : `https://${settings.website}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 hover:text-amber-200 transition-colors"
+                                >
+                                    <Globe size={14} className="text-amber-300 shrink-0" />
+                                    <span>{settings.website.replace(/^https?:\/\//, '')}</span>
+                                </a>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex flex-wrap gap-4 justify-center mt-2">
                         <Link
@@ -196,7 +242,7 @@ export default function PublicHomePage() {
                         </p>
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {services.map((svc, i) => (
                             <motion.div
                                 key={svc.link}

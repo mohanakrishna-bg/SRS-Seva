@@ -246,9 +246,9 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                     </span>
                 </div>
 
-                {/* Panchanga Info Pills — Side-by-side responsive grid without horizontal overlap */}
+                {/* Panchanga Info Pills — 2x2 grid for full visibility */}
                 {panchanga ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10 w-full">
+                    <div className="grid grid-cols-2 gap-3 relative z-10 w-full">
                         <InfoPill icon={<Moon size={16} />} label="ತಿಥಿ" value={panchanga.tithi} color="text-indigo-400" />
                         <InfoPill icon={<Star size={16} />} label="ನಕ್ಷತ್ರ" value={panchanga.nakshatra} color="text-amber-500" />
                         <InfoPill icon={<Sun size={16} />} label="ಸೂರ್ಯೋದಯ" value={panchanga.sunrise} color="text-orange-500" />
@@ -328,7 +328,7 @@ function InfoPill({ icon, label, value, color }: { icon: ReactNode; label: strin
             </div>
             <div className="min-w-0 flex-1">
                 <p className="text-[10px] md:text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-bold leading-none mb-1">{label}</p>
-                <p className="text-xs md:text-sm font-black text-[var(--text-primary)] truncate" title={value}>{value}</p>
+                <p className="text-xs md:text-sm font-black text-[var(--text-primary)] leading-tight break-words" title={value}>{value}</p>
             </div>
         </div>
     );

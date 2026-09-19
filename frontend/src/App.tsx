@@ -17,6 +17,7 @@ import PublicLayout from './components/public/PublicLayout';
 import PublicHomePage from './pages/public/PublicHomePage';
 import PublicAboutPage from './pages/public/PublicAboutPage';
 import PublicSevasPage from './pages/public/PublicSevasPage';
+import PublicFacilitiesPage from './pages/public/PublicFacilitiesPage';
 import PublicEventsPage from './pages/public/PublicEventsPage';
 import PublicContactPage from './pages/public/PublicContactPage';
 
@@ -107,6 +108,7 @@ export default function App() {
                                     <Route path="/" element={<PublicHomePage />} />
                                     <Route path="/about" element={<PublicAboutPage />} />
                                     <Route path="/sevas" element={<PublicSevasPage />} />
+                                    <Route path="/facilities" element={<PublicFacilitiesPage />} />
                                     <Route path="/events" element={<PublicEventsPage />} />
                                     <Route path="/contact" element={<PublicContactPage />} />
                                 </Route>

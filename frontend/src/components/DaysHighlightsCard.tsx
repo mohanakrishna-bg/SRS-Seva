@@ -1,33 +1,22 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Clock, Users, Utensils, Pencil, Trash2, Maximize2, Check, X } from 'lucide-react';
+import { Sparkles, Clock, Users, Utensils, Maximize2, X } from 'lucide-react';
 import { eventsApi, statsApi } from '../api';
-import EventModal from './EventModal';
-import TransliteratedInput from './TransliteratedInput';
 import { useAuth } from '../context/AuthContext';
 
 interface DaysHighlightsCardProps {
     date?: Date;
     onRegisterSpecialEvent?: (eventName: string, eventCode: string) => void;
-    editable?: boolean;
 }
 
-export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, editable }: DaysHighlightsCardProps) {
+export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: DaysHighlightsCardProps) {
     const { isAuthenticated } = useAuth();
-    const isEditable = editable !== undefined ? editable : isAuthenticated;
-
     const [events, setEvents] = useState<any[]>([]);
     const [localHighlights, setLocalHighlights] = useState<any[]>([]);
     const [hiddenEvents, setHiddenEvents] = useState<string[]>([]);
-    const [isEventModalOpen, setIsEventModalOpen] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<Record<string, { sevakartas: number; prasada: number }>>({});
-    
-    // Inline editing state (only for authenticated users)
-    const [isEditingInline, setIsEditingInline] = useState(false);
-    const [newText, setNewText] = useState('');
-    const [newTime, setNewTime] = useState('');
 
     const activeDate = date || new Date();
 
@@ -108,31 +97,6 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
         return evt.EndTime ? `${evt.StartTime} – ${evt.EndTime}` : evt.StartTime;
     };
 
-    const hideDbEvent = (sevaCode: string) => {
-        if (!isEditable) return;
-        const newHidden = [...hiddenEvents, sevaCode];
-        setHiddenEvents(newHidden);
-        localStorage.setItem(getHiddenKey(), JSON.stringify(newHidden));
-    };
-
-    const removeLocalHighlight = (id: number) => {
-        if (!isEditable) return;
-        const newLocals = localHighlights.filter(h => h.id !== id);
-        setLocalHighlights(newLocals);
-        localStorage.setItem(getLocalKey(), JSON.stringify(newLocals));
-    };
-
-    const handleAddLocal = () => {
-        if (!isEditable || !newText.trim()) return;
-        const item = { id: Date.now(), text: newText.trim(), time: newTime.trim() || undefined };
-        const newLocals = [...localHighlights, item];
-        setLocalHighlights(newLocals);
-        localStorage.setItem(getLocalKey(), JSON.stringify(newLocals));
-        setNewText('');
-        setNewTime('');
-        setIsEditingInline(false);
-    };
-
     if (loading) return null;
 
     // Filter events: must have a StartTime and not be hidden
@@ -151,20 +115,10 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                     <h3 className="font-bold text-lg">ದಿನದ ವಿಶೇಷಗಳು</h3>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    {totalEvents > 0 && !isEditingInline && (
+                    {totalEvents > 0 && (
                         <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] border border-[var(--glass-border)] px-2 py-1 rounded-full mr-1">
                             {totalEvents} ಈವೆಂಟ್{totalEvents > 1 ? 'ಗಳು' : ''}
                         </span>
-                    )}
-                    {/* Inline edit button only visible for authenticated staff */}
-                    {isEditable && (
-                        <button
-                            onClick={() => setIsEditingInline(!isEditingInline)}
-                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${isEditingInline ? 'bg-[var(--primary)] text-white shadow-md' : 'hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--primary)]'}`}
-                            title="ಇಲ್ಲಿಯೇ ಸಂಪಾದಿಸಿ (Inline Edit)"
-                        >
-                            <Pencil size={16} />
-                        </button>
                     )}
                     {/* Maximize option: pops up locked modal with full card content */}
                     <button
@@ -179,7 +133,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
 
             {/* Events list */}
             <div className="relative z-10 p-4 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-                {totalEvents === 0 && !isEditingInline && (
+                {totalEvents === 0 && (
                     <div className="flex flex-col items-center justify-center h-full min-h-[140px] text-[var(--text-secondary)] opacity-60">
                         <Sparkles size={32} className="mb-2" />
                         <p className="text-sm">ಈ ದಿನ ಯಾವುದೇ ವಿಶೇಷ ಘಟನೆಗಳಿಲ್ಲ.</p>
@@ -201,11 +155,6 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                                 )}
                             </div>
                         </div>
-                        {isEditable && isEditingInline && (
-                            <button onClick={() => removeLocalHighlight(h.id)} className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors" title="ಅಳಿಸಿ (Delete)">
-                                <Trash2 size={14} />
-                            </button>
-                        )}
                     </div>
                 ))}
 
@@ -240,13 +189,9 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                                 )}
                             </div>
 
-                            {/* Actions (Register or Delete) */}
-                            <div className="flex items-center gap-2 shrink-0 pt-0.5">
-                                {isEditable && isEditingInline ? (
-                                    <button onClick={() => hideDbEvent(evt.SevaCode)} className="p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors" title="ಮರೆಮಾಡಿ (Hide)">
-                                        <Trash2 size={14} />
-                                    </button>
-                                ) : onRegisterSpecialEvent ? (
+                            {/* Action: Register */}
+                            {onRegisterSpecialEvent && (
+                                <div className="flex items-center gap-2 shrink-0 pt-0.5">
                                     <button
                                         disabled={isPastDate}
                                         onClick={(e) => {
@@ -261,29 +206,11 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                                     >
                                         ನೋಂದಾಯಿಸಿ
                                     </button>
-                                ) : null}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     );
                 })}
-
-                {/* Inline Add Form (Staff only) */}
-                {isEditable && isEditingInline && (
-                    <div className="mt-4 p-4 bg-black/5 dark:bg-white/5 rounded-xl space-y-3 border border-[var(--glass-border)]">
-                        <h4 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">ಹೊಸ ಘಟನೆ ಸೇರಿಸಿ</h4>
-                        <div className="flex flex-col gap-2.5">
-                            <TransliteratedInput value={newText} onChange={setNewText} placeholder="ಘಟನೆಯ ವಿವರಣೆ..." />
-                            <div className="flex gap-2">
-                                <div className="flex-1">
-                                    <TransliteratedInput value={newTime} onChange={setNewTime} placeholder="ಸಮಯ (ಐಚ್ಛಿಕ)" />
-                                </div>
-                                <button onClick={handleAddLocal} className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg flex items-center justify-center hover:bg-[var(--primary-hover)] transition-colors shadow-md">
-                                    <Check size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* ═══ Maximized Locked Modal (fits visible screen area with scrollbar) ═══ */}
@@ -320,15 +247,6 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                                     <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--glass-bg)] border border-[var(--glass-border)] px-3 py-1 rounded-full">
                                         {totalEvents} ಈವೆಂಟ್{totalEvents !== 1 ? 'ಗಳು' : ''}
                                     </span>
-                                    {isEditable && (
-                                        <button
-                                            onClick={() => setIsEventModalOpen(true)}
-                                            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 transition-all shadow-sm"
-                                        >
-                                            <Pencil size={13} />
-                                            ಸಂಪಾದಿಸಿ
-                                        </button>
-                                    )}
                                     <button
                                         onClick={() => setIsMaximized(false)}
                                         className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
@@ -452,19 +370,6 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent, edita
                     </div>
                 )}
             </AnimatePresence>
-
-            {/* Staff Edit Modal */}
-            {isEventModalOpen && isEditable && (
-                <EventModal
-                    isOpen={isEventModalOpen}
-                    date={activeDate}
-                    onClose={() => {
-                        setIsEventModalOpen(false);
-                        loadLocalHighlights();
-                        loadHiddenEvents();
-                    }}
-                />
-            )}
         </div>
     );
 }

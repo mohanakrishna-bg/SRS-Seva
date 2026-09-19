@@ -1,18 +1,20 @@
 import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, HeartHandshake, Sparkles, Settings, UserCog, Shield } from 'lucide-react';
+import { Users, HeartHandshake, Sparkles, Settings, UserCog, Shield, Building2 } from 'lucide-react';
 import CustomersPage from './CustomersPage';
 import SevasPage from './SevasPage';
 import SpecialEventsPage from './SpecialEventsPage';
 import SettingsPage from './SettingsPage';
 import UserAdminTab from '../components/UserAdminTab';
 import RoleManagementTab from '../components/RoleManagementTab';
+import PublicContentTab from '../components/PublicContentTab';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 const tabs = [
     { id: 'customers', label: 'ಭಕ್ತರು', icon: Users },
     { id: 'sevas', label: 'ಸೇವೆಗಳು', icon: HeartHandshake },
     { id: 'events', label: 'ವಿಶೇಷ ಘಟನೆಗಳು', icon: Sparkles },
+    { id: 'content', label: 'ಸೌಲಭ್ಯ ಮತ್ತು ಕಾರ್ಯಕ್ರಮ', icon: Building2 },
     { id: 'settings', label: 'ಸೆಟ್ಟಿಂಗ್ಸ್', icon: Settings },
     { id: 'roles', label: 'ಪಾತ್ರಗಳು', icon: Shield },
     { id: 'users', label: 'ಬಳಕೆದಾರರು', icon: UserCog },
@@ -52,6 +54,7 @@ export default function ManagePage() {
                         <Route path="customers" element={<CustomersPage />} />
                         <Route path="sevas" element={<SevasPage />} />
                         <Route path="events" element={<SpecialEventsPage />} />
+                        <Route path="content" element={<PublicContentTab />} />
                         <Route path="settings" element={<SettingsPage />} />
                         <Route path="roles" element={<RoleManagementTab />} />
                         <Route path="users" element={<UserAdminTab />} />

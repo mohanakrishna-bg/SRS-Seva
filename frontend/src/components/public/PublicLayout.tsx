@@ -65,6 +65,7 @@ export default function PublicLayout() {
         { to: '/', label: t('🏠 ಮುಖಪುಟ', '🏠 Home'), end: true },
         { to: '/about', label: t('🕉️ ಪರಿಚಯ', '🕉️ About') },
         { to: '/sevas', label: t('🪔 ಸೇವೆಗಳು', '🪔 Sevas') },
+        { to: '/facilities', label: t('🏛️ ಸೌಲಭ್ಯಗಳು', '🏛️ Facilities') },
         { to: '/events', label: t('📅 ಕಾರ್ಯಕ್ರಮಗಳು', '📅 Events') },
         { to: '/contact', label: t('📞 ಸಂಪರ್ಕ', '📞 Contact') },
     ];
