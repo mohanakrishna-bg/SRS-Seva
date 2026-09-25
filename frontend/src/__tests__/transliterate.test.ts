@@ -6,8 +6,8 @@
  * - Kannada detection (isKannada)
  * - Kannada-to-English transliteration (transliterateKnToEn)
  */
-import { describe, it, expect } from 'vitest';
-import { convertKnNumeralsToEn, isKannada, transliterateKnToEn } from '../transliterate';
+import { describe, it, expect, vi } from 'vitest';
+import { convertKnNumeralsToEn, isKannada, transliterateKnToEn, transliterateToKannada } from '../transliterate';
 
 describe('convertKnNumeralsToEn', () => {
     it('converts Kannada digits to English digits', () => {
@@ -76,5 +76,65 @@ describe('transliterateKnToEn', () => {
     it('transliterates the word for Temple', () => {
         const result = transliterateKnToEn('ದೇವಸ್ಥಾನ');
         expect(result).toBe('Temple');
+    });
+});
+
+describe('transliterateToKannada', () => {
+    it('returns original if empty or whitespace', async () => {
+        expect(await transliterateToKannada('')).toBe('');
+        expect(await transliterateToKannada('   ')).toBe('   ');
+    });
+
+    it('returns original if string has no Latin letters (pure Kannada)', async () => {
+        expect(await transliterateToKannada('ರಾಘವೇಂದ್ರ ರಾವ್')).toBe('ರಾಘವೇಂದ್ರ ರಾವ್');
+        expect(await transliterateToKannada('೧೨೩೪')).toBe('೧೨೩೪');
+    });
+
+    it('transliterates multiple English words preserving spaces and punctuation', async () => {
+        // Mock fetch for reliable test
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+            if (url.includes('raghavendra')) {
+                return Promise.resolve({
+                    json: () => Promise.resolve(['SUCCESS', [['raghavendra', ['ರಾಘವೇಂದ್ರ']]]])
+                });
+            }
+            if (url.includes('rao')) {
+                return Promise.resolve({
+                    json: () => Promise.resolve(['SUCCESS', [['rao', ['ರಾವ್']]]])
+                });
+            }
+            return Promise.resolve({
+                json: () => Promise.resolve(['SUCCESS', [['test', ['ಟೆಸ್ಟ್']]]])
+            });
+        }) as any;
+
+        try {
+            const result = await transliterateToKannada('raghavendra rao');
+            expect(result).toBe('ರಾಘವೇಂದ್ರ ರಾವ್');
+        } finally {
+            globalThis.fetch = originalFetch;
+        }
+    });
+
+    it('handles mixed Kannada and English preserving existing Kannada and transliterating English', async () => {
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+            if (url.includes('rao')) {
+                return Promise.resolve({
+                    json: () => Promise.resolve(['SUCCESS', [['rao', ['ರಾವ್']]]])
+                });
+            }
+            return Promise.resolve({
+                json: () => Promise.resolve(['FAIL'])
+            });
+        }) as any;
+
+        try {
+            const result = await transliterateToKannada('ರಾಘವೇಂದ್ರ rao');
+            expect(result).toBe('ರಾಘವೇಂದ್ರ ರಾವ್');
+        } finally {
+            globalThis.fetch = originalFetch;
+        }
     });
 });

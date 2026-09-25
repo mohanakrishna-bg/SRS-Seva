@@ -138,36 +138,18 @@ export default function SevaForm({ isOpen, onClose, onSubmit, initialData, title
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* TP Qty */}
-                        <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಪ್ರಸಾದ ಸಂಖ್ಯೆ
-                            </label>
-                            <input
-                                type="number"
-                                value={form.TPQty === 0 ? '' : form.TPQty}
-                                onFocus={(e) => e.target.select()}
-                                onChange={(e) => handleChange('TPQty', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
-                                placeholder="0"
-                                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
-                            />
-                        </div>
-
-                        {/* Addon Limit */}
-                        <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                ಹೆಚ್ಚುವರಿ ಪ್ರಸಾದ ಮಿತಿ
-                            </label>
-                            <input
-                                type="number"
-                                value={form.PrasadaAddonLimit === 0 ? '' : form.PrasadaAddonLimit}
-                                onFocus={(e) => e.target.select()}
-                                onChange={(e) => handleChange('PrasadaAddonLimit', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
-                                placeholder="0"
-                                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
-                            />
-                        </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+                            # of Hastodaka included (ಹಸ್ತೋದಕ ಸಂಖ್ಯೆ)
+                        </label>
+                        <input
+                            type="number"
+                            value={form.TPQty === 0 ? '' : form.TPQty}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleChange('TPQty', parseInt(convertKnNumeralsToEn(e.target.value)) || 0)}
+                            placeholder="0"
+                            className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+                        />
                     </div>
                 </div>
 

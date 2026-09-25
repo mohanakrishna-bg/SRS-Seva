@@ -141,8 +141,8 @@ export default function PublicSevasPage() {
                                                     ₹{seva.Amount}
                                                 </span>
                                             ) : (
-                                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'var(--pub-gold-light, #E8C96A)', color: 'var(--pub-maroon)' }}>
-                                                    {t('ಯಥಾಶಕ್ತಿ', 'Variable')}
+                                                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-200 border border-amber-500/25">
+                                                    {t('ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು', 'To be specified at booking')}
                                                 </span>
                                             )}
                                         </div>
@@ -150,7 +150,7 @@ export default function PublicSevasPage() {
                                     {seva.TPQty > 0 && (
                                         <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--pub-text-muted)' }}>
                                             <span>🍚</span>
-                                            <span>{t(`ತೀರ್ಥ ಪ್ರಸಾದ: ${seva.TPQty}`, `Tirtha Prasada Qty: ${seva.TPQty}`)}</span>
+                                            <span>{t(`ಹಸ್ತೋದಕ: ${seva.TPQty}`, `# of Hastodaka included: ${seva.TPQty}`)}</span>
                                         </div>
                                     )}
                                 </motion.div>

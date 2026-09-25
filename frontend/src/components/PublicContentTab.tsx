@@ -1090,7 +1090,7 @@ export default function PublicContentTab() {
                                             onClick={() => { setSelectedFacility(null); setSelectedEvent(null); }}
                                             className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 shadow-md transition-all"
                                         >
-                                            ಮುಚ್ಚಿ (Close)
+                                            ಹಿಂದೆ (Back)
                                         </button>
                                     </div>
                                 )}

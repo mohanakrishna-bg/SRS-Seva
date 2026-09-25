@@ -51,7 +51,7 @@ export default function Modal({
                             <button
                                 onClick={onClose}
                                 className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                                title="ಮುಚ್ಚಿ / Close"
+                                title="ಹಿಂದೆ / Back"
                             >
                                 <X size={20} />
                             </button>

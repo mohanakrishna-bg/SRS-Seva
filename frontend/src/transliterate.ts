@@ -12,61 +12,55 @@ const cache = new Map<string, string>();
 
 /**
  * Transliterate an English string to Kannada script.
- * Returns the original string if transliteration fails.
+ * Preserves spaces, numbers, punctuation, and existing Kannada characters.
+ * Handles single or multiple words cleanly.
+ * Returns the original string if transliteration fails or if no Latin letters are present.
  */
 export async function transliterateToKannada(text: string): Promise<string> {
-    if (!text.trim()) return text;
+    if (!text || !text.trim()) return text;
 
-    // If text is already in Kannada (Unicode range 0x0C80–0x0CFF), return as-is
-    if (/[\u0C80-\u0CFF]/.test(text)) return text;
+    // If text contains NO English/Latin letters at all, return as-is
+    if (!/[a-zA-Z]/.test(text)) return text;
 
-    // Check cache
+    // Check whole text cache
     if (cache.has(text)) return cache.get(text)!;
 
-    // Split into words and transliterate each
-    const words = text.split(/\s+/);
+    // Split text into English word tokens and non-English tokens (preserving spaces, punctuation, Kannada chars)
+    const tokens = text.split(/([a-zA-Z]+)/);
     const results: string[] = [];
 
-    for (const word of words) {
-        if (!word) continue;
+    for (const token of tokens) {
+        if (!token) continue;
 
-        // Skip if already Kannada
-        if (/[\u0C80-\u0CFF]/.test(word)) {
-            results.push(word);
-            continue;
-        }
-
-        // Retain English numerals and symbols (only transliterate words with letters)
-        if (!/[a-zA-Z]/.test(word)) {
-            results.push(word);
-            continue;
-        }
-
-        if (cache.has(word)) {
-            results.push(cache.get(word)!);
-            continue;
-        }
-
-        try {
-            const url = GOOGLE_TRANSLITERATE_URL.replace('QUERY', encodeURIComponent(word));
-            const response = await fetch(url);
-            const data = await response.json();
-
-            // Response format: ["SUCCESS", [["word", ["transliterated1", "transliterated2"]]]]
-            if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.[0]) {
-                const transliterated = data[1][0][1][0];
-                cache.set(word, transliterated);
-                results.push(transliterated);
-            } else {
-                results.push(word);
+        if (/[a-zA-Z]/.test(token)) {
+            if (cache.has(token)) {
+                results.push(cache.get(token)!);
+                continue;
             }
-        } catch {
-            // API unavailable — return original
-            results.push(word);
+
+            try {
+                const url = GOOGLE_TRANSLITERATE_URL.replace('QUERY', encodeURIComponent(token));
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Response format: ["SUCCESS", [["word", ["transliterated1", "transliterated2"]]]]
+                if (data[0] === 'SUCCESS' && data[1]?.[0]?.[1]?.[0]) {
+                    const transliterated = data[1][0][1][0];
+                    cache.set(token, transliterated);
+                    results.push(transliterated);
+                } else {
+                    results.push(token);
+                }
+            } catch {
+                // API unavailable — return original token
+                results.push(token);
+            }
+        } else {
+            results.push(token);
         }
     }
 
-    const result = results.join(' ');
+    const result = results.join('');
     cache.set(text, result);
     return result;
 }
@@ -78,7 +72,7 @@ export async function transliterateToKannada(text: string): Promise<string> {
 export function transliterateKnToEn(text: string): string {
     if (!text || !/[\u0C80-\u0CFF]/.test(text)) return text;
 
-    // Small dictionary of common words/phrases to handle better
+    // Dictionary of common temple and devotee words/names
     const dictionary: Record<string, string> = {
         'ಶ್ರೀ': 'Shree',
         'ಮಠ': 'Matha',
@@ -87,32 +81,73 @@ export function transliterateKnToEn(text: string): string {
         'ಸೇವೆ': 'Seva',
         'ನಮಸ್ಕಾರ': 'Namaskara',
         'ಹರಿಃ': 'Harih',
-        'ಓಂ': 'Om'
+        'ಓಂ': 'Om',
+        'ರಾಘವೇಂದ್ರ': 'Raghavendra',
+        'ರಾವ್': 'Rao',
+        'ಕುಮಾರ್': 'Kumar',
+        'ಭಟ್': 'Bhat',
+        'ಆಚಾರ್': 'Achar',
+        'ಶರ್ಮಾ': 'Sharma',
+        'ಶಾಸ್ತ್ರಿ': 'Shastry',
+        'ಪ್ರಸಾದ್': 'Prasad'
     };
 
-    // Replace known dictionary words first
     let result = text;
     for (const [kn, en] of Object.entries(dictionary)) {
         result = result.replace(new RegExp(kn, 'g'), en);
     }
 
-    // Comprehensive char mapping
-    const mapping: Record<string, string> = {
-        'ಅ': 'a', 'ಆ': 'aa', 'ಇ': 'i', 'ಈ': 'ee', 'ಉ': 'u', 'ಊ': 'oo', 'ಋ': 'ru', 'ಎ': 'e', 'ಏ': 'ee', 'ಐ': 'ai', 'ಒ': 'o', 'ಓ': 'oo', 'ಔ': 'au', 'ಅಂ': 'am', 'ಅಃ': 'ah',
-        'ಕ': 'ka', 'ಖ': 'kha', 'ಗ': 'ga', 'ಘ': 'gha', 'ಙ': 'nga',
-        'ಚ': 'cha', 'ಛ': 'chha', 'ಜ': 'ja', 'ಝ': 'jha', 'ಞ': 'nya',
-        'ಟ': 'ta', 'ಠ': 'tha', 'ಡ': 'da', 'ಢ': 'dha', 'ಣ': 'na',
-        'ತ': 'ta', 'ಥ': 'tha', 'ದ': 'da', 'ಧ': 'dha', 'ನ': 'na',
-        'ಪ': 'pa', 'ಫ': 'pha', 'ಬ': 'ba', 'ಭ': 'bha', 'ಮ': 'ma',
-        'ಯ': 'ya', 'ರ': 'ra', 'ಲ': 'la', 'ವ': 'va', 'ಶ': 'sha', 'ಷ': 'sha', 'ಸ': 'sa', 'ಹ': 'ha', 'ಳ': 'la',
-        'ಾ': 'aa', 'ಿ': 'i', 'ೀ': 'ee', 'ು': 'u', 'ೂ': 'oo', 'ೃ': 'ru', 'ೆ': 'e', 'ೇ': 'ee', 'ೈ': 'ai', 'ೊ': 'o', 'ೋ': 'oo', 'ೌ': 'au', '್': '', 'ಂ': 'm', 'ಃ': 'h'
+    const vowels: Record<string, string> = {
+        'ಅ': 'a', 'ಆ': 'aa', 'ಇ': 'i', 'ಈ': 'ee', 'ಉ': 'u', 'ಊ': 'oo', 'ಋ': 'ru',
+        'ಎ': 'e', 'ಏ': 'ee', 'ಐ': 'ai', 'ಒ': 'o', 'ಓ': 'oo', 'ಔ': 'au', 'ಅಂ': 'am', 'ಅಃ': 'ah'
     };
 
-    // Simple phonetic replacement for remaining Kannada chars
-    return result.split('').map(char => mapping[char] || char).join('')
-        .replace(/([aeiou])a/g, '$1') // Clean up redundant vowels
-        .replace(/aa/g, 'a') // Simplify
-        .trim();
+    const consonants: Record<string, string> = {
+        'ಕ': 'k', 'ಖ': 'kh', 'ಗ': 'g', 'ಘ': 'gh', 'ಙ': 'ng',
+        'ಚ': 'ch', 'ಛ': 'chh', 'ಜ': 'j', 'ಝ': 'jh', 'ಞ': 'ny',
+        'ಟ': 't', 'ಠ': 'th', 'ಡ': 'd', 'ಢ': 'dh', 'ಣ': 'n',
+        'ತ': 't', 'ಥ': 'th', 'ದ': 'd', 'ಧ': 'dh', 'ನ': 'n',
+        'ಪ': 'p', 'ಫ': 'ph', 'ಬ': 'b', 'ಭ': 'bh', 'ಮ': 'm',
+        'ಯ': 'y', 'ರ': 'r', 'ಲ': 'l', 'ವ': 'v', 'ಶ': 'sh', 'ಷ': 'sh', 'ಸ': 's', 'ಹ': 'h', 'ಳ': 'l'
+    };
+
+    const matras: Record<string, string> = {
+        'ಾ': 'a', 'ಿ': 'i', 'ೀ': 'ee', 'ು': 'u', 'ೂ': 'oo', 'ೃ': 'ru',
+        'ೆ': 'e', 'ೇ': 'e', 'ೈ': 'ai', 'ೊ': 'o', 'ೋ': 'o', 'ೌ': 'au'
+    };
+
+    let out = '';
+    const chars = Array.from(result);
+    for (let i = 0; i < chars.length; i++) {
+        const c = chars[i];
+        if (vowels[c]) {
+            out += vowels[c];
+        } else if (consonants[c]) {
+            const base = consonants[c];
+            const next = chars[i + 1];
+            if (next === '್') {
+                out += base;
+                i++; // skip halant / virama
+            } else if (matras[next]) {
+                out += base + matras[next];
+                i++; // skip matra
+            } else {
+                out += base + 'a';
+            }
+        } else if (c === 'ಂ') {
+            out += 'm';
+        } else if (c === 'ಃ') {
+            out += 'h';
+        } else if (c === '್') {
+            // stray halant
+        } else if (matras[c]) {
+            out += matras[c];
+        } else {
+            out += c;
+        }
+    }
+
+    return out.replace(/\b[a-z]/g, (s) => s.toUpperCase()).trim();
 }
 
 /**

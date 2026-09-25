@@ -40,9 +40,8 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
     const details = [
         { label: 'ವಿವರಣೆ (Kannada)', value: seva.Description },
         { label: 'Description (English)', value: seva.DescriptionEn },
-        { label: 'ಶುಲ್ಕ (Amount)', value: seva.Amount > 0 ? `₹${seva.Amount.toLocaleString()}` : 'ಉಚಿತ' },
-        { label: 'ಪ್ರಸಾದ (TPQty)', value: (seva.TPQty ?? 0) > 0 ? `${seva.TPQty} ಜನರಿಗೆ` : '—' },
-        { label: 'ಹೆಚ್ಚುವರಿ ಪ್ರಸಾದ ಮಿತಿ', value: seva.PrasadaAddonLimit || '—' },
+        { label: 'ಶುಲ್ಕ (Amount)', value: (seva.Amount ?? 0) > 0 ? `₹${seva.Amount.toLocaleString()}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು (To be specified at booking)' },
+        { label: '# of Hastodaka included', value: (seva.TPQty ?? 0) > 0 ? `${seva.TPQty} ಜನರಿಗೆ (${seva.TPQty} persons)` : '—' },
     ].filter(d => d.value !== undefined);
 
     if (seva.IsSpecialEvent) {
@@ -136,7 +135,7 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
                                 onClick={handleClose}
                                 className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-orange-500/20 transition-all"
                             >
-                                ಮುಚ್ಚಿ (Close)
+                                ಹಿಂದೆ (Back)
                             </button>
                         </div>
                     </div>

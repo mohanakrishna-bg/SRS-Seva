@@ -1,0 +1,80 @@
+[
+  {
+    "code": "01",
+    "nameKn": "3 ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ",
+    "nameEn": "3 Days All Seva",
+    "amount": 30000
+  },
+  {
+    "code": "02",
+    "nameKn": "3 ದಿನದ ಹೂವಿನ ಅಲಂಕಾರ",
+    "nameEn": "3 Days Flower Seva",
+    "amount": 15000
+  },
+  {
+    "code": "03",
+    "nameKn": "1 ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ",
+    "nameEn": "1 Day All Seva",
+    "amount": 10000
+  },
+  {
+    "code": "04",
+    "nameKn": "3 ದಿನದ ಅಲಂಕಾರ ಬ್ರಾಹ್ಮಣರ ಸೇವೆ",
+    "nameEn": "3 Days Alankara Seva",
+    "amount": 9000
+  },
+  {
+    "code": "05",
+    "nameKn": "1 ದಿನದ ಹೂವಿನ ಅಲಂಕಾರ",
+    "nameEn": "1 Day Flower Seva",
+    "amount": 5000
+  },
+  {
+    "code": "06",
+    "nameKn": "1 ದಿನದ ಅಲಂಕಾರ ಬ್ರಾಹ್ಮಣರ ಸೇವೆ",
+    "nameEn": "1 Day Alankara Seva",
+    "amount": 3000
+  },
+  {
+    "code": "07",
+    "nameKn": "ಕನಕಾಭಿಷೇಕ",
+    "nameEn": "Kanakabhisheka",
+    "amount": 2000
+  },
+  {
+    "code": "08",
+    "nameKn": "ಪಾದಪೂಜೆ",
+    "nameEn": "Pada Puje",
+    "amount": 500
+  },
+  {
+    "code": "09",
+    "nameKn": "ಪೂರ್ಣಸೇವೆ (ರಥೋತ್ಸವ/ ಹಸ್ತೋದಕ/ಪಂಚಾಮೃತ)",
+    "nameEn": "Purna Seve (Rathotsava/Hasthodaka/Panchamrutha)",
+    "amount": 500
+  },
+  {
+    "code": "10",
+    "nameKn": "ರಥೋತ್ಸವ",
+    "nameEn": "Rathotsava",
+    "amount": 200
+  },
+  {
+    "code": "11",
+    "nameKn": "ಹಸ್ತೋದಕ",
+    "nameEn": "Hasthodaka",
+    "amount": 200
+  },
+  {
+    "code": "12",
+    "nameKn": "ಪಂಚಾಮೃತ",
+    "nameEn": "Panchamrutha",
+    "amount": 100
+  },
+  {
+    "code": "13",
+    "nameKn": "ಅನ್ನದಾನ ಮಹಾಸೇವೆ (ಶಕ್ತ್ಯಾನುಸಾರ)",
+    "nameEn": "Annadana Mahaseva (As per Wish)",
+    "amount": 0
+  }
+]

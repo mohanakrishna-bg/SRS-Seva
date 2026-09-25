@@ -5,6 +5,7 @@ import { MapPin, Phone, Globe } from 'lucide-react';
 import type { PublicLayoutContextType } from '../../components/public/PublicLayout';
 import EeDinaCard from '../../components/EeDinaCard';
 import DaysHighlightsCard from '../../components/DaysHighlightsCard';
+import EDarshanSection from '../../components/public/EDarshanSection';
 
 const fadeUp: Variants = {
     hidden: { opacity: 0, y: 24 },
@@ -72,10 +73,10 @@ export default function PublicHomePage() {
         <>
             {/* ===== HERO ===== */}
             <section
-                className="relative overflow-hidden flex flex-col items-center justify-center text-center py-20 px-4"
+                className="relative overflow-hidden flex flex-col items-center justify-center text-center py-16 md:py-24 px-4"
                 style={{
                     background: 'linear-gradient(135deg, var(--pub-hero-from) 0%, var(--pub-hero-to) 100%)',
-                    minHeight: '480px',
+                    minHeight: '560px',
                 }}
             >
                 {/* Subtle pattern overlay */}
@@ -87,41 +88,73 @@ export default function PublicHomePage() {
                 />
 
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
+                    initial={{ opacity: 0, scale: 0.88 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                    className="relative z-10 flex flex-col items-center gap-6"
+                    transition={{ duration: 0.65, ease: 'easeOut' }}
+                    className="relative z-10 flex flex-col items-center gap-5 max-w-4xl mx-auto"
                 >
-                    {settings.logoImage ? (
-                        <img
-                            src={settings.logoImage}
-                            alt="Logo"
-                            className="w-24 h-24 rounded-full object-cover border-4 border-white/40 shadow-2xl"
-                        />
-                    ) : (
-                        <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl bg-white/20 border-4 border-white/30 shadow-2xl backdrop-blur-sm">
-                            🙏
-                        </div>
-                    )}
+                    {/* Page 1 Sacred Invocations */}
+                    <div className="inline-flex items-center gap-3 px-5 py-1.5 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs md:text-sm font-bold tracking-wider backdrop-blur-md shadow-lg">
+                        <span>|| {t('ಮೂಲರಾಮೋ ವಿಜಯತೇ', 'Moolaramo Vijayate')} ||</span>
+                        <span className="text-amber-300">✦</span>
+                        <span>|| {t('ಗುರುರಾಜೋ ವಿಜಯತೇ', 'Gururajo Vijayate')} ||</span>
+                    </div>
 
+                    {/* Sri Rayaru Sacred Portrait from Page 1 */}
+                    <div className="relative group">
+                        <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 opacity-80 blur-md group-hover:opacity-100 transition-opacity" />
+                        <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-amber-300/90 shadow-2xl bg-amber-950/40">
+                            <img
+                                src="/images/aaradhana/rayaru_portrait.png"
+                                alt="Sri Guru Raghavendra Swamy"
+                                className="w-full h-full object-cover object-top scale-105"
+                                onError={(e) => {
+                                    // fallback to settings logo if available
+                                    if (settings.logoImage) e.currentTarget.src = settings.logoImage;
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Trust / Organization Title */}
                     <div>
                         <h1
-                            className="text-4xl md:text-5xl font-bold text-white mb-3 leading-tight"
-                            style={{ fontFamily: 'var(--pub-font-heading)', textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}
+                            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2 leading-tight"
+                            style={{ fontFamily: 'var(--pub-font-heading)', textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}
                         >
                             {orgName}
                         </h1>
-                        <p className="text-white/80 text-lg md:text-xl">
+                        <p className="text-amber-200/90 text-sm md:text-base font-medium tracking-wide">
                             {t('ಸೇವೆ · ಭಕ್ತಿ · ಸಮರ್ಪಣೆ', 'Service · Devotion · Dedication')}
+                        </p>
+                    </div>
+
+                    {/* Page 1 Sacred Shloka Card */}
+                    <div className="bg-black/30 backdrop-blur-md rounded-2xl px-6 py-3.5 border border-amber-300/35 max-w-xl mx-auto shadow-2xl">
+                        <p
+                            className="text-amber-200 text-sm sm:text-base md:text-lg font-bold leading-relaxed"
+                            style={{ fontFamily: 'var(--pub-font-heading)', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
+                        >
+                            {lang === 'kn' ? (
+                                <>
+                                    ಪೂಜ್ಯಾಯ ರಾಘವೇಂದ್ರಾಯ ಸತ್ಯಧರ್ಮ ರತಾಯ ಚ |<br />
+                                    ಭಜತಾಂ ಕಲ್ಪವೃಕ್ಷಾಯ ನಮತಾಂ ಕಾಮಧೇನವೇ ||
+                                </>
+                            ) : (
+                                <>
+                                    Poojyaya Raghavendraya Satyadharma Rathaya Cha |<br />
+                                    Bhajatam Kalpavrukshaya Namatam Kamadhenave ||
+                                </>
+                            )}
                         </p>
                     </div>
 
                     {/* Address & Contact Details in Hero Banner */}
                     {(orgAddress || settings.phone || settings.website) && (
-                        <div className="bg-black/25 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/20 text-white/95 text-xs sm:text-sm shadow-xl flex flex-wrap items-center justify-center gap-x-6 gap-y-2 max-w-2xl mx-auto">
+                        <div className="bg-black/25 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20 text-white/95 text-xs sm:text-sm shadow-xl flex flex-wrap items-center justify-center gap-x-6 gap-y-2 max-w-2xl mx-auto">
                             {orgAddress && (
                                 <div className="flex items-center gap-1.5 text-center sm:text-left">
-                                    <MapPin size={15} className="text-amber-300 shrink-0" />
+                                    <MapPin size={14} className="text-amber-300 shrink-0" />
                                     <span>{orgAddress}</span>
                                 </div>
                             )}
@@ -130,7 +163,7 @@ export default function PublicHomePage() {
                                     href={`tel:${settings.phone}`}
                                     className="flex items-center gap-1.5 hover:text-amber-200 transition-colors"
                                 >
-                                    <Phone size={14} className="text-amber-300 shrink-0" />
+                                    <Phone size={13} className="text-amber-300 shrink-0" />
                                     <span className="font-semibold">{settings.phone}</span>
                                 </a>
                             )}
@@ -141,25 +174,32 @@ export default function PublicHomePage() {
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-1.5 hover:text-amber-200 transition-colors"
                                 >
-                                    <Globe size={14} className="text-amber-300 shrink-0" />
+                                    <Globe size={13} className="text-amber-300 shrink-0" />
                                     <span>{settings.website.replace(/^https?:\/\//, '')}</span>
                                 </a>
                             )}
                         </div>
                     )}
 
-                    <div className="flex flex-wrap gap-4 justify-center mt-2">
+                    {/* Quick CTAs */}
+                    <div className="flex flex-wrap gap-3.5 justify-center mt-1">
                         <Link
                             to="/sevas"
-                            className="px-7 py-3 rounded-2xl font-bold text-sm shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
+                            className="px-6 py-2.5 rounded-2xl font-bold text-sm shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
                             style={{ background: 'white', color: 'var(--pub-saffron)' }}
                         >
                             🪔 {t('ಸೇವೆಗಳನ್ನು ನೋಡಿ', 'View Sevas')}
                         </Link>
+                        <a
+                            href="#e-darshan"
+                            className="px-6 py-2.5 rounded-2xl font-bold text-sm shadow-xl transition-all hover:scale-105 border-2 border-amber-300 text-amber-200 hover:bg-amber-400/20 flex items-center gap-1.5"
+                        >
+                            <span>👁️</span>
+                            <span>{t('ಇ-ದರ್ಶನ & ಕಾಣಿಕೆ', 'e-Darshan & Offering')}</span>
+                        </a>
                         <Link
                             to="/contact"
-                            className="px-7 py-3 rounded-2xl font-bold text-sm shadow-xl transition-all hover:scale-105 border-2 border-white/50 hover:bg-white/10"
-                            style={{ color: 'white' }}
+                            className="px-6 py-2.5 rounded-2xl font-bold text-sm shadow-xl transition-all hover:scale-105 border-2 border-white/50 text-white hover:bg-white/10"
                         >
                             📞 {t('ಸಂಪರ್ಕಿಸಿ', 'Contact Us')}
                         </Link>
@@ -167,7 +207,20 @@ export default function PublicHomePage() {
                 </motion.div>
             </section>
 
-            {/* ===== EE DINA / PANCHANGA WIDGETS ===== */}
+            {/* ===== VIRTUAL E-DARSHAN & E-HUNDI SECTION ===== */}
+            <motion.div
+                variants={fadeUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.05 }}
+            >
+                <EDarshanSection lang={lang} t={t} upiId={settings?.upiVpa} />
+            </motion.div>
+
+            {/* Ornament divider */}
+            <div className="text-center text-2xl py-4" style={{ color: 'var(--pub-saffron)', opacity: 0.4 }}>❖</div>
+
+            {/* ===== EE DINA / PANCHANGA & TODAY'S SPECIAL EVENTS ===== */}
             <section className="py-10 px-4 md:px-8" style={{ background: 'var(--pub-bg)' }}>
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -181,10 +234,10 @@ export default function PublicHomePage() {
                             className="text-2xl md:text-3xl font-bold mb-2"
                             style={{ color: 'var(--pub-ink)', fontFamily: 'var(--pub-font-heading)' }}
                         >
-                            {t('ಇಂದಿನ ಪಂಚಾಂಗ', "Today's Panchanga")}
+                            {t('ಇಂದಿನ ಪಂಚಾಂಗ ಮತ್ತು ವಿಶೇಷ ಕಾರ್ಯಕ್ರಮಗಳು', "Today's Panchanga & Special Events")}
                         </h2>
                         <p className="text-sm" style={{ color: 'var(--pub-text-muted)' }}>
-                            {t('ಇಂದಿನ ಮುಹೂರ್ತ, ತಿಥಿ ಮತ್ತು ವಿಶೇಷ ಮಾಹಿತಿ', 'Muhurtha, tithi and highlights for today')}
+                            {t('ಇಂದಿನ ಮುಹೂರ್ತ, ತಿಥಿ ಮತ್ತು ವಿಶೇಷ ಕಾರ್ಯಕ್ರಮಗಳ ವಿವರ', 'Muhurtha, tithi and highlights for today')}
                         </p>
                     </motion.div>
                     <div className="flex flex-col gap-6">
@@ -209,7 +262,6 @@ export default function PublicHomePage() {
                             <DaysHighlightsCard
                                 date={selectedDate}
                                 onRegisterSpecialEvent={() => {
-                                    // On the public site, guide user to contact page instead of opening the staff modal
                                     window.location.href = '/contact';
                                 }}
                             />

@@ -224,7 +224,7 @@ export default function SevasPage() {
                                          <ArrowUpDown size={12} />
                                     </div>
                                 </th>
-                                <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell">ಪ್ರಸಾದ</th>
+                                <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell"># of Hastodaka included</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -242,12 +242,16 @@ export default function SevasPage() {
                                         {s.DescriptionEn && <div className={`${pageSize <= 5 ? 'text-xs' : 'text-[10px]'} text-[var(--text-secondary)]`}>{s.DescriptionEn}</div>}
                                     </td>
                                     <td className={`${pyClass} text-right font-mono font-bold transition-all`}>
-                                        {(s.Amount ?? 0) > 0 && (
+                                        {(s.Amount ?? 0) > 0 ? (
                                             <span className="text-emerald-400 font-mono text-base font-bold">₹{s.Amount?.toLocaleString()}</span>
+                                        ) : (
+                                            <span className="text-amber-600 dark:text-amber-400 font-sans text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                                                ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು
+                                            </span>
                                         )}
                                     </td>
-                                    <td className={`${pyClass} text-right pr-4 text-sm text-[var(--text-secondary)] hidden md:table-cell transition-all`}>
-                                        {(s.TPQty ?? 0) > 0 ? `${s.TPQty} ಜನರು` : '—'}
+                                    <td className={`${pyClass} text-right pr-4 text-sm text-[var(--text-secondary)] hidden md:table-cell transition-all font-mono`}>
+                                        {(s.TPQty ?? 0) > 0 ? `${s.TPQty}` : '—'}
                                     </td>
                                 </tr>
                                 );
@@ -386,10 +390,10 @@ export default function SevasPage() {
                                 header: 'ಮೊತ್ತ (Amount)',
                                 className: 'text-right font-mono font-bold',
                                 headerClassName: 'text-right',
-                                render: (s) => `₹${s.Amount}`
+                                render: (s) => (s.Amount ?? 0) > 0 ? `₹${s.Amount}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು (To be specified at booking)'
                             },
                             {
-                                header: 'ತೀರ್ಥ ಪ್ರಸಾದ (TP Qty)',
+                                header: '# of Hastodaka included',
                                 className: 'text-center font-mono',
                                 headerClassName: 'text-center',
                                 render: (s) => s.TPQty ?? 0

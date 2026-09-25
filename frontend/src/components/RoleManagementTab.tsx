@@ -292,7 +292,7 @@ export default function RoleManagementTab() {
                                         </button>
                                     )}
                                     <button onClick={() => setSelectedRole(null)} className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 text-xs font-bold transition-colors">
-                                        Close
+                                        Back
                                     </button>
                                 </div>
                             </div>

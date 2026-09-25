@@ -363,7 +363,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                     onClick={() => setIsMaximized(false)}
                                     className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 transition-all shadow-md"
                                 >
-                                    ಮುಚ್ಚಿ (Close)
+                                    ಹಿಂದೆ (Back)
                                 </button>
                             </div>
                         </motion.div>

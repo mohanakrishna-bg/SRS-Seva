@@ -528,12 +528,11 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                             )}
                         </div>
 
-                        {/* Close */}
                         <button
                             onClick={onClose}
                             className="w-full mt-4 px-4 py-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors text-sm text-center"
                         >
-                            {lang === 'kn' ? 'ಮುಚ್ಚಿ' : 'Close'}
+                            {lang === 'kn' ? 'ಹಿಂದೆ' : 'Back'}
                         </button>
                     </motion.div>
                 </motion.div>

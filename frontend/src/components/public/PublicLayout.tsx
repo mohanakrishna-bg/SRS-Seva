@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, NavLink } from 'react-router-dom';
+import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
 import { Moon, Sun, Menu, X, MapPin, Phone, Clock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings, type OrgSettings } from '../../context/SettingsContext';
@@ -61,8 +61,24 @@ export default function PublicLayout() {
         ? (settings.addressEn || settings.address || '')
         : (settings.address || '');
 
+    const location = useLocation();
+
+    // Smooth scroll to anchor hash (e.g. #e-darshan)
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.replace('#', '');
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        }
+    }, [location.hash, location.pathname]);
+
     const navLinks = [
         { to: '/', label: t('🏠 ಮುಖಪುಟ', '🏠 Home'), end: true },
+        { to: '/#e-darshan', label: t('👁️ ಇ-ದರ್ಶನ', '👁️ e-Darshan'), isHash: true },
         { to: '/about', label: t('🕉️ ಪರಿಚಯ', '🕉️ About') },
         { to: '/sevas', label: t('🪔 ಸೇವೆಗಳು', '🪔 Sevas') },
         { to: '/facilities', label: t('🏛️ ಸೌಲಭ್ಯಗಳು', '🏛️ Facilities') },
@@ -129,17 +145,29 @@ export default function PublicLayout() {
 
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-1">
-                        {navLinks.map(link => (
-                            <NavLink
-                                key={link.to}
-                                to={link.to}
-                                end={link.end}
-                                className={({ isActive }) => navLinkClass(isActive)}
-                                style={({ isActive }) => navLinkStyle(isActive)}
-                            >
-                                {link.label}
-                            </NavLink>
-                        ))}
+                        {navLinks.map(link => {
+                            const isHashActive = link.isHash
+                                ? location.pathname === '/' && location.hash === '#e-darshan'
+                                : (!location.hash && (link.end ? location.pathname === '/' : location.pathname.startsWith(link.to)));
+                            return (
+                                <NavLink
+                                    key={link.to}
+                                    to={link.to}
+                                    end={link.end}
+                                    onClick={() => {
+                                        if (link.to.includes('#')) {
+                                            const hash = link.to.split('#')[1];
+                                            const el = document.getElementById(hash);
+                                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                        }
+                                    }}
+                                    className={() => navLinkClass(isHashActive)}
+                                    style={() => navLinkStyle(isHashActive)}
+                                >
+                                    {link.label}
+                                </NavLink>
+                            );
+                        })}
                     </nav>
 
                     {/* Controls */}
@@ -217,25 +245,37 @@ export default function PublicLayout() {
                                     </button>
                                 </div>
 
-                                {navLinks.map(link => (
-                                    <NavLink
-                                        key={link.to}
-                                        to={link.to}
-                                        end={link.end}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className={({ isActive }) =>
-                                            `flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
-                                                isActive ? 'text-white' : ''
-                                            }`
-                                        }
-                                        style={({ isActive }) => ({
-                                            background: isActive ? 'var(--pub-saffron)' : undefined,
-                                            color: isActive ? 'white' : 'var(--pub-text)',
-                                        })}
-                                    >
-                                        {link.label}
-                                    </NavLink>
-                                ))}
+                                {navLinks.map(link => {
+                                    const isHashActive = link.isHash
+                                        ? location.pathname === '/' && location.hash === '#e-darshan'
+                                        : (!location.hash && (link.end ? location.pathname === '/' : location.pathname.startsWith(link.to)));
+                                    return (
+                                        <NavLink
+                                            key={link.to}
+                                            to={link.to}
+                                            end={link.end}
+                                            onClick={() => {
+                                                setMobileMenuOpen(false);
+                                                if (link.to.includes('#')) {
+                                                    const hash = link.to.split('#')[1];
+                                                    const el = document.getElementById(hash);
+                                                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                                }
+                                            }}
+                                            className={() =>
+                                                `flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
+                                                    isHashActive ? 'text-white' : ''
+                                                }`
+                                            }
+                                            style={() => ({
+                                                background: isHashActive ? 'var(--pub-saffron)' : undefined,
+                                                color: isHashActive ? 'white' : 'var(--pub-text)',
+                                            })}
+                                        >
+                                            {link.label}
+                                        </NavLink>
+                                    );
+                                })}
 
                                 <div className="mt-auto flex items-center gap-3 px-2">
                                     <button

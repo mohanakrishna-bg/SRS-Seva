@@ -27,8 +27,10 @@ from app.schemas import schemas
 from app import database
 from app.core import auth
 from app.shared.fuzzy_search import fuzzy_search_records
+from app.modules.seva import reports
 
 router = APIRouter(prefix="/api", tags=["seva"])
+router.include_router(reports.router)
 
 UPLOAD_DIR = "uploads"
 PHOTO_DIR = os.path.join(UPLOAD_DIR, "photos")

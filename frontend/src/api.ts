@@ -189,6 +189,13 @@ export const reportsApi = {
         api.get(`/accounting/reports/bank-reconciliation?bank_id=${bankId}`),
 };
 
+export const sevaReportsApi = {
+    getSevaBookings: (params: { start_date: string; end_date?: string; report_type?: 'on_demand_full' | 'daily_priest'; date_type?: 'SevaDate' | 'RegistrationDate' }) =>
+        api.get('/reports/seva-bookings', { params }),
+    getHastodaka: (params: { start_date: string; end_date?: string }) =>
+        api.get('/reports/hastodaka', { params }),
+};
+
 export const testApi = {
     simulate: () => api.post('/test/simulate'),
     cleanup: () => api.delete('/test/cleanup'),
