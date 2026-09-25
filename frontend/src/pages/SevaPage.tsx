@@ -25,8 +25,8 @@ export default function SevaPage() {
     const basePath = location.pathname.startsWith('/app/seva') ? '/app/seva' : '/seva';
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex flex-col">
-            <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="h-[calc(100vh-8rem)] flex flex-col print:h-auto print:block print:p-0 print:m-0">
+            <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
                 <div>
                     <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">ಸೇವಾ ಸಂಬಂಧಿತ ಕ್ರಿಯೆಗಳು</h1>
                     <p className="text-[var(--text-secondary)] mt-1">Seva Sambandhita Kriyegalu</p>
@@ -40,7 +40,7 @@ export default function SevaPage() {
                 </button>
             </header>
 
-            <div className="flex gap-2 mb-6 p-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl w-fit backdrop-blur-md">
+            <div className="flex gap-2 mb-6 p-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl w-fit backdrop-blur-md print:hidden">
                 <NavLink
                     to={`${basePath}/booked`}
                     className={({ isActive }) => `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
@@ -66,7 +66,7 @@ export default function SevaPage() {
                 </NavLink>
             </div>
 
-            <div className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg overflow-hidden flex flex-col relative">
+            <div className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md shadow-lg overflow-hidden flex flex-col relative print:border-none print:p-0 print:m-0 print:shadow-none print:bg-transparent print:overflow-visible">
                 <Routes>
                     <Route path="" element={<Navigate to="booked" replace />} />
                     <Route path="booked" element={<BookedSevasTab />} />

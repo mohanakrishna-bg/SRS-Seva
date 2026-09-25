@@ -29,6 +29,7 @@ export interface ReportDefinition {
     category: ReportCategory;
     titleKn: string;
     titleEn: string;
+    printTitleKn: string; // Pure Kannada title for the formal print header
     subtitleKn: string;
     subtitleEn: string;
     audience: 'priest' | 'kitchen' | 'admin' | 'accounts';
@@ -53,6 +54,7 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         category: 'daily',
         titleKn: 'ಮಾರನೆಯ ದಿನದ ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ',
         titleEn: 'Priest Pooja Sankalpa List (Tomorrow)',
+        printTitleKn: 'ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ',
         subtitleKn: 'ಮಾರನೆಯ ದಿನದ ಪೂಜಾ ಸಂಕಲ್ಪಕ್ಕೆ ಸೇವೆವಾರು ಭಕ್ತರ ಹೆಸರು, ಗೋತ್ರ, ನಕ್ಷತ್ರ ಮತ್ತು ಸೇವಾ ಸಂಖ್ಯೆ',
         subtitleEn: 'Devotee Name, Gothra, Nakshatra grouped by Seva for Sankalpa',
         audience: 'priest',
@@ -69,6 +71,7 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         category: 'daily',
         titleKn: 'ಮಾರನೆಯ ದಿನದ ಹಸ್ತೋದಕ ಲೆಕ್ಕ',
         titleEn: 'Kitchen Hastodaka Count (Tomorrow)',
+        printTitleKn: 'ಹಸ್ತೋದಕ ಲೆಕ್ಕ',
         subtitleKn: 'ಮಾರನೆಯ ದಿನ ತಯಾರಿಸಬೇಕಾದ ಹಸ್ತೋದಕ ಎಲೆಗಳ ಪೂರ್ಣ ಲೆಕ್ಕ (ಉಚಿತ ಹಸ್ತೋದಕ + ಹೆಚ್ಚುವರಿ)',
         subtitleEn: 'Included free + additional hastodaka plate count for kitchen preparation',
         audience: 'kitchen',
@@ -85,6 +88,7 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         category: 'on_demand',
         titleKn: 'ದಿನಾಂಕವಾರು ಸೇವಾ ಬುಕಿಂಗ್ ಪೂರ್ಣ ವಿವರ',
         titleEn: 'Seva Bookings Grouped by Date & Seva',
+        printTitleKn: 'ದಿನಾಂಕವಾರು ಸೇವಾ ಬುಕಿಂಗ್ ವಿವರ',
         subtitleKn: 'ಆಯ್ದ ಅವಧಿಯ ದಿನ ಮತ್ತು ಸೇವೆವಾರು ಭಕ್ತರು, ಮೊಬೈಲ್, ಗೋತ್ರ, ನಕ್ಷತ್ರ, ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ ವಿವರ',
         subtitleEn: 'Complete bookings with Phone, Gothra, Nakshatra & extra hastodaka',
         audience: 'admin',
@@ -101,6 +105,7 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         category: 'on_demand',
         titleKn: 'ಅವಧಿಯ ದಿನವಾರು ಹಸ್ತೋದಕ ವಿತರಣೆ',
         titleEn: 'Day-wise Hastodaka Distribution',
+        printTitleKn: 'ದಿನವಾರು ಹಸ್ತೋದಕ ವಿತರಣೆ ಲೆಕ್ಕ',
         subtitleKn: 'ನಿರ್ದಿಷ್ಟ ಅವಧಿಯಲ್ಲಿ ಪ್ರತಿ ದಿನದ ಸೇವೆವಾರು ಹಸ್ತೋದಕ ಸಿದ್ಧತೆ ಮತ್ತು ವಿತರಣೆಯ ಲೆಕ್ಕ',
         subtitleEn: 'Day-by-day plate preparation breakdown across date range',
         audience: 'kitchen',
@@ -117,6 +122,7 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         category: 'financial',
         titleKn: 'ದೈನಂದಿನ ಹಣಕಾಸು ಮತ್ತು ಪಾವತಿ ವಿವರ',
         titleEn: 'Daily Financial & Payment Summary',
+        printTitleKn: 'ದೈನಂದಿನ ಹಣಕಾಸು ಸಾರಾಂಶ',
         subtitleKn: 'ದಿನದ ಒಟ್ಟು ನಗದು/ಬ್ಯಾಂಕ್/ಯುಪಿಐ ಸಂಗ್ರಹ, ಆದಾಯ ಹಾಗೂ ವೆಚ್ಚದ ಸಾರಾಂಶ',
         subtitleEn: 'Cash/UPI/Bank breakdown, total income and day expenses',
         audience: 'accounts',
@@ -243,7 +249,6 @@ export default function SevaReportsTab() {
                 });
                 setReportData(res.data);
             } else if (activeReport.id === 'financial_summary') {
-                // Convert start_date YYYY-MM-DD to DDMMYY
                 const parts = startDate.split('-');
                 const ddmmyy = parts.length === 3 ? `${parts[2]}${parts[1]}${parts[0].slice(-2)}` : '';
                 const res = await api.get(`/stats/daily-summary?date=${ddmmyy}`);
@@ -323,7 +328,7 @@ export default function SevaReportsTab() {
     };
 
     return (
-        <div className="h-full flex flex-col md:flex-row gap-4 bg-[var(--bg-dark)] rounded-2xl overflow-hidden relative">
+        <div className="h-full flex flex-col md:flex-row gap-4 bg-[var(--bg-dark)] rounded-2xl overflow-hidden relative print:bg-transparent print:p-0 print:m-0 print:overflow-visible">
             
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* SCALABLE REPORT CATALOG / NAVIGATION (SIDEBAR)              */}
@@ -446,9 +451,9 @@ export default function SevaReportsTab() {
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* MAIN REPORT VIEWER & PRINT CONTAINER                        */}
             {/* ═══════════════════════════════════════════════════════════ */}
-            <main className="flex-1 flex flex-col bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 md:p-6 overflow-hidden min-w-0">
+            <main className="flex-1 flex flex-col bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl p-4 md:p-6 overflow-hidden min-w-0 print:border-none print:p-0 print:m-0 print:shadow-none print:bg-transparent print:overflow-visible">
                 
-                {/* Action & Filter Toolbar */}
+                {/* Action & Filter Toolbar (SCREEN ONLY - completely hidden in print) */}
                 <div className="flex flex-col gap-3 mb-4 pb-4 border-b border-[var(--glass-border)] print:hidden">
                     
                     {/* Top Row: Report Title, Audience Badge, and Print Button */}
@@ -690,26 +695,20 @@ export default function SevaReportsTab() {
                 </div>
 
                 {/* ═══════════════════════════════════════════════════════════ */}
-                {/* REPORT BODY WITH PRINT STYLES                               */}
+                {/* REPORT BODY & PRINT PRESENTATION                            */}
                 {/* ═══════════════════════════════════════════════════════════ */}
-                <div className="flex-1 overflow-y-auto print:overflow-visible pr-1">
+                <div className="flex-1 overflow-y-auto print:overflow-visible pr-1 print:p-0">
                     
-                    {/* Temple Print Header (Visible ONLY on print) */}
-                    <div className="hidden print:block text-center mb-6 border-b-2 border-black pb-4">
-                        <h1 className="text-2xl font-bold tracking-wide">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ / ಸೇವಾ ಸಮಿತಿ</h1>
-                        <p className="text-sm font-medium">Shri Raghavendra Swamy Matha & Seva Samithi</p>
-                        <div className="mt-2 text-lg font-bold">
-                            {activeReport.titleKn} ({activeReport.titleEn})
-                        </div>
-                        <div className="text-xs mt-1 flex justify-between px-4 font-mono">
-                            <span>
-                                {startDate === endDate 
-                                    ? `ದಿನಾಂಕ (Date): ${formatIsoToDisplay(startDate)}`
-                                    : `ಅವಧಿ (Period): ${formatIsoToDisplay(startDate)} ರಿಂದ ${formatIsoToDisplay(endDate)}`}
-                            </span>
-                            <span>ಮುದ್ರಿತ ದಿನಾಂಕ (Printed On): {new Date().toLocaleString()}</span>
-                            <span>ಉದ್ದೇಶ: {activeReport.audienceLabelKn} ({activeReport.audienceLabelEn})</span>
-                        </div>
+                    {/* Standard Print Header (ONLY in Kannada, NO temple name, NO English, NO UI clutter) */}
+                    <div className="hidden print:block text-center mb-6 border-b-2 border-black pb-3">
+                        <h1 className="text-2xl font-bold tracking-wide text-black">
+                            {activeReport.printTitleKn || activeReport.titleKn}
+                        </h1>
+                        <p className="text-sm font-bold text-black mt-1">
+                            {startDate === endDate 
+                                ? `ದಿನಾಂಕ: ${formatIsoToDisplay(startDate)}`
+                                : `ದಿನಾಂಕ: ${formatIsoToDisplay(startDate)} ರಿಂದ ${formatIsoToDisplay(endDate)}`}
+                        </p>
                     </div>
 
                     {isLoading ? (
@@ -738,8 +737,6 @@ export default function SevaReportsTab() {
                                 <KitchenHastodakaReportView 
                                     data={reportData} 
                                     filter={tableFilter} 
-                                    isExpanded={isGroupExpanded} 
-                                    onToggle={toggleGroup} 
                                 />
                             )}
 
@@ -764,59 +761,52 @@ export default function SevaReportsTab() {
                             {activeReport.id === 'financial_summary' && (
                                 <FinancialSummaryReportView data={reportData} selectedDate={startDate} />
                             )}
-
-                            {/* Formal Grand Summary Block for Print and Screen */}
-                            {activeReport.id !== 'financial_summary' && (
-                                <div className="mt-8 pt-4 border-t-2 border-[var(--glass-border)] print:border-black break-inside-avoid">
-                                    <div className="hidden print:grid grid-cols-3 gap-8 mt-12 text-center text-xs font-bold">
-                                        <div className="border-t border-black pt-2">ತಯಾರು ಮಾಡಿದವರು (Prepared By)</div>
-                                        <div className="border-t border-black pt-2">
-                                            {activeReport.audience === 'priest' ? 'ಪ್ರಧಾನ ಅರ್ಚಕರು (Chief Priest)' : 'ಪಾಕಶಾಲೆ ಉಸ್ತುವಾರಿ (Kitchen In-charge)'}
-                                        </div>
-                                        <div className="border-t border-black pt-2">ಆಡಳಿತಾಧಿಕಾರಿ / ಮ್ಯಾನೇಜರ್ (Manager)</div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
 
             </main>
 
-            {/* Print Styling Fixes */}
+            {/* Standard Print Media Rules */}
             <style dangerouslySetInnerHTML={{__html: `
                 @media print {
                     @page { 
                         size: A4 portrait;
-                        margin: 1.2cm; 
+                        margin: 1.2cm 1.5cm; 
                     }
-                    body { 
+                    body, html { 
                         background: white !important; 
                         color: black !important; 
                     }
-                    nav, header, aside, .print\\:hidden, .no-print { 
+                    /* Strictly hide all navigational, sidebar, and interactive UI controls */
+                    nav, header, aside, .print\\:hidden, .no-print, button, input, select { 
                         display: none !important; 
                     }
                     main {
                         border: none !important;
                         padding: 0 !important;
+                        margin: 0 !important;
                         background: transparent !important;
                         width: 100% !important;
                         max-width: 100% !important;
+                        box-shadow: none !important;
                     }
                     table {
                         width: 100% !important;
                         border-collapse: collapse !important;
                         font-size: 11px !important;
+                        margin-bottom: 12px !important;
                     }
                     th, td {
-                        border: 1px solid #666 !important;
-                        padding: 4px 6px !important;
+                        border: 1px solid #333 !important;
+                        padding: 5px 8px !important;
                         color: black !important;
+                        background-color: transparent !important;
                     }
                     th {
-                        background-color: #f3f4f6 !important;
+                        background-color: #f2f2f2 !important;
                         font-weight: bold !important;
+                        text-align: left;
                     }
                     .break-inside-avoid {
                         page-break-inside: avoid !important;
@@ -825,6 +815,7 @@ export default function SevaReportsTab() {
                     * { 
                         box-shadow: none !important; 
                         text-shadow: none !important;
+                        border-radius: 0 !important;
                     }
                 }
             `}} />
@@ -850,10 +841,10 @@ function PriestSankalpaReportView({
     const q = (filter || '').toLowerCase().trim();
 
     return (
-        <div className="space-y-6">
-            {/* Top KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 print:grid-cols-3">
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+        <div className="space-y-6 print:space-y-4">
+            {/* Top KPI Cards (SCREEN ONLY - hidden in print) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 print:hidden">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ದಿನಾಂಕ (Pooja Date)</div>
                     <div className="text-lg font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted}
@@ -863,14 +854,14 @@ function PriestSankalpaReportView({
                     </div>
                 </div>
 
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸಂಕಲ್ಪ ಸೇವೆಗಳು (Total Sevas)</div>
                     <div className="text-2xl font-bold text-[var(--primary)]">
                         {data.total_bookings}
                     </div>
                 </div>
 
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸೇವಾರ್ಥಿಗಳು (Sevakartas)</div>
                     <div className="text-2xl font-bold text-emerald-600">
                         {data.total_devotees}
@@ -883,17 +874,16 @@ function PriestSankalpaReportView({
                 const dayKey = `priest_day_${dIdx}`;
 
                 return (
-                    <div key={dayKey} className="space-y-4">
+                    <div key={dayKey} className="space-y-4 print:space-y-4">
                         {day.sevas?.length === 0 ? (
-                            <div className="text-center py-12 text-sm text-[var(--text-secondary)] border border-dashed border-[var(--glass-border)] rounded-2xl">
-                                ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಸೇವಾ ಸಂಕಲ್ಪಗಳು ನೋಂದಣಿಯಾಗಿಲ್ಲ (No Seva Bookings for this date)
+                            <div className="text-center py-12 text-sm text-[var(--text-secondary)] border border-dashed border-[var(--glass-border)] rounded-2xl print:border-none print:text-black">
+                                ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಸೇವಾ ಸಂಕಲ್ಪಗಳು ನೋಂದಣಿಯಾಗಿಲ್ಲ
                             </div>
                         ) : (
                             day.sevas?.map((seva: any, sIdx: number) => {
                                 const sevaKey = `${dayKey}_seva_${sIdx}`;
                                 const expanded = isExpanded(sevaKey);
 
-                                // Filter bookings inside seva
                                 const matchingBookings = seva.bookings?.filter((b: any) => {
                                     if (!q) return true;
                                     return (
@@ -909,15 +899,15 @@ function PriestSankalpaReportView({
                                 return (
                                     <div 
                                         key={sevaKey} 
-                                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-gray-500 break-inside-avoid"
+                                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent break-inside-avoid"
                                     >
-                                        {/* Seva Header Bar */}
+                                        {/* Screen Interactive Seva Bar */}
                                         <div 
                                             onClick={() => onToggle(sevaKey)}
-                                            className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:bg-gray-100"
+                                            className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:hidden"
                                         >
                                             <div className="flex items-center gap-2.5">
-                                                <div className="print:hidden text-[var(--primary)]">
+                                                <div className="text-[var(--primary)]">
                                                     {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                                 </div>
                                                 <div>
@@ -936,64 +926,67 @@ function PriestSankalpaReportView({
                                             </div>
 
                                             <div className="flex items-center gap-3">
-                                                <span className="px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] print:border-gray-400">
+                                                <span className="px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)]">
                                                     ಸಂಕಲ್ಪ ಸಂಖ್ಯೆ: {seva.total_bookings}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {/* Devotees Sankalpa Table */}
-                                        {(expanded || q) && (
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-left border-collapse text-xs">
-                                                    <thead>
-                                                        <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold">
-                                                            <th className="px-4 py-2.5 w-12 text-center">ಕ್ರಮ ಸಂ.</th>
-                                                            <th className="px-4 py-2.5 font-bold">ಸೇವಾರ್ಥಿಯ ಹೆಸರು (Devotee Name)</th>
-                                                            <th className="px-4 py-2.5">ಗೋತ್ರ (Gothra)</th>
-                                                            <th className="px-4 py-2.5">ನಕ್ಷತ್ರ (Nakshatra)</th>
-                                                            <th className="px-4 py-2.5 text-center w-24">ಸೇವೆಗಳ ಸಂಖ್ಯೆ (Qty)</th>
-                                                            <th className="px-4 py-2.5 text-right w-28 print:hidden">ರಶೀದಿ ಸಂ.</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-400">
-                                                        {matchingBookings.map((b: any, bIdx: number) => (
-                                                            <tr key={b.registration_id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                                                <td className="px-4 py-2.5 text-center font-mono text-[var(--text-secondary)]">
-                                                                    {bIdx + 1}
-                                                                </td>
-                                                                <td className="px-4 py-2.5 font-bold text-[var(--text-primary)] text-sm">
-                                                                    {b.devotee_name}
-                                                                </td>
-                                                                <td className="px-4 py-2.5 font-semibold text-amber-700 dark:text-amber-400">
-                                                                    {b.gothra}
-                                                                </td>
-                                                                <td className="px-4 py-2.5 font-semibold text-purple-700 dark:text-purple-400">
-                                                                    {b.nakshatra}
-                                                                </td>
-                                                                <td className="px-4 py-2.5 text-center font-bold text-sm text-[var(--primary)]">
-                                                                    {b.qty}
-                                                                </td>
-                                                                <td className="px-4 py-2.5 text-right font-mono text-[var(--text-secondary)] text-[11px] print:hidden">
-                                                                    {b.voucher_no}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                    <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] text-xs">
-                                                        <tr>
-                                                            <td colSpan={4} className="px-4 py-2 text-right">
-                                                                {seva.seva_name} ಒಟ್ಟು ಸಂಕಲ್ಪಗಳು:
+                                        {/* Print Clean Seva Title (NO buttons, NO interactive elements) */}
+                                        <div className="hidden print:block text-black font-bold text-sm mb-1.5 pt-2">
+                                            ಸೇವೆ: {seva.seva_code} - {seva.seva_name} (ಸಂಕಲ್ಪ ಸಂಖ್ಯೆ: {seva.total_bookings})
+                                        </div>
+
+                                        {/* Devotees Sankalpa Table (ALWAYS VISIBLE IN PRINT) */}
+                                        <div className={`overflow-x-auto ${expanded || q ? 'block' : 'hidden print:block'}`}>
+                                            <table className="w-full text-left border-collapse text-xs print:text-[11px]">
+                                                <thead>
+                                                    <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold print:bg-gray-100 print:text-black">
+                                                        <th className="px-4 py-2.5 w-12 text-center">ಕ್ರಮ ಸಂ.</th>
+                                                        <th className="px-4 py-2.5 font-bold">ಸೇವಾರ್ಥಿಯ ಹೆಸರು</th>
+                                                        <th className="px-4 py-2.5">ಗೋತ್ರ</th>
+                                                        <th className="px-4 py-2.5">ನಕ್ಷತ್ರ</th>
+                                                        <th className="px-4 py-2.5 text-center w-24">ಸೇವೆಗಳ ಸಂಖ್ಯೆ</th>
+                                                        <th className="px-4 py-2.5 text-right w-28 print:hidden">ರಶೀದಿ ಸಂ.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
+                                                    {matchingBookings.map((b: any, bIdx: number) => (
+                                                        <tr key={b.registration_id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors print:hover:bg-transparent">
+                                                            <td className="px-4 py-2 text-center font-mono text-[var(--text-secondary)] print:text-black">
+                                                                {bIdx + 1}
                                                             </td>
-                                                            <td className="px-4 py-2 text-center text-sm text-[var(--primary)]">
-                                                                {seva.total_bookings}
+                                                            <td className="px-4 py-2 font-bold text-[var(--text-primary)] print:text-black text-sm print:text-xs">
+                                                                {b.devotee_name}
                                                             </td>
-                                                            <td className="print:hidden"></td>
+                                                            <td className="px-4 py-2 font-semibold text-amber-700 dark:text-amber-400 print:text-black">
+                                                                {b.gothra}
+                                                            </td>
+                                                            <td className="px-4 py-2 font-semibold text-purple-700 dark:text-purple-400 print:text-black">
+                                                                {b.nakshatra}
+                                                            </td>
+                                                            <td className="px-4 py-2 text-center font-bold text-sm print:text-xs text-[var(--primary)] print:text-black">
+                                                                {b.qty}
+                                                            </td>
+                                                            <td className="px-4 py-2 text-right font-mono text-[var(--text-secondary)] text-[11px] print:hidden">
+                                                                {b.voucher_no}
+                                                            </td>
                                                         </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                        )}
+                                                    ))}
+                                                </tbody>
+                                                <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] print:border-black text-xs print:text-[11px] print:text-black">
+                                                    <tr>
+                                                        <td colSpan={4} className="px-4 py-1.5 text-right">
+                                                            {seva.seva_name} ಒಟ್ಟು ಸಂಕಲ್ಪಗಳು:
+                                                        </td>
+                                                        <td className="px-4 py-1.5 text-center text-sm print:text-xs text-[var(--primary)] print:text-black">
+                                                            {seva.total_bookings}
+                                                        </td>
+                                                        <td className="print:hidden"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
                                     </div>
                                 );
                             })
@@ -1003,7 +996,7 @@ function PriestSankalpaReportView({
             })}
 
             {/* Traditional Blessing Note */}
-            <div className="text-center py-4 text-xs font-semibold text-[var(--text-secondary)] border-t border-dashed border-[var(--glass-border)] print:border-gray-400">
+            <div className="text-center py-3 text-xs font-semibold text-[var(--text-secondary)] print:text-black border-t border-dashed border-[var(--glass-border)] print:border-gray-400">
                 || ಶ್ರೀ ಮೂಲರಾಮೋ ವಿಜಯತೇ || ಶ್ರೀ ಗುರುರಾಜೋ ವಿಜಯತೇ || ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿರಸ್ತು ||
             </div>
         </div>
@@ -1020,16 +1013,14 @@ function KitchenHastodakaReportView({
 }: { 
     data: any; 
     filter: string; 
-    isExpanded?: (key: string) => boolean; 
-    onToggle?: (key: string) => void; 
 }) {
     const q = (filter || '').toLowerCase().trim();
 
     return (
-        <div className="space-y-6">
-            {/* Top Kitchen KPI Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4">
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+        <div className="space-y-6 print:space-y-4">
+            {/* Top Kitchen KPI Cards (SCREEN ONLY - hidden in print) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸಿದ್ಧತೆಯ ದಿನಾಂಕ (Date)</div>
                     <div className="text-lg font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted}
@@ -1039,7 +1030,7 @@ function KitchenHastodakaReportView({
                     </div>
                 </div>
 
-                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಉಚಿತ ಹಸ್ತೋದಕ (Included Free)</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {data.grand_total_free_hastodaka}
@@ -1047,7 +1038,7 @@ function KitchenHastodakaReportView({
                     <div className="text-[11px] text-[var(--text-secondary)]">ಸೇವೆಗೆ ಸೇರಿರುವ ಲೆಕ್ಕ</div>
                 </div>
 
-                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ (Additional)</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                         {data.grand_total_additional_hastodaka}
@@ -1055,7 +1046,7 @@ function KitchenHastodakaReportView({
                     <div className="text-[11px] text-[var(--text-secondary)]">ಕೋರಿಕೆಯ ಹೆಚ್ಚುವರಿ ಎಲೆಗಳು</div>
                 </div>
 
-                <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl print:border-gray-600 shadow-lg shadow-emerald-500/10">
+                <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl shadow-lg shadow-emerald-500/10">
                     <div className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-300">
                         ಒಟ್ಟು ಹಸ್ತೋದಕ ಎಲೆಗಳು (Total Plates)
                     </div>
@@ -1079,12 +1070,13 @@ function KitchenHastodakaReportView({
                 }) || [];
 
                 return (
-                    <div key={`kitchen_day_${dIdx}`} className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-gray-500">
-                        <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--primary)]/10 print:bg-gray-100 flex items-center justify-between">
+                    <div key={`kitchen_day_${dIdx}`} className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent">
+                        {/* Screen Header Bar */}
+                        <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--primary)]/10 print:hidden flex items-center justify-between">
                             <div>
                                 <h3 className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
                                     <UtensilsCrossed size={16} className="text-[var(--primary)]" />
-                                    ಸೇವೆವಾರು ಹಸ್ತೋದಕ ಎಲೆಗಳ ಸಿದ್ಧತಾ ಪಟ್ಟಿ (Seva-wise Plate Preparation Breakdown)
+                                    ಸೇವೆವಾರು ಹಸ್ತೋದಕ ಎಲೆಗಳ ಸಿದ್ಧತಾ ಪಟ್ಟಿ
                                 </h3>
                                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                                     ಪ್ರತಿ ಸೇವೆಗೆ ನಿಗದಿತ ಉಚಿತ ಹಸ್ತೋದಕ ಮತ್ತು ಹೆಚ್ಚುವರಿ ಕೋರಿಕೆಗಳ ಒಟ್ಟುಗೂಡಿಸಿದ ಲೆಕ್ಕ
@@ -1096,74 +1088,74 @@ function KitchenHastodakaReportView({
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse text-xs">
+                            <table className="w-full text-left border-collapse text-xs print:text-[11px]">
                                 <thead>
-                                    <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold">
-                                        <th className="px-4 py-3 w-12 text-center">ಕ್ರಮ ಸಂ.</th>
-                                        <th className="px-4 py-3">ಸೇವೆಯ ಹೆಸರು (Seva Name)</th>
-                                        <th className="px-4 py-3 text-center">ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ (Bookings)</th>
-                                        <th className="px-4 py-3 text-center"># of Hastodaka included</th>
-                                        <th className="px-4 py-3 text-right">ಒಳಗೊಂಡ ಉಚಿತ ಹಸ್ತೋದಕ</th>
-                                        <th className="px-4 py-3 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
-                                        <th className="px-4 py-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
+                                    <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold print:bg-gray-100 print:text-black">
+                                        <th className="px-4 py-2.5 w-12 text-center">ಕ್ರಮ ಸಂ.</th>
+                                        <th className="px-4 py-2.5">ಸೇವೆಯ ಹೆಸರು</th>
+                                        <th className="px-4 py-2.5 text-center">ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ</th>
+                                        <th className="px-4 py-2.5 text-center">ಒಳಗೊಂಡ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2.5 text-right">ಉಚಿತ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2.5 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-200 print:text-black">
                                             ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಹಸ್ತೋದಕ
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-400">
+                                <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
                                     {sevas.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)]">
-                                                ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಹಸ್ತೋದಕ ಸೇವೆಗಳಿಲ್ಲ (No Hastodaka sevas for this date)
+                                            <td colSpan={7} className="px-4 py-8 text-center text-[var(--text-secondary)] print:text-black">
+                                                ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಹಸ್ತೋದಕ ಸೇವೆಗಳಿಲ್ಲ
                                             </td>
                                         </tr>
                                     ) : (
                                         sevas.map((s: any, sIdx: number) => (
-                                            <tr key={s.seva_code} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                                <td className="px-4 py-3 text-center font-mono text-[var(--text-secondary)]">
+                                            <tr key={s.seva_code} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors print:hover:bg-transparent">
+                                                <td className="px-4 py-2 text-center font-mono text-[var(--text-secondary)] print:text-black">
                                                     {sIdx + 1}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="font-bold text-[var(--text-primary)] text-sm">
+                                                <td className="px-4 py-2">
+                                                    <div className="font-bold text-[var(--text-primary)] print:text-black text-sm print:text-xs">
                                                         {s.seva_name}
                                                     </div>
-                                                    <div className="text-[11px] text-[var(--text-secondary)] font-mono">
-                                                        {s.seva_code} {s.seva_name_en ? `• ${s.seva_name_en}` : ''}
+                                                    <div className="text-[11px] text-[var(--text-secondary)] font-mono print:hidden">
+                                                        {s.seva_code}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-center font-bold text-sm">
+                                                <td className="px-4 py-2 text-center font-bold text-sm print:text-xs print:text-black">
                                                     {s.booking_count}
                                                 </td>
-                                                <td className="px-4 py-3 text-center font-semibold text-[var(--text-secondary)]">
+                                                <td className="px-4 py-2 text-center font-semibold text-[var(--text-secondary)] print:text-black">
                                                     {s.tp_qty_per_booking}
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-bold text-blue-700 dark:text-blue-400">
+                                                <td className="px-4 py-2 text-right font-bold text-blue-700 dark:text-blue-400 print:text-black">
                                                     {s.free_hastodaka}
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-bold text-purple-700 dark:text-purple-400">
+                                                <td className="px-4 py-2 text-right font-bold text-purple-700 dark:text-purple-400 print:text-black">
                                                     {s.additional_hastodaka}
                                                 </td>
-                                                <td className="px-4 py-3 text-right font-extrabold text-base text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
+                                                <td className="px-4 py-2 text-right font-extrabold text-sm print:text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-100 print:text-black">
                                                     {s.total_hastodaka}
                                                 </td>
                                             </tr>
                                         ))
                                     )}
                                 </tbody>
-                                <tfoot className="border-t-2 border-[var(--glass-border)] print:border-black bg-black/10 dark:bg-white/10 font-bold text-xs">
+                                <tfoot className="border-t-2 border-[var(--glass-border)] print:border-black bg-black/10 dark:bg-white/10 print:bg-gray-100 font-bold text-xs print:text-[11px] print:text-black">
                                     <tr>
-                                        <td colSpan={2} className="px-4 py-3 text-right uppercase tracking-wider">
-                                            ಒಟ್ಟು ಮೊತ್ತ (Grand Total):
+                                        <td colSpan={2} className="px-4 py-2 text-right uppercase tracking-wider">
+                                            ಒಟ್ಟು:
                                         </td>
-                                        <td className="px-4 py-3 text-center text-sm">{day.day_bookings}</td>
-                                        <td className="px-4 py-3 text-center">—</td>
-                                        <td className="px-4 py-3 text-right text-sm text-blue-700 dark:text-blue-400">
+                                        <td className="px-4 py-2 text-center text-sm print:text-xs">{day.day_bookings}</td>
+                                        <td className="px-4 py-2 text-center">—</td>
+                                        <td className="px-4 py-2 text-right text-sm print:text-xs text-blue-700 dark:text-blue-400 print:text-black">
                                             {day.day_free_hastodaka}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-sm text-purple-700 dark:text-purple-400">
+                                        <td className="px-4 py-2 text-right text-sm print:text-xs text-purple-700 dark:text-purple-400 print:text-black">
                                             {day.day_additional_hastodaka}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-lg font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15">
+                                        <td className="px-4 py-2 text-right text-base print:text-sm font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 print:bg-gray-200 print:text-black">
                                             {day.day_total_hastodaka}
                                         </td>
                                     </tr>
@@ -1195,10 +1187,10 @@ function OnDemandBookingsReportView({
     const q = (filter || '').toLowerCase().trim();
 
     return (
-        <div className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4">
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+        <div className="space-y-6 print:space-y-4">
+            {/* Summary Cards (SCREEN ONLY - hidden in print) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ (Period)</div>
                     <div className="text-sm font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted} ರಿಂದ {data.end_date_formatted}
@@ -1208,17 +1200,17 @@ function OnDemandBookingsReportView({
                     </div>
                 </div>
 
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸೇವೆಗಳು (Bookings)</div>
                     <div className="text-2xl font-bold text-[var(--primary)]">{data.total_bookings}</div>
                 </div>
 
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಭಕ್ತರು (Devotees)</div>
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.total_devotees}</div>
                 </div>
 
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ (Extra)</div>
                     <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{data.total_additional_hastodaka}</div>
                 </div>
@@ -1247,15 +1239,15 @@ function OnDemandBookingsReportView({
                 return (
                     <div 
                         key={dayKey} 
-                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-gray-500 break-inside-avoid"
+                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent break-inside-avoid"
                     >
-                        {/* Date Accordion Header */}
+                        {/* Screen Date Accordion Header */}
                         <div 
                             onClick={() => onToggle(dayKey)}
-                            className="p-4 bg-black/10 dark:bg-white/10 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:bg-gray-200"
+                            className="p-4 bg-black/10 dark:bg-white/10 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:hidden"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="print:hidden text-[var(--primary)]">
+                                <div className="text-[var(--primary)]">
                                     {dayExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1279,137 +1271,143 @@ function OnDemandBookingsReportView({
                             </div>
                         </div>
 
-                        {/* Seva Groups inside the Day */}
-                        {(dayExpanded || q) && (
-                            <div className="p-3 space-y-4">
-                                {day.sevas?.length === 0 ? (
-                                    <div className="text-center py-6 text-xs text-[var(--text-secondary)]">
-                                        ಈ ದಿನ ಯಾವುದೇ ಬುಕಿಂಗ್ ಇಲ್ಲ
-                                    </div>
-                                ) : (
-                                    day.sevas?.map((seva: any, sIdx: number) => {
-                                        const sevaKey = `${dayKey}_seva_${sIdx}`;
-                                        const sevaExpanded = isExpanded(sevaKey);
+                        {/* Print Date Header (NO button styles, NO pills) */}
+                        <div className="hidden print:block font-bold text-sm text-black mb-2 mt-4 border-b-2 border-black pb-1">
+                            ದಿನಾಂಕ: {day.formatted_date} ({day.day_kannada}) — ಒಟ್ಟು ಸೇವೆಗಳು: {day.day_total_bookings} | ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: {day.day_total_additional_hastodaka}
+                        </div>
 
-                                        const matchingBookings = seva.bookings?.filter((b: any) => {
-                                            if (!q) return true;
-                                            return (
-                                                b.devotee_name?.toLowerCase().includes(q) ||
-                                                b.phone?.includes(q) ||
-                                                b.gothra?.toLowerCase().includes(q) ||
-                                                b.nakshatra?.toLowerCase().includes(q) ||
-                                                seva.seva_name?.toLowerCase().includes(q)
-                                            );
-                                        }) || [];
+                        {/* Seva Groups inside the Day (ALWAYS VISIBLE IN PRINT) */}
+                        <div className={`p-3 print:p-0 space-y-4 print:space-y-3 ${dayExpanded || q ? 'block' : 'hidden print:block'}`}>
+                            {day.sevas?.length === 0 ? (
+                                <div className="text-center py-6 text-xs text-[var(--text-secondary)] print:text-black">
+                                    ಈ ದಿನ ಯಾವುದೇ ಬುಕಿಂಗ್ ಇಲ್ಲ
+                                </div>
+                            ) : (
+                                day.sevas?.map((seva: any, sIdx: number) => {
+                                    const sevaKey = `${dayKey}_seva_${sIdx}`;
+                                    const sevaExpanded = isExpanded(sevaKey);
 
-                                        if (q && matchingBookings.length === 0) return null;
-
+                                    const matchingBookings = seva.bookings?.filter((b: any) => {
+                                        if (!q) return true;
                                         return (
-                                            <div 
-                                                key={sevaKey} 
-                                                className="border border-[var(--glass-border)] rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 print:border-gray-400"
-                                            >
-                                                {/* Sub-header for Seva */}
-                                                <div 
-                                                    onClick={() => onToggle(sevaKey)}
-                                                    className="p-3 bg-[var(--primary)]/10 flex items-center justify-between cursor-pointer select-none print:bg-gray-100"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="print:hidden text-[var(--primary)]">
-                                                            {sevaExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                                        </div>
-                                                        <span className="font-mono text-xs px-2 py-0.5 rounded bg-[var(--primary)] text-white">
-                                                            {seva.seva_code}
-                                                        </span>
-                                                        <span className="font-bold text-xs md:text-sm text-[var(--text-primary)]">
-                                                            {seva.seva_name}
-                                                        </span>
-                                                        {seva.tp_qty_included > 0 && (
-                                                            <span className="text-[11px] text-[var(--text-secondary)]">
-                                                                (ಹಸ್ತೋದಕ: {seva.tp_qty_included})
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                            b.devotee_name?.toLowerCase().includes(q) ||
+                                            b.phone?.includes(q) ||
+                                            b.gothra?.toLowerCase().includes(q) ||
+                                            b.nakshatra?.toLowerCase().includes(q) ||
+                                            seva.seva_name?.toLowerCase().includes(q)
+                                        );
+                                    }) || [];
 
-                                                    <div className="flex items-center gap-3 text-xs font-semibold">
-                                                        <span>ಬುಕಿಂಗ್: {seva.total_bookings}</span>
-                                                        <span className="text-purple-700 dark:text-purple-400">
-                                                            ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: {seva.total_additional_hastodaka}
-                                                        </span>
+                                    if (q && matchingBookings.length === 0) return null;
+
+                                    return (
+                                        <div 
+                                            key={sevaKey} 
+                                            className="border border-[var(--glass-border)] rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 print:border-none print:bg-transparent"
+                                        >
+                                            {/* Screen Sub-header for Seva */}
+                                            <div 
+                                                onClick={() => onToggle(sevaKey)}
+                                                className="p-3 bg-[var(--primary)]/10 flex items-center justify-between cursor-pointer select-none print:hidden"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-[var(--primary)]">
+                                                        {sevaExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                                     </div>
+                                                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[var(--primary)] text-white">
+                                                        {seva.seva_code}
+                                                    </span>
+                                                    <span className="font-bold text-xs md:text-sm text-[var(--text-primary)]">
+                                                        {seva.seva_name}
+                                                    </span>
+                                                    {seva.tp_qty_included > 0 && (
+                                                        <span className="text-[11px] text-[var(--text-secondary)]">
+                                                            (ಹಸ್ತೋದಕ: {seva.tp_qty_included})
+                                                        </span>
+                                                    )}
                                                 </div>
 
-                                                {/* Bookings Table */}
-                                                {(sevaExpanded || q) && (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-left border-collapse text-xs">
-                                                            <thead>
-                                                                <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold">
-                                                                    <th className="px-3 py-2 w-10 text-center">ಕ್ರ.ಸಂ.</th>
-                                                                    <th className="px-3 py-2">ಭಕ್ತರ ಹೆಸರು (Devotee Name)</th>
-                                                                    <th className="px-3 py-2">ಮೊಬೈಲ್ (Phone)</th>
-                                                                    <th className="px-3 py-2">ಗೋತ್ರ (Gothra)</th>
-                                                                    <th className="px-3 py-2">ನಕ್ಷತ್ರ (Nakshatra)</th>
-                                                                    <th className="px-3 py-2 text-center">ಸಂಖ್ಯೆ (Qty)</th>
-                                                                    <th className="px-3 py-2 text-center text-purple-700 dark:text-purple-400">
-                                                                        ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ
-                                                                    </th>
-                                                                    <th className="px-3 py-2 text-right">ರಶೀದಿ ಸಂ.</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-400">
-                                                                {matchingBookings.map((b: any, bIdx: number) => (
-                                                                    <tr key={b.registration_id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                                                        <td className="px-3 py-2 text-center font-mono text-[var(--text-secondary)]">
-                                                                            {bIdx + 1}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 font-bold text-[var(--text-primary)]">
-                                                                            {b.devotee_name}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 font-mono text-[var(--text-secondary)]">
-                                                                            {b.phone}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 text-amber-700 dark:text-amber-400 font-medium">
-                                                                            {b.gothra}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 text-purple-700 dark:text-purple-400 font-medium">
-                                                                            {b.nakshatra}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 text-center font-bold text-[var(--primary)]">
-                                                                            {b.qty}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 text-center font-bold text-purple-700 dark:text-purple-400">
-                                                                            {b.additional_hastodaka}
-                                                                        </td>
-                                                                        <td className="px-3 py-2 text-right font-mono text-[11px] text-[var(--text-secondary)]">
-                                                                            {b.voucher_no}
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                            <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] text-xs">
-                                                                <tr>
-                                                                    <td colSpan={5} className="px-3 py-2 text-right">
-                                                                        {seva.seva_name} ಉಪ-ಮೊತ್ತ (Subtotal):
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-center text-[var(--primary)]">
-                                                                        {seva.total_bookings}
-                                                                    </td>
-                                                                    <td className="px-3 py-2 text-center text-purple-700 dark:text-purple-400">
-                                                                        {seva.total_additional_hastodaka}
-                                                                    </td>
-                                                                    <td></td>
-                                                                </tr>
-                                                            </tfoot>
-                                                        </table>
-                                                    </div>
-                                                )}
+                                                <div className="flex items-center gap-3 text-xs font-semibold">
+                                                    <span>ಬುಕಿಂಗ್: {seva.total_bookings}</span>
+                                                    <span className="text-purple-700 dark:text-purple-400">
+                                                        ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: {seva.total_additional_hastodaka}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        );
-                                    })
-                                )}
-                            </div>
-                        )}
+
+                                            {/* Print Seva Header */}
+                                            <div className="hidden print:block font-bold text-xs text-black mb-1 pt-1">
+                                                ಸೇವೆ: {seva.seva_code} - {seva.seva_name} (ಬುಕಿಂಗ್: {seva.total_bookings}, ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: {seva.total_additional_hastodaka})
+                                            </div>
+
+                                            {/* Bookings Table (ALWAYS VISIBLE IN PRINT) */}
+                                            <div className={`overflow-x-auto ${sevaExpanded || q ? 'block' : 'hidden print:block'}`}>
+                                                <table className="w-full text-left border-collapse text-xs print:text-[11px]">
+                                                    <thead>
+                                                        <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold print:bg-gray-100 print:text-black">
+                                                            <th className="px-3 py-2 w-10 text-center">ಕ್ರ.ಸಂ.</th>
+                                                            <th className="px-3 py-2">ಭಕ್ತರ ಹೆಸರು</th>
+                                                            <th className="px-3 py-2">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</th>
+                                                            <th className="px-3 py-2">ಗೋತ್ರ</th>
+                                                            <th className="px-3 py-2">ನಕ್ಷತ್ರ</th>
+                                                            <th className="px-3 py-2 text-center">ಸಂಖ್ಯೆ</th>
+                                                            <th className="px-3 py-2 text-center text-purple-700 dark:text-purple-400 print:text-black">
+                                                                ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ
+                                                            </th>
+                                                            <th className="px-3 py-2 text-right print:hidden">ರಶೀದಿ ಸಂ.</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
+                                                        {matchingBookings.map((b: any, bIdx: number) => (
+                                                            <tr key={b.registration_id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors print:hover:bg-transparent">
+                                                                <td className="px-3 py-1.5 text-center font-mono text-[var(--text-secondary)] print:text-black">
+                                                                    {bIdx + 1}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 font-bold text-[var(--text-primary)] print:text-black">
+                                                                    {b.devotee_name}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 font-mono text-[var(--text-secondary)] print:text-black">
+                                                                    {b.phone}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 text-amber-700 dark:text-amber-400 print:text-black font-medium">
+                                                                    {b.gothra}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 text-purple-700 dark:text-purple-400 print:text-black font-medium">
+                                                                    {b.nakshatra}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 text-center font-bold text-[var(--primary)] print:text-black">
+                                                                    {b.qty}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 text-center font-bold text-purple-700 dark:text-purple-400 print:text-black">
+                                                                    {b.additional_hastodaka}
+                                                                </td>
+                                                                <td className="px-3 py-1.5 text-right font-mono text-[11px] text-[var(--text-secondary)] print:hidden">
+                                                                    {b.voucher_no}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                    <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] print:border-black text-xs print:text-[11px] print:text-black">
+                                                        <tr>
+                                                            <td colSpan={5} className="px-3 py-1.5 text-right">
+                                                                {seva.seva_name} ಉಪ-ಒಟ್ಟು:
+                                                            </td>
+                                                            <td className="px-3 py-1.5 text-center text-[var(--primary)] print:text-black">
+                                                                {seva.total_bookings}
+                                                            </td>
+                                                            <td className="px-3 py-1.5 text-center text-purple-700 dark:text-purple-400 print:text-black">
+                                                                {seva.total_additional_hastodaka}
+                                                            </td>
+                                                            <td className="print:hidden"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
                 );
             })}
@@ -1435,10 +1433,10 @@ function HastodakaDistributionReportView({
     const q = (filter || '').toLowerCase().trim();
 
     return (
-        <div className="space-y-6">
-            {/* Distribution Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4">
-                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-gray-400">
+        <div className="space-y-6 print:space-y-4">
+            {/* Distribution Summary Cards (SCREEN ONLY - hidden in print) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ವರದಿ ಅವಧಿ (Period)</div>
                     <div className="text-sm font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted} ರಿಂದ {data.end_date_formatted}
@@ -1448,21 +1446,21 @@ function HastodakaDistributionReportView({
                     </div>
                 </div>
 
-                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಅವಧಿಯ ಉಚಿತ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {data.grand_total_free_hastodaka}
                     </div>
                 </div>
 
-                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl print:border-gray-400">
+                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಅವಧಿಯ ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                         {data.grand_total_additional_hastodaka}
                     </div>
                 </div>
 
-                <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl print:border-gray-600">
+                <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-300">
                         ಅವಧಿಯ ಒಟ್ಟು ಹಸ್ತೋದಕ (Grand Total)
                     </div>
@@ -1490,15 +1488,15 @@ function HastodakaDistributionReportView({
                 return (
                     <div 
                         key={dayKey} 
-                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-gray-500 break-inside-avoid"
+                        className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent break-inside-avoid"
                     >
-                        {/* Day Header */}
+                        {/* Screen Day Header */}
                         <div 
                             onClick={() => onToggle(dayKey)}
-                            className="p-4 bg-black/10 dark:bg-white/10 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:bg-gray-200"
+                            className="p-4 bg-black/10 dark:bg-white/10 border-b border-[var(--glass-border)] flex items-center justify-between cursor-pointer select-none print:hidden"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="print:hidden text-[var(--primary)]">
+                                <div className="text-[var(--primary)]">
                                     {dayExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1525,75 +1523,78 @@ function HastodakaDistributionReportView({
                             </div>
                         </div>
 
-                        {/* Seva table inside day */}
-                        {(dayExpanded || q) && (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse text-xs">
-                                    <thead>
-                                        <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold">
-                                            <th className="px-4 py-2.5 w-12 text-center">ಕ್ರ.ಸಂ.</th>
-                                            <th className="px-4 py-2.5">ಸೇವೆಯ ಹೆಸರು (Seva Name)</th>
-                                            <th className="px-4 py-2.5 text-center">ಬುಕಿಂಗ್ (Bookings)</th>
-                                            <th className="px-4 py-2.5 text-center"># included</th>
-                                            <th className="px-4 py-2.5 text-right">ಉಚಿತ ಹಸ್ತೋದಕ</th>
-                                            <th className="px-4 py-2.5 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
-                                            <th className="px-4 py-2.5 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
-                                                ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ
-                                            </th>
+                        {/* Print Day Header (Clean, no buttons/pills) */}
+                        <div className="hidden print:block font-bold text-sm text-black mb-1 mt-4 border-b border-black pb-1">
+                            ದಿನಾಂಕ: {day.formatted_date} ({day.day_kannada}) — ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ: {day.day_total_hastodaka} (ಉಚಿತ: {day.day_free_hastodaka}, ಹೆಚ್ಚುವರಿ: {day.day_additional_hastodaka})
+                        </div>
+
+                        {/* Seva table inside day (ALWAYS VISIBLE IN PRINT) */}
+                        <div className={`overflow-x-auto ${dayExpanded || q ? 'block' : 'hidden print:block'}`}>
+                            <table className="w-full text-left border-collapse text-xs print:text-[11px]">
+                                <thead>
+                                    <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold print:bg-gray-100 print:text-black">
+                                        <th className="px-4 py-2 w-12 text-center">ಕ್ರ.ಸಂ.</th>
+                                        <th className="px-4 py-2">ಸೇವೆಯ ಹೆಸರು</th>
+                                        <th className="px-4 py-2 text-center">ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ</th>
+                                        <th className="px-4 py-2 text-center">ಒಳಗೊಂಡ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2 text-right">ಉಚಿತ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-200 print:text-black">
+                                            ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
+                                    {sevas.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-4 py-6 text-center text-[var(--text-secondary)] print:text-black">
+                                                ಯಾವುದೇ ಹಸ್ತೋದಕ ಬುಕಿಂಗ್ ಇಲ್ಲ
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-400">
-                                        {sevas.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={7} className="px-4 py-6 text-center text-[var(--text-secondary)]">
-                                                    ಯಾವುದೇ ಹಸ್ತೋದಕ ಬುಕಿಂಗ್ ಇಲ್ಲ
+                                    ) : (
+                                        sevas.map((s: any, sIdx: number) => (
+                                            <tr key={s.seva_code} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors print:hover:bg-transparent">
+                                                <td className="px-4 py-1.5 text-center font-mono text-[var(--text-secondary)] print:text-black">
+                                                    {sIdx + 1}
+                                                </td>
+                                                <td className="px-4 py-1.5 font-bold text-[var(--text-primary)] print:text-black">
+                                                    {s.seva_name}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-center font-semibold print:text-black">
+                                                    {s.booking_count}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-center font-mono text-[var(--text-secondary)] print:text-black">
+                                                    {s.tp_qty_per_booking}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-right font-semibold text-blue-700 dark:text-blue-400 print:text-black">
+                                                    {s.free_hastodaka}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-right font-semibold text-purple-700 dark:text-purple-400 print:text-black">
+                                                    {s.additional_hastodaka}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-100 print:text-black">
+                                                    {s.total_hastodaka}
                                                 </td>
                                             </tr>
-                                        ) : (
-                                            sevas.map((s: any, sIdx: number) => (
-                                                <tr key={s.seva_code} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                                    <td className="px-4 py-2.5 text-center font-mono text-[var(--text-secondary)]">
-                                                        {sIdx + 1}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">
-                                                        {s.seva_name}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center font-semibold">
-                                                        {s.booking_count}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center font-mono text-[var(--text-secondary)]">
-                                                        {s.tp_qty_per_booking}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-right font-semibold text-blue-700 dark:text-blue-400">
-                                                        {s.free_hastodaka}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-right font-semibold text-purple-700 dark:text-purple-400">
-                                                        {s.additional_hastodaka}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10">
-                                                        {s.total_hastodaka}
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                    <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] text-xs">
-                                        <tr>
-                                            <td colSpan={2} className="px-4 py-2.5 text-right">
-                                                {day.formatted_date} ದಿನದ ಒಟ್ಟು:
-                                            </td>
-                                            <td className="px-4 py-2.5 text-center">{day.day_bookings}</td>
-                                            <td></td>
-                                            <td className="px-4 py-2.5 text-right text-blue-700 dark:text-blue-400">{day.day_free_hastodaka}</td>
-                                            <td className="px-4 py-2.5 text-right text-purple-700 dark:text-purple-400">{day.day_additional_hastodaka}</td>
-                                            <td className="px-4 py-2.5 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15">
-                                                {day.day_total_hastodaka}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        )}
+                                        ))
+                                    )}
+                                </tbody>
+                                <tfoot className="bg-black/5 dark:bg-white/5 font-bold border-t border-[var(--glass-border)] print:border-black text-xs print:text-[11px] print:text-black">
+                                    <tr>
+                                        <td colSpan={2} className="px-4 py-2 text-right">
+                                            {day.formatted_date} ದಿನದ ಒಟ್ಟು:
+                                        </td>
+                                        <td className="px-4 py-2 text-center">{day.day_bookings}</td>
+                                        <td></td>
+                                        <td className="px-4 py-2 text-right text-blue-700 dark:text-blue-400 print:text-black">{day.day_free_hastodaka}</td>
+                                        <td className="px-4 py-2 text-right text-purple-700 dark:text-purple-400 print:text-black">{day.day_additional_hastodaka}</td>
+                                        <td className="px-4 py-2 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 print:bg-gray-200 print:text-black">
+                                            {day.day_total_hastodaka}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 );
             })}
@@ -1602,15 +1603,15 @@ function HastodakaDistributionReportView({
 }
 
 // ═══════════════════════════════════════════════════════════
-// SUB-VIEW 5: DAILY FINANCIAL SUMMARY (EXISTING CAPABILITY)
-// Retained seamlessly within the scalable reports hub
+// SUB-VIEW 5: DAILY FINANCIAL SUMMARY
+// Pure Kannada clean presentation
 // ═══════════════════════════════════════════════════════════
 function FinancialSummaryReportView({ data, selectedDate }: { data: any; selectedDate: string }) {
     return (
-        <div className="space-y-6">
-            {/* Top KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4 print:border-gray-400">
+        <div className="space-y-6 print:space-y-4">
+            {/* Top KPI Cards (SCREEN ONLY - hidden in print) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
+                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-orange-500/20 text-orange-500 flex items-center justify-center shrink-0">
                         <FileText size={24} />
                     </div>
@@ -1620,68 +1621,77 @@ function FinancialSummaryReportView({ data, selectedDate }: { data: any; selecte
                     </div>
                 </div>
 
-                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4 print:border-gray-400">
+                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
                         <Activity size={24} />
                     </div>
                     <div>
-                        <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಆದಾಯ (Income)</div>
+                        <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ಆದಾಯ</div>
                         <div className="text-3xl font-bold text-emerald-500">₹{data.total_income}</div>
                     </div>
                 </div>
 
-                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4 print:border-gray-400">
+                <div className="p-6 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center shrink-0">
                         <PieChart size={24} />
                     </div>
                     <div>
-                        <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ವೆಚ್ಚ (Expense)</div>
+                        <div className="text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">ವೆಚ್ಚ</div>
                         <div className="text-3xl font-bold text-red-500">₹{data.total_expense}</div>
                     </div>
                 </div>
             </div>
 
+            {/* Print Summary Stats (Clean, pure Kannada text) */}
+            <div className="hidden print:block border border-black p-3 mb-4 text-xs font-bold text-black">
+                <div className="grid grid-cols-3 text-center">
+                    <div>ಒಟ್ಟು ಸೇವೆಗಳು: {data.total_registrations}</div>
+                    <div>ಒಟ್ಟು ಆದಾಯ: ₹{data.total_income}</div>
+                    <div>ಒಟ್ಟು ವೆಚ್ಚ: ₹{data.total_expense}</div>
+                </div>
+            </div>
+
             {/* Payment Breakdown Table */}
-            <div className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-gray-400">
-                <div className="p-4 border-b border-[var(--glass-border)] bg-black/5 dark:bg-white/5 print:bg-gray-100 flex items-center justify-between">
+            <div className="bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl overflow-hidden print:border-none print:shadow-none print:bg-transparent">
+                <div className="p-4 border-b border-[var(--glass-border)] bg-black/5 dark:bg-white/5 print:hidden flex items-center justify-between">
                     <h3 className="font-bold text-[var(--text-primary)] flex items-center gap-2 text-sm">
                         <PieChart size={18} className="text-[var(--primary)]" />
-                        ಪಾವತಿ ವಿಧಾನವಾರು ಸಂಗ್ರಹ (Payment Mode Breakdown)
+                        ಪಾವತಿ ವಿಧಾನವಾರು ಸಂಗ್ರಹ
                     </h3>
                     <span className="text-xs font-mono text-[var(--text-secondary)]">
                         ದಿನಾಂಕ: {formatIsoToDisplay(selectedDate)}
                     </span>
                 </div>
                 <div className="p-0">
-                    <table className="w-full text-left border-collapse text-xs">
+                    <table className="w-full text-left border-collapse text-xs print:text-[11px]">
                         <thead>
-                            <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] uppercase tracking-wider">
-                                <th className="px-6 py-3 font-bold">ವಿಧಾನ (Payment Mode)</th>
-                                <th className="px-6 py-3 font-bold text-right">ಎಣಿಕೆ (Count)</th>
-                                <th className="px-6 py-3 font-bold text-right">ಮೊತ್ತ (Amount)</th>
+                            <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] print:bg-gray-100 print:text-black">
+                                <th className="px-6 py-2.5 font-bold">ಪಾವತಿ ವಿಧಾನ</th>
+                                <th className="px-6 py-2.5 font-bold text-right">ಎಣಿಕೆ</th>
+                                <th className="px-6 py-2.5 font-bold text-right">ಮೊತ್ತ</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--glass-border)] print:divide-gray-300">
+                        <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
                             {Object.entries(data.payment_breakdown || {}).map(([mode, d]: [string, any]) => (
-                                <tr key={mode} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{mode}</td>
-                                    <td className="px-6 py-4 text-right font-mono text-[var(--text-secondary)]">{d.count}</td>
-                                    <td className="px-6 py-4 text-right font-bold text-emerald-500">₹{d.total}</td>
+                                <tr key={mode} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors print:hover:bg-transparent">
+                                    <td className="px-6 py-2.5 font-bold text-[var(--text-primary)] print:text-black">{mode}</td>
+                                    <td className="px-6 py-2.5 text-right font-mono text-[var(--text-secondary)] print:text-black">{d.count}</td>
+                                    <td className="px-6 py-2.5 text-right font-bold text-emerald-500 print:text-black">₹{d.total}</td>
                                 </tr>
                             ))}
                             {Object.keys(data.payment_breakdown || {}).length === 0 && (
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-8 text-center text-[var(--text-secondary)]">
-                                        ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಪಾವತಿಗಳಿಲ್ಲ (No transactions found)
+                                    <td colSpan={3} className="px-6 py-8 text-center text-[var(--text-secondary)] print:text-black">
+                                        ಈ ದಿನಾಂಕಕ್ಕೆ ಯಾವುದೇ ಪಾವತಿಗಳಿಲ್ಲ
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                         {Object.keys(data.payment_breakdown || {}).length > 0 && (
-                            <tfoot className="border-t-2 border-[var(--glass-border)] print:border-gray-400 bg-black/5 dark:bg-white/5 font-bold">
+                            <tfoot className="border-t-2 border-[var(--glass-border)] print:border-black bg-black/5 dark:bg-white/5 print:bg-gray-100 font-bold print:text-black">
                                 <tr>
-                                    <td className="px-6 py-4 text-right" colSpan={2}>ಒಟ್ಟು ಸಂಗ್ರಹ (Total Collection):</td>
-                                    <td className="px-6 py-4 text-right text-emerald-600 text-base">₹{data.total_income}</td>
+                                    <td className="px-6 py-2.5 text-right" colSpan={2}>ಒಟ್ಟು ಸಂಗ್ರಹ:</td>
+                                    <td className="px-6 py-2.5 text-right text-emerald-600 print:text-black text-base print:text-xs">₹{data.total_income}</td>
                                 </tr>
                             </tfoot>
                         )}

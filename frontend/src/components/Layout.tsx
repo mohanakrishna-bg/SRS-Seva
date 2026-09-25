@@ -119,7 +119,7 @@ export default function Layout() {
             {bgImage && (
                 <>
                     <div
-                        className="fixed inset-0 z-0 pointer-events-none"
+                        className="fixed inset-0 z-0 pointer-events-none print:hidden"
                         style={{
                             backgroundImage: `url(${bgImage})`,
                             backgroundSize: 'cover',
@@ -128,11 +128,11 @@ export default function Layout() {
                             opacity: 0.2,
                         }}
                     />
-                    <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[var(--bg-dark)]/40 via-transparent to-[var(--bg-dark)]/60" />
+                    <div className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-[var(--bg-dark)]/40 via-transparent to-[var(--bg-dark)]/60 print:hidden" />
                 </>
             )}
             
-            <div className="px-4 py-4 md:px-8 pb-0 relative z-20 max-w-6xl mx-auto w-full">
+            <div className="px-4 py-4 md:px-8 pb-0 relative z-20 max-w-6xl mx-auto w-full print:hidden">
                 <Header />
                 {/* Global Input Toolbar (Language Switcher) & Theme Switcher */}
                 <div className="absolute top-6 right-6 md:right-10 hidden sm:flex items-center gap-3 z-50">
