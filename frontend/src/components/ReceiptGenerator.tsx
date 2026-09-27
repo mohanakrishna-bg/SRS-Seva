@@ -229,6 +229,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         `🙏 ${activeOrgName}`,
         activeAddress ? `📍 ${activeAddress}` : '',
         settings.phone ? `📞 ${settings.phone}` : '',
+        settings.whatsapp ? `📱 WhatsApp: ${settings.whatsapp}` : '',
         `━━━━━━━━━━━━━━━━━`,
         `${labels.receiptNo}: ${currentData.voucherNo}`,
         `${labels.date}: ${activeDate}`,
@@ -418,6 +419,7 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                     <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight">{activeOrgName}</p>
                                     {activeAddress && <p className="text-xs text-gray-600 break-words leading-tight">{activeAddress}</p>}
                                     {settings.phone && <p className="text-xs text-gray-600 leading-tight">Ph: {settings.phone}</p>}
+                                    {settings.whatsapp && <p className="text-xs text-gray-600 leading-tight">Mob/WA: {settings.whatsapp}</p>}
                                 </div>
                             </div>
 

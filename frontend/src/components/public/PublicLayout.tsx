@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, NavLink, useLocation } from 'react-router-dom';
-import { Moon, Sun, Menu, X, MapPin, Phone, Clock, Globe } from 'lucide-react';
+import { Moon, Sun, Menu, X, MapPin, Phone, Clock, Globe, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings, type OrgSettings } from '../../context/SettingsContext';
 
@@ -112,6 +112,51 @@ export default function PublicLayout() {
                     boxShadow: '0 1px 12px rgba(107,29,42,0.07)',
                 }}
             >
+                {/* Top Contact Strip */}
+                <div
+                    className="border-b text-xs py-1.5 px-4 md:px-8 transition-colors"
+                    style={{
+                        background: 'rgba(232, 101, 42, 0.05)',
+                        borderColor: 'var(--pub-border)',
+                        color: 'var(--pub-text-muted)',
+                    }}
+                >
+                    <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 text-[11px] sm:text-xs">
+                        <div className="flex items-center gap-4 flex-wrap">
+                            {settings.phone && (
+                                <a
+                                    href={`tel:${settings.phone}`}
+                                    className="flex items-center gap-1.5 hover:text-[var(--pub-ink)] transition-colors"
+                                    title={t('ದೂರವಾಣಿ / ಲ್ಯಾಂಡ್‌ಲೈನ್', 'Landline / Office Phone')}
+                                >
+                                    <Phone size={12} style={{ color: 'var(--pub-saffron)' }} />
+                                    <span>{t('ಲ್ಯಾಂಡ್‌ಲೈನ್', 'Office')}: {settings.phone}</span>
+                                </a>
+                            )}
+                            {settings.whatsapp && (
+                                <a
+                                    href={`https://wa.me/91${settings.whatsapp.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 hover:text-emerald-600 transition-colors font-semibold"
+                                    style={{ color: 'var(--pub-ink)' }}
+                                    title={t('ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp')}
+                                >
+                                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                        <Phone size={12} />
+                                        <MessageCircle size={12} />
+                                    </span>
+                                    <span>{t('ಮೊಬೈಲ್ & ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp')}: <strong className="font-bold">{settings.whatsapp}</strong></span>
+                                </a>
+                            )}
+                        </div>
+                        <div className="hidden md:flex items-center gap-2 text-[var(--pub-text-muted)] text-[11px]">
+                            <Clock size={12} style={{ color: 'var(--pub-saffron)' }} />
+                            <span>{t('ದರ್ಶನ: ಬೆಳಿಗ್ಗೆ 6:00 – 1:30 | ಸಂಜೆ 5:30 – 8:30', 'Darshana: 6:00 AM – 1:30 PM | 5:30 PM – 8:30 PM')}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
                     {/* Brand */}
                     <Link to="/" className="flex items-center gap-3 group shrink-0" aria-label="Home">
@@ -174,16 +219,26 @@ export default function PublicLayout() {
                     <div className="flex items-center gap-2 shrink-0">
                         <button
                             onClick={() => setLang(l => l === 'kn' ? 'en' : 'kn')}
-                            className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all"
+                            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all hover:bg-[color:var(--pub-saffron)]/10 cursor-pointer shadow-sm"
                             style={{
                                 borderColor: 'var(--pub-border)',
                                 color: 'var(--pub-text)',
                                 background: 'var(--pub-bg-card)',
                             }}
-                            title="Switch language"
+                            title={lang === 'kn' ? "ಇಂಗ್ಲಿಷ್‌ಗೆ ಬದಲಿಸಿ (Switch to English)" : "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ (Switch to Kannada)"}
                         >
-                            <Globe size={13} />
-                            {lang === 'kn' ? 'EN' : 'ಕನ್ನ'}
+                            <Globe size={13} style={{ color: 'var(--pub-saffron)' }} />
+                            {lang === 'kn' ? (
+                                <span className="flex items-center gap-1">
+                                    <span className="font-extrabold text-[var(--pub-saffron)]">ಕನ್ನಡ</span>
+                                    <span className="text-[10px] opacity-70">→ English</span>
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1">
+                                    <span className="font-extrabold text-emerald-600 dark:text-emerald-400">English</span>
+                                    <span className="text-[10px] opacity-70">→ ಕನ್ನಡ</span>
+                                </span>
+                            )}
                         </button>
 
                         <button
@@ -280,10 +335,11 @@ export default function PublicLayout() {
                                 <div className="mt-auto flex items-center gap-3 px-2">
                                     <button
                                         onClick={() => setLang(l => l === 'kn' ? 'en' : 'kn')}
-                                        className="flex-1 py-2 rounded-xl border text-xs font-bold"
+                                        className="flex-1 py-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5"
                                         style={{ borderColor: 'var(--pub-border)', color: 'var(--pub-text)' }}
                                     >
-                                        {lang === 'kn' ? 'Switch to EN' : 'ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ'}
+                                        <Globe size={14} style={{ color: 'var(--pub-saffron)' }} />
+                                        {lang === 'kn' ? 'English ಗೆ ಬದಲಿಸಿ' : 'ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ'}
                                     </button>
                                     <button
                                         onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
@@ -372,8 +428,20 @@ export default function PublicLayout() {
                                 {settings.phone && (
                                     <span className="flex items-center gap-2 text-xs" style={{ color: 'var(--pub-ink-light)' }}>
                                         <Phone size={13} style={{ color: 'var(--pub-saffron)' }} />
-                                        {settings.phone}
+                                        <span>{t('ಲ್ಯಾಂಡ್‌ಲೈನ್', 'Landline')}: {settings.phone}</span>
                                     </span>
+                                )}
+                                {settings.whatsapp && (
+                                    <a
+                                        href={`https://wa.me/91${settings.whatsapp.replace(/[^0-9]/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-xs hover:underline font-semibold"
+                                        style={{ color: 'var(--pub-ink)' }}
+                                    >
+                                        <MessageCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                        <span>{t('ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp')}: {settings.whatsapp}</span>
+                                    </a>
                                 )}
                                 <span className="flex items-start gap-2 text-xs" style={{ color: 'var(--pub-ink-light)' }}>
                                     <Clock size={13} className="shrink-0 mt-0.5" style={{ color: 'var(--pub-saffron)' }} />

@@ -396,6 +396,7 @@ def list_registrations(
     limit: int = 100,
     date: Optional[str] = None,
     date_type: Optional[str] = "SevaDate",
+    search: Optional[str] = None,
     db: Session = Depends(database.get_db),
 ):
     query = db.query(models.SevaRegistration)
@@ -404,6 +405,28 @@ def list_registrations(
             query = query.filter(models.SevaRegistration.RegistrationDate == date)
         else:
             query = query.filter(models.SevaRegistration.SevaDate == date)
+
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.join(models.Devotee, isouter=True).join(models.Seva, isouter=True)
+        search_filter = or_(
+            models.Devotee.Name.ilike(term),
+            models.Devotee.Phone.ilike(term),
+            models.Devotee.WhatsApp_Phone.ilike(term),
+            models.Devotee.Gotra.ilike(term),
+            models.Devotee.Nakshatra.ilike(term),
+            models.Devotee.City.ilike(term),
+            models.Devotee.Address.ilike(term),
+            models.Seva.Description.ilike(term),
+            models.Seva.DescriptionEn.ilike(term),
+            models.SevaRegistration.SevaCode.ilike(term),
+            models.SevaRegistration.VoucherNo.ilike(term),
+            models.SevaRegistration.PaymentMode.ilike(term),
+            models.SevaRegistration.Remarks.ilike(term),
+        )
+        if search.strip().isdigit():
+            search_filter = or_(search_filter, models.SevaRegistration.RegistrationId == int(search.strip()))
+        query = query.filter(search_filter)
     
     return (
         query

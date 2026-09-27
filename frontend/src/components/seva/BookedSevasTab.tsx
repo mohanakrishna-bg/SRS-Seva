@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
-import { Search, Ban, Edit3, Printer, X } from 'lucide-react';
+import { Search, Ban, Edit3, Printer, X, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { registrationApi } from '../../api';
 import { useToast } from '../Toast';
 import SplitPaneLayout from '../ui/SplitPaneLayout';
 import ReceiptGenerator from '../ReceiptGenerator';
 
-// ── Date Formatting Helper ──
+// ── Date Formatting Helpers ──
 function formatDDMMYY(dateStr: string): string {
     if (!dateStr || dateStr.length !== 6) return dateStr || '-';
     const dd = dateStr.substring(0, 2);
@@ -15,9 +15,25 @@ function formatDDMMYY(dateStr: string): string {
     return `${dd}/${mm}/20${yy}`;
 }
 
+function formatDisplayDate(dateStr: string): string {
+    if (!dateStr) return '';
+    try {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+    } catch {
+        // fallback
+    }
+    return dateStr;
+}
+
 export default function BookedSevasTab() {
     const today = new Date().toISOString().split('T')[0];
     const [selectedDate, setSelectedDate] = useState(today);
+    const [dateMode, setDateMode] = useState<'date' | 'all'>('date');
+    const [dateType] = useState<'SevaDate' | 'RegistrationDate'>('SevaDate');
+    const dateInputRef = useRef<HTMLInputElement>(null);
     
     // Convert YYYY-MM-DD to DDMMYY for API
     const getApiDate = (d: string) => {
@@ -30,6 +46,7 @@ export default function BookedSevasTab() {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedReg, setSelectedReg] = useState<any | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeSearch, setActiveSearch] = useState('');
     
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelRefundAmount, setCancelRefundAmount] = useState<number>(0);
@@ -50,14 +67,23 @@ export default function BookedSevasTab() {
     
     const { showToast } = useToast();
 
-    const fetchRegistrations = async () => {
+    const fetchRegistrations = async (searchOverride?: string, forceAllDates?: boolean, dateOverride?: string) => {
         setIsLoading(true);
         try {
-            const apiDate = getApiDate(selectedDate);
-            const res = await registrationApi.byDate(apiDate, "SevaDate");
-            setRegistrations(res.data);
+            const queryToUse = searchOverride !== undefined ? searchOverride : activeSearch;
+            const useAll = forceAllDates !== undefined ? forceAllDates : (dateMode === 'all');
+            const targetDate = dateOverride !== undefined ? dateOverride : selectedDate;
+
+            let res;
+            if (useAll) {
+                res = await registrationApi.list(0, 500, queryToUse || undefined);
+            } else {
+                const apiDate = getApiDate(targetDate);
+                res = await registrationApi.list(0, 500, queryToUse || undefined, apiDate, dateType);
+            }
+            setRegistrations(res.data || []);
             if (selectedReg) {
-                const updated = res.data.find((r: any) => r.RegistrationId === selectedReg.RegistrationId);
+                const updated = (res.data || []).find((r: any) => r.RegistrationId === selectedReg.RegistrationId);
                 setSelectedReg(updated || null);
             }
         } catch (error: any) {
@@ -73,7 +99,7 @@ export default function BookedSevasTab() {
         const handleRefresh = () => fetchRegistrations();
         window.addEventListener('registration_created', handleRefresh);
         return () => window.removeEventListener('registration_created', handleRefresh);
-    }, [selectedDate]);
+    }, [selectedDate, dateMode, dateType]);
 
     const handleCancel = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -190,15 +216,82 @@ export default function BookedSevasTab() {
         setShowCancelModal(true);
     };
 
-    const filteredRegs = registrations.filter(r => {
-        if (!searchQuery) return true;
-        const q = searchQuery.toLowerCase();
-        return (
-            (r.devotee?.Name || '').toLowerCase().includes(q) ||
-            (r.seva?.Description || r.SevaCode || '').toLowerCase().includes(q) ||
-            r.RegistrationId.toString().includes(q)
-        );
-    });
+    const filteredRegs = useMemo(() => {
+        if (!searchQuery.trim()) return registrations;
+        const q = searchQuery.toLowerCase().trim();
+        const qClean = q.replace(/[\s\-\+]/g, '');
+
+        return registrations.filter(r => {
+            const devoteeName = (r.devotee?.Name || '').toLowerCase();
+            const phone = (r.devotee?.Phone || '').replace(/[\s\-\+]/g, '');
+            const waPhone = (r.devotee?.WhatsApp_Phone || '').replace(/[\s\-\+]/g, '');
+            const voucher = (r.VoucherNo || '').toLowerCase();
+            const regId = r.RegistrationId ? String(r.RegistrationId) : '';
+            const sevaCode = (r.SevaCode || '').toLowerCase();
+            const sevaDescKn = (r.seva?.Description || '').toLowerCase();
+            const sevaDescEn = (r.seva?.DescriptionEn || '').toLowerCase();
+            const gotra = (r.devotee?.Gotra || '').toLowerCase();
+            const nakshatra = (r.devotee?.Nakshatra || '').toLowerCase();
+            const city = (r.devotee?.City || '').toLowerCase();
+            const address = (r.devotee?.Address || '').toLowerCase();
+            const paymentMode = (r.PaymentMode || '').toLowerCase();
+
+            return (
+                devoteeName.includes(q) ||
+                (qClean && (phone.includes(qClean) || waPhone.includes(qClean))) ||
+                voucher.includes(q) ||
+                regId === q ||
+                regId.includes(q) ||
+                sevaCode.includes(q) ||
+                sevaDescKn.includes(q) ||
+                sevaDescEn.includes(q) ||
+                gotra.includes(q) ||
+                nakshatra.includes(q) ||
+                city.includes(q) ||
+                address.includes(q) ||
+                paymentMode.includes(q)
+            );
+        });
+    }, [registrations, searchQuery]);
+
+    const handleSearch = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        const term = searchQuery.trim();
+        setActiveSearch(term);
+        fetchRegistrations(term);
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        setActiveSearch('');
+        fetchRegistrations('');
+    };
+
+    const handlePrevDay = () => {
+        setDateMode('date');
+        const d = new Date(selectedDate);
+        d.setDate(d.getDate() - 1);
+        const prev = d.toISOString().split('T')[0];
+        setSelectedDate(prev);
+    };
+
+    const handleNextDay = () => {
+        setDateMode('date');
+        const d = new Date(selectedDate);
+        d.setDate(d.getDate() + 1);
+        const next = d.toISOString().split('T')[0];
+        setSelectedDate(next);
+    };
+
+    const handleSetToday = () => {
+        setDateMode('date');
+        setSelectedDate(today);
+    };
+
+    const handleToggleAllDates = () => {
+        const nextMode = dateMode === 'all' ? 'date' : 'all';
+        setDateMode(nextMode);
+    };
 
     // ── Compute hastodaka delta for modify modal ──
     const oldPrasadaCount = selectedReg?.PrasadaCount || 0;
@@ -211,23 +304,149 @@ export default function BookedSevasTab() {
             <SplitPaneLayout
                 masterContent={
                     <div className="h-full flex flex-col p-4">
-                        <div className="flex items-center justify-between mb-4 gap-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="ಹುಡುಕಿ..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[var(--bg-dark)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-[var(--primary)]"
-                                />
+                        {/* Search Bar & Date Picker Control Header */}
+                        <div className="space-y-3 mb-4">
+                            {/* Search Form with Dedicated Search Button */}
+                            <form onSubmit={handleSearch} className="flex items-center gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" size={16} />
+                                    <input
+                                        type="text"
+                                        placeholder="ಭಕ್ತರ ಹೆಸರು, ಮೊಬೈಲ್, ರಸೀದಿ/ID, ಸೇವೆ, ಗೋತ್ರ..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-[var(--bg-dark)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-[var(--primary)] text-[var(--text-primary)] shadow-sm"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearSearch}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full hover:bg-black/5 dark:hover:bg-white/10"
+                                            title="ತೆರವುಗೊಳಿಸಿ (Clear)"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
+                                    title="ಹುಡುಕಿ (Click to search)"
+                                >
+                                    <Search size={15} />
+                                    <span>ಹುಡುಕಿ</span>
+                                </button>
+                            </form>
+
+                            {/* Search Helper Caption */}
+                            <div className="flex items-center justify-between text-[11px] text-[var(--text-secondary)] px-1">
+                                <span>
+                                    💡 ಹುಡುಕಾಟ: ಹೆಸರು, ಮೊಬೈಲ್, ರಸೀದಿ/ID, ಸೇವೆ, ಗೋತ್ರ, ನಕ್ಷತ್ರ
+                                </span>
+                                {searchQuery && (
+                                    <span className="font-semibold text-[var(--primary)]">
+                                        {filteredRegs.length} ಫಲಿತಾಂಶಗಳು
+                                    </span>
+                                )}
                             </div>
-                            <input 
-                                type="date" 
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="px-3 py-2 rounded-xl bg-[var(--bg-dark)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-[var(--primary)] text-[var(--text-primary)]"
-                            />
+
+                            {/* Date Picker Controls Toolbar */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl">
+                                <div className="flex items-center gap-1 bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-lg p-0.5 shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={handlePrevDay}
+                                        className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                                        title="ಹಿಂದಿನ ದಿನ (Previous Day)"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+
+                                    {/* Date Display Badge & Calendar Picker Trigger */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            try {
+                                                dateInputRef.current?.showPicker();
+                                            } catch {
+                                                dateInputRef.current?.focus();
+                                            }
+                                        }}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer text-xs font-bold text-[var(--text-primary)] transition-all"
+                                        title="ಕ್ಯಾಲೆಂಡರ್ ತೆರೆಯಿರಿ (Click to pick date)"
+                                    >
+                                        <Calendar size={14} className="text-[var(--primary)] shrink-0" />
+                                        <span>
+                                            {dateMode === 'all' ? 'ಎಲ್ಲಾ ದಿನಾಂಕಗಳು' : formatDisplayDate(selectedDate)}
+                                        </span>
+                                    </button>
+                                    <input
+                                        ref={dateInputRef}
+                                        type="date"
+                                        value={selectedDate}
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                setSelectedDate(e.target.value);
+                                                setDateMode('date');
+                                            }
+                                        }}
+                                        className="sr-only"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={handleNextDay}
+                                        className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                                        title="ಮುಂದಿನ ದಿನ (Next Day)"
+                                    >
+                                        <ChevronRight size={16} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    {/* "ಇಂದು" (Today) Button - Defaults to today */}
+                                    <button
+                                        type="button"
+                                        onClick={handleSetToday}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                            selectedDate === today && dateMode === 'date'
+                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'
+                                        }`}
+                                        title="ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Jump to Today)"
+                                    >
+                                        ಇಂದು
+                                    </button>
+
+                                    {/* "ಎಲ್ಲಾ ದಿನಾಂಕಗಳು" (All Dates) Toggle Button */}
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleAllDates}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                                            dateMode === 'all'
+                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'
+                                        }`}
+                                        title="ಎಲ್ಲಾ ದಿನಾಂಕಗಳ ಸೇವೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ / ಹುಡುಕಿ"
+                                    >
+                                        ಎಲ್ಲಾ ದಿನಾಂಕ
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Helpful hint when search yields 0 items in current date mode */}
+                            {searchQuery && filteredRegs.length === 0 && dateMode === 'date' && (
+                                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400 flex items-center justify-between gap-2">
+                                    <span>ಈ ದಿನಾಂಕದಲ್ಲಿ ಫಲಿತಾಂಶವಿಲ್ಲ.</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleAllDates}
+                                        className="font-bold underline hover:opacity-80 shrink-0 cursor-pointer"
+                                    >
+                                        ಎಲ್ಲಾ ದಿನಾಂಕಗಳಲ್ಲಿ ಹುಡುಕಿ →
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex-1 overflow-y-auto pr-2 space-y-2">

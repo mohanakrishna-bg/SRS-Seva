@@ -67,8 +67,15 @@ export const eventsApi = {
 
 // ─── Registration API ───
 export const registrationApi = {
-    list: (skip = 0, limit = 100) =>
-        api.get(`/registrations?skip=${skip}&limit=${limit}`),
+    list: (skip = 0, limit = 100, search?: string, date?: string, dateType: string = "SevaDate") => {
+        const params: any = { skip, limit };
+        if (search) params.search = search;
+        if (date) {
+            params.date = date;
+            params.date_type = dateType;
+        }
+        return api.get('/registrations', { params });
+    },
     create: (data: any) => api.post('/registrations', data),
     byDevotee: (id: number) => api.get(`/registrations/by-devotee/${id}`),
     byDate: (date: string, dateType: string = "SevaDate") => api.get(`/registrations/by-date/${date}?date_type=${dateType}`),

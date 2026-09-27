@@ -44,13 +44,15 @@ export default function PublicContactPage() {
         },
         ...(settings.phone ? [{
             icon: <Phone size={18} style={{ color: 'var(--pub-saffron)' }} />,
-            label: t('ದೂರವಾಣಿ / ಫೋನ್', 'Phone'),
+            label: t('ದೂರವಾಣಿ (ಲ್ಯಾಂಡ್‌ಲೈನ್)', 'Phone (Office / Landline)'),
             value: settings.phone,
+            actionUrl: `tel:${settings.phone}`,
         }] : []),
         ...(settings.whatsapp ? [{
-            icon: <MessageCircle size={18} style={{ color: 'var(--pub-saffron)' }} />,
-            label: 'WhatsApp',
+            icon: <MessageCircle size={18} className="text-emerald-600 dark:text-emerald-400" />,
+            label: t('ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp'),
             value: settings.whatsapp,
+            actionUrl: `https://wa.me/91${settings.whatsapp.replace(/[^0-9]/g, '')}`,
         }] : []),
         {
             icon: <Clock size={18} style={{ color: 'var(--pub-saffron)' }} />,
@@ -232,12 +234,24 @@ export default function PublicContactPage() {
                                             <p className="text-xs font-bold mb-1" style={{ color: 'var(--pub-text-muted)' }}>
                                                 {info.label}
                                             </p>
-                                            <p
-                                                className="text-sm whitespace-pre-line font-medium leading-relaxed"
-                                                style={{ color: 'var(--pub-ink)' }}
-                                            >
-                                                {info.value}
-                                            </p>
+                                            {info.actionUrl ? (
+                                                <a
+                                                    href={info.actionUrl}
+                                                    target={info.actionUrl.startsWith('http') ? '_blank' : undefined}
+                                                    rel={info.actionUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                                    className="text-sm font-semibold hover:underline block leading-relaxed hover:text-[var(--pub-saffron)] transition-colors"
+                                                    style={{ color: 'var(--pub-ink)' }}
+                                                >
+                                                    {info.value}
+                                                </a>
+                                            ) : (
+                                                <p
+                                                    className="text-sm whitespace-pre-line font-medium leading-relaxed"
+                                                    style={{ color: 'var(--pub-ink)' }}
+                                                >
+                                                    {info.value}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

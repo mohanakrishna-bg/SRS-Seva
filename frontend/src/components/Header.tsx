@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Globe, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Globe, ArrowLeft, MessageCircle, Smartphone } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
@@ -16,6 +16,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
     const logoImage = settings.logoImage;
     const address = settings.address;
     const phone = settings.phone;
+    const whatsapp = settings.whatsapp;
     const website = settings.website;
     const navigate = useNavigate();
 
@@ -95,9 +96,16 @@ export default function Header({ compact = false, onBack, rightContent }: Header
                                 </span>
                             )}
                             {phone && (
-                                <span className="flex items-center gap-1.5">
+                                <span className="flex items-center gap-1.5" title="ದೂರವಾಣಿ / ಲ್ಯಾಂಡ್‌ಲೈನ್">
                                     <Phone size={13} className="text-[var(--primary)] shrink-0" />
-                                    {phone}
+                                    <span>{phone}</span>
+                                </span>
+                            )}
+                            {whatsapp && (
+                                <span className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]" title="ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್ (Mobile & WhatsApp)">
+                                    <Smartphone size={13} className="text-[var(--primary)] shrink-0" />
+                                    <MessageCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                    <span>ಮೊಬೈಲ್ & ವಾಟ್ಸ್ಆಪ್: {whatsapp}</span>
                                 </span>
                             )}
                             {website && (

@@ -433,6 +433,9 @@ export default function Layout() {
                                 </div>
                             )}
                             <div className="flex flex-col gap-2">
+                                <div className="flex justify-center w-full">
+                                    <GlobalInputToolbar />
+                                </div>
                                 <button 
                                     onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }} 
                                     className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-bold text-[var(--text-primary)]"

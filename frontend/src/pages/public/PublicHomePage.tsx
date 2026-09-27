@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
-import { MapPin, Phone, Globe } from 'lucide-react';
+import { MapPin, Phone, Globe, MessageCircle } from 'lucide-react';
 import type { PublicLayoutContextType } from '../../components/public/PublicLayout';
 import EeDinaCard from '../../components/EeDinaCard';
 import DaysHighlightsCard from '../../components/DaysHighlightsCard';
@@ -150,8 +150,8 @@ export default function PublicHomePage() {
                     </div>
 
                     {/* Address & Contact Details in Hero Banner */}
-                    {(orgAddress || settings.phone || settings.website) && (
-                        <div className="bg-black/25 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20 text-white/95 text-xs sm:text-sm shadow-xl flex flex-wrap items-center justify-center gap-x-6 gap-y-2 max-w-2xl mx-auto">
+                    {(orgAddress || settings.phone || settings.whatsapp || settings.website) && (
+                        <div className="bg-black/25 backdrop-blur-md rounded-2xl px-5 py-2.5 border border-white/20 text-white/95 text-xs sm:text-sm shadow-xl flex flex-wrap items-center justify-center gap-x-6 gap-y-2 max-w-3xl mx-auto">
                             {orgAddress && (
                                 <div className="flex items-center gap-1.5 text-center sm:text-left">
                                     <MapPin size={14} className="text-amber-300 shrink-0" />
@@ -162,9 +162,22 @@ export default function PublicHomePage() {
                                 <a
                                     href={`tel:${settings.phone}`}
                                     className="flex items-center gap-1.5 hover:text-amber-200 transition-colors"
+                                    title={t('ದೂರವಾಣಿ / ಲ್ಯಾಂಡ್‌ಲೈನ್', 'Landline / Office')}
                                 >
                                     <Phone size={13} className="text-amber-300 shrink-0" />
-                                    <span className="font-semibold">{settings.phone}</span>
+                                    <span>{t('ಲ್ಯಾಂಡ್‌ಲೈನ್', 'Office')}: {settings.phone}</span>
+                                </a>
+                            )}
+                            {settings.whatsapp && (
+                                <a
+                                    href={`https://wa.me/91${settings.whatsapp.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 hover:text-amber-200 transition-colors font-semibold"
+                                    title={t('ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp')}
+                                >
+                                    <MessageCircle size={13} className="text-emerald-400 shrink-0" />
+                                    <span>{t('ಮೊಬೈಲ್ & ವಾಟ್ಸ್ಆಪ್', 'Mobile & WhatsApp')}: {settings.whatsapp}</span>
                                 </a>
                             )}
                             {settings.website && (

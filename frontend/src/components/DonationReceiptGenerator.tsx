@@ -118,7 +118,7 @@ export default function DonationReceiptGenerator({ isOpen, onClose, receiptData 
     };
 
     const receiptText = [
-        `🙏 ${activeOrgName}`, activeAddress ? `📍 ${activeAddress}` : '', settings.phone ? `📞 ${settings.phone}` : '',
+        `🙏 ${activeOrgName}`, activeAddress ? `📍 ${activeAddress}` : '', settings.phone ? `📞 ${settings.phone}` : '', settings.whatsapp ? `📱 WhatsApp: ${settings.whatsapp}` : '',
         `━━━━━━━━━━━━━━━━━`, `${labels.title}`, `━━━━━━━━━━━━━━━━━`,
         `${labels.receiptNo}: ${currentData.voucherNo}`, `${labels.date}: ${formatReceiptDate(currentData.date)}`, `━━━━━━━━━━━━━━━━━`,
         `${labels.donor}: ${currentData.donorName}`, currentData.gotra ? `${labels.gotra}: ${currentData.gotra}` : '',
@@ -186,6 +186,7 @@ export default function DonationReceiptGenerator({ isOpen, onClose, receiptData 
                                 <p className="text-base sm:text-lg font-bold text-gray-900 break-words leading-tight pb-1">{activeOrgName}</p>
                                 {activeAddress && <p className="text-xs text-gray-600 break-words">{activeAddress}</p>}
                                 {settings.phone && <p className="text-xs text-gray-600">Ph: {settings.phone}</p>}
+                                {settings.whatsapp && <p className="text-xs text-gray-600">Mob/WA: {settings.whatsapp}</p>}
                                 <p className="text-xs font-bold text-rose-700 mt-1 uppercase tracking-wider">{labels.title}</p>
                             </div>
 
