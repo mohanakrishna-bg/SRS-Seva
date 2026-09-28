@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { 
-    LayoutDashboard, BookOpen, Building2, BarChart3, CheckCircle2, 
-    AlertCircle, X, TrendingUp, TrendingDown, Wallet, PiggyBank, 
-    Lock, Landmark, ClipboardList 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import {
+    CheckCircle2,
+    AlertCircle, X, TrendingUp, TrendingDown, Wallet, PiggyBank,
+    Lock
 } from 'lucide-react';
 import CollectionDashboard from '../components/accounting/CollectionDashboard';
 import JournalTable from '../components/accounting/JournalTable';
@@ -47,8 +47,6 @@ const SummaryCard = ({
 );
 
 const AccountingPage: React.FC = () => {
-    const location = useLocation();
-    const basePath = location.pathname.startsWith('/app/accounting') ? '/app/accounting' : '/accounting';
     const [loading, setLoading] = useState(false);
     const [summary, setSummary] = useState<DailySummary | null>(null);
     const [selectedDrilldown, setSelectedDrilldown] = useState<{ id: string | number; name: string } | null>(null);
@@ -299,40 +297,34 @@ const AccountingPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Header */}
-            <div className="bg-[var(--glass-card-bg)] border border-[var(--glass-border)] rounded-2xl p-8 no-print">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <h1 className="font-heading text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-                            ಹಣಕಾಸು ನಿರ್ವಹಣೆ
-                        </h1>
-                        <p className="text-[var(--text-secondary)]/80 mt-1 text-sm">
-                            Financial Management · Receipt Generation · Daily Ledger
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setShowCloseDialog(true)}
-                            className="px-3 py-1.5 bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] hover:bg-[#FF9933] hover:text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer"
-                        >
-                            <Lock className="w-4 h-4" />
-                            Close Books
-                        </button>
-                        <button
-                            onClick={handleSimulate}
-                            disabled={loading}
-                            className="px-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm font-medium rounded-lg hover:bg-[var(--primary)] hover:text-white disabled:opacity-50 transition-all cursor-pointer"
-                        >
-                            {loading ? 'Working...' : 'Simulate'}
-                        </button>
-                        <button
-                            onClick={triggerCleanup}
-                            disabled={loading}
-                            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all cursor-pointer"
-                        >
-                            {loading ? 'Working...' : 'Cleanup'}
-                        </button>
-                    </div>
+            {/* Page title row with admin actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-2 no-print">
+                <div>
+                    <h1 className="font-heading text-xl font-bold text-[var(--text-primary)] tracking-tight">ಹಣಕಾಸು ನಿರ್ವಹಣೆ</h1>
+                    <p className="text-[var(--text-secondary)]/80 text-xs mt-0.5">Financial Management · Receipt Generation · Daily Ledger</p>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowCloseDialog(true)}
+                        className="px-3 py-1.5 bg-[#FF9933]/10 border border-[#FF9933]/20 text-[#FF9933] hover:bg-[#FF9933] hover:text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                        <Lock className="w-4 h-4" />
+                        Close Books
+                    </button>
+                    <button
+                        onClick={handleSimulate}
+                        disabled={loading}
+                        className="px-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] text-sm font-medium rounded-lg hover:bg-[var(--primary)] hover:text-white disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                        {loading ? 'Working...' : 'Simulate'}
+                    </button>
+                    <button
+                        onClick={triggerCleanup}
+                        disabled={loading}
+                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-medium rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all cursor-pointer"
+                    >
+                        {loading ? 'Working...' : 'Cleanup'}
+                    </button>
                 </div>
             </div>
 
@@ -368,34 +360,7 @@ const AccountingPage: React.FC = () => {
                 />
             </div>
 
-            {/* Pill-style Tab Nav */}
-            <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl p-1 flex gap-1 overflow-x-auto no-print">
-                {[
-                    { to: `${basePath}/dashboard`, icon: <LayoutDashboard size={15} />, label: 'Dashboard' },
-                    { to: `${basePath}/journal`, icon: <BookOpen size={15} />, label: 'Journal' },
-                    { to: `${basePath}/vouchers`, icon: <ClipboardList size={15} />, label: 'Payment Vouchers' },
-                    { to: `${basePath}/bank`, icon: <Building2 size={15} />, label: 'Bank & Cash' },
-                    { to: `${basePath}/reconcile`, icon: <Landmark size={15} />, label: 'Reconciliation' },
-                    { to: `${basePath}/reports`, icon: <BarChart3 size={15} />, label: 'Reports' },
-                ].map(tab => (
-                    <NavLink
-                        key={tab.to}
-                        to={tab.to}
-                        className={({ isActive }) =>
-                            `flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                                isActive
-                                    ? 'bg-[var(--primary)]/20 text-[var(--primary)] border border-[var(--primary)]/30 font-semibold'
-                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)]'
-                            }`
-                        }
-                    >
-                        {tab.icon}
-                        <span>{tab.label}</span>
-                    </NavLink>
-                ))}
-            </div>
-
-            {/* Route Content */}
+            {/* Route Content — tab strip is now driven by ContextualTabBar in Layout via navConfig */}
             <div className="min-h-[500px]">
                 <Routes>
                     <Route path="dashboard" element={<CollectionDashboard />} />

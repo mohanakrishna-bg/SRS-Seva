@@ -1,6 +1,11 @@
-import { NavLink, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+/**
+ * ManagePage — Manage module content area.
+ *
+ * Tab strip is now rendered by Layout via navConfig.
+ * This component only contains the routable sub-views.
+ */
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, HeartHandshake, Sparkles, Settings, UserCog, Shield, Building2 } from 'lucide-react';
 import CustomersPage from './CustomersPage';
 import SevasPage from './SevasPage';
 import SpecialEventsPage from './SpecialEventsPage';
@@ -10,58 +15,29 @@ import RoleManagementTab from '../components/RoleManagementTab';
 import PublicContentTab from '../components/PublicContentTab';
 import ErrorBoundary from '../components/ErrorBoundary';
 
-const tabs = [
-    { id: 'customers', label: 'ಭಕ್ತರು', icon: Users },
-    { id: 'sevas', label: 'ಸೇವೆಗಳು', icon: HeartHandshake },
-    { id: 'events', label: 'ವಿಶೇಷ ಘಟನೆಗಳು', icon: Sparkles },
-    { id: 'content', label: 'ಸೌಲಭ್ಯ ಮತ್ತು ಕಾರ್ಯಕ್ರಮ', icon: Building2 },
-    { id: 'settings', label: 'ಸೆಟ್ಟಿಂಗ್ಸ್', icon: Settings },
-    { id: 'roles', label: 'ಪಾತ್ರಗಳು', icon: Shield },
-    { id: 'users', label: 'ಬಳಕೆದಾರರು', icon: UserCog },
-];
-
 export default function ManagePage() {
     const location = useLocation();
-    const basePath = location.pathname.startsWith('/app/manage') ? '/app/manage' : '/manage';
 
     return (
-        <div className="space-y-6">
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-                {tabs.map((tab) => (
-                    <NavLink
-                        key={tab.id}
-                        to={`${basePath}/${tab.id}`}
-                        className={({ isActive }) => `flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                            isActive
-                                ? 'bg-[var(--primary)] text-white shadow-lg shadow-orange-500/20'
-                                : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-border)] border border-[var(--glass-border)]'
-                        }`}
-                    >
-                        <tab.icon size={16} />
-                        {tab.label}
-                    </NavLink>
-                ))}
-            </div>
-
-            <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-            >
-                <ErrorBoundary fallbackTitle="ನಿರ್ವಹಣೆ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ">
-                    <Routes>
-                        <Route path="customers" element={<CustomersPage />} />
-                        <Route path="sevas" element={<SevasPage />} />
-                        <Route path="events" element={<SpecialEventsPage />} />
-                        <Route path="content" element={<PublicContentTab />} />
-                        <Route path="settings" element={<SettingsPage />} />
-                        <Route path="roles" element={<RoleManagementTab />} />
-                        <Route path="users" element={<UserAdminTab />} />
-                        <Route path="" element={<Navigate to="customers" replace />} />
-                    </Routes>
-                </ErrorBoundary>
-            </motion.div>
-        </div>
+        <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18 }}
+            className="h-full"
+        >
+            <ErrorBoundary fallbackTitle="ನಿರ್ವಹಣೆ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ">
+                <Routes>
+                    <Route path="customers" element={<CustomersPage />} />
+                    <Route path="sevas"     element={<SevasPage />} />
+                    <Route path="events"    element={<SpecialEventsPage />} />
+                    <Route path="content"   element={<PublicContentTab />} />
+                    <Route path="settings"  element={<SettingsPage />} />
+                    <Route path="roles"     element={<RoleManagementTab />} />
+                    <Route path="users"     element={<UserAdminTab />} />
+                    <Route path=""          element={<Navigate to="customers" replace />} />
+                </Routes>
+            </ErrorBoundary>
+        </motion.div>
     );
 }
