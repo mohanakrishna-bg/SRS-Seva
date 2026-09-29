@@ -33,27 +33,33 @@ vi.mock('../api', () => ({
     }
 }));
 
+import { SettingsProvider } from '../context/SettingsContext';
+
 describe('ManagePage', () => {
     it('renders users tab route correctly without blank page', async () => {
         render(
             <AuthProvider>
-                <MemoryRouter initialEntries={['/manage/users']}>
-                    <ManagePage />
-                </MemoryRouter>
+                <SettingsProvider>
+                    <MemoryRouter initialEntries={['/users']}>
+                        <ManagePage />
+                    </MemoryRouter>
+                </SettingsProvider>
             </AuthProvider>
         );
-        expect(screen.getByText('ಬಳಕೆದಾರರು')).toBeDefined();
+        expect(await screen.findByText('ಬಳಕೆದಾರರ ನಿರ್ವಹಣೆ')).toBeDefined();
     });
 
     it('renders customers tab without inline action buttons in rows', async () => {
         render(
             <AuthProvider>
-                <MemoryRouter initialEntries={['/manage/customers']}>
-                    <ManagePage />
-                </MemoryRouter>
+                <SettingsProvider>
+                    <MemoryRouter initialEntries={['/customers']}>
+                        <ManagePage />
+                    </MemoryRouter>
+                </SettingsProvider>
             </AuthProvider>
         );
-        expect(screen.getByText('ಭಕ್ತರು')).toBeDefined();
+        expect(await screen.findByText('ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ')).toBeDefined();
         // Actions column header should not exist
         expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
     });
@@ -61,12 +67,14 @@ describe('ManagePage', () => {
     it('renders sevas tab without inline action buttons in rows', async () => {
         render(
             <AuthProvider>
-                <MemoryRouter initialEntries={['/manage/sevas']}>
-                    <ManagePage />
-                </MemoryRouter>
+                <SettingsProvider>
+                    <MemoryRouter initialEntries={['/sevas']}>
+                        <ManagePage />
+                    </MemoryRouter>
+                </SettingsProvider>
             </AuthProvider>
         );
-        expect(screen.getByText('ಸೇವೆಗಳು')).toBeDefined();
+        expect(await screen.findByText('ಸೇವೆಗಳು ಲಭ್ಯವಿಲ್ಲ')).toBeDefined();
         // Actions column header should not exist
         expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
     });
