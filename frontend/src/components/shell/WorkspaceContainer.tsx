@@ -14,7 +14,7 @@ export default function WorkspaceContainer({ children, noPadding = false }: Work
             className={`
                 flex-1 w-full min-w-0 flex flex-col overflow-hidden
                 print:block print:overflow-visible print:flex-none
-                ${noPadding ? '' : 'px-4 md:px-6 py-4 md:py-6'}
+                ${noPadding ? '' : 'px-4 md:px-8 py-4 md:py-5'}
             `}
         >
             {children}

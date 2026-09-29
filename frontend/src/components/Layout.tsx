@@ -2,9 +2,10 @@
  * Layout.tsx — Internal app shell (v0.2)
  *
  * Structure:
- *   TopAppBar  (sticky, 48px)
- *   ContextualTabBar  (tabs for the active module, driven by navConfig)
- *   WorkspaceContainer  (full-width, full-height, holds <Outlet />)
+ *   Header         (brand hero: logo, temple name, address, contact)
+ *   TopAppBar      (sticky module-switcher nav bar)
+ *   ContextualTabBar (tabs for the active module, driven by navConfig)
+ *   WorkspaceContainer (full-width content area, holds <Outlet />)
  *
  * Global modals (RegistrationModal, DonationModal, ReceiptGenerator) are
  * unchanged and still managed here — they are layout-independent overlays.
@@ -17,6 +18,7 @@ import RegistrationModal from './RegistrationModal';
 import DonationModal from './DonationModal';
 import ReceiptGenerator from './ReceiptGenerator';
 import { useToast } from './Toast';
+import Header from './Header';
 import TopAppBar from './shell/TopAppBar';
 import ContextualTabBar from './shell/ContextualTabBar';
 import WorkspaceContainer from './shell/WorkspaceContainer';
@@ -169,13 +171,17 @@ export default function Layout() {
                 </>
             )}
 
-            {/* ── Shell: TopAppBar ── */}
-            <TopAppBar
-                layoutContext={layoutContext}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-                onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-            />
+            {/* ── Brand Hero: logo, temple name, address, contact ── */}
+            <div className="relative z-20 px-4 md:px-8 pt-5 pb-3 print:hidden">
+                <Header />
+                {/* Utility controls sit top-right of the header area */}
+                <TopAppBar
+                    layoutContext={layoutContext}
+                    theme={theme}
+                    onToggleTheme={toggleTheme}
+                    onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                />
+            </div>
 
             {/* ── Shell: ContextualTabBar (only when module has sub-tabs) ── */}
             {hasTabs && activeModule && (

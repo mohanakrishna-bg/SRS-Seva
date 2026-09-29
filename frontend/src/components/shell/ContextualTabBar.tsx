@@ -29,7 +29,7 @@ export default function ContextualTabBar({ tabs, basePath, actionButton }: Conte
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.18 }}
-                className="flex items-center justify-between gap-3 px-4 md:px-6 py-1.5 bg-[var(--glass-bg)] border-b border-[var(--glass-border)] backdrop-blur-md print:hidden shrink-0"
+                className="flex items-center justify-between gap-3 px-4 md:px-8 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl backdrop-blur-md print:hidden shrink-0 mx-4 md:mx-8 mt-2"
             >
                 {/* Tab Pills */}
                 <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">

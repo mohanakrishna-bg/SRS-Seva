@@ -64,18 +64,18 @@ export default function TopAppBar({
 
     return (
         <>
-            {/* ─── Main Bar ─── */}
+            {/* ─── Module Navigation Bar ─── */}
             <header className="
-                sticky top-0 z-30 h-12 flex items-center justify-between
-                px-3 md:px-5 gap-3
-                bg-[var(--glass-card-bg)] border-b border-[var(--glass-border)]
-                backdrop-blur-xl shadow-sm
+                z-20 h-12 flex items-center justify-between
+                px-3 md:px-5 gap-3 mt-3
+                bg-[var(--glass-bg)] border border-[var(--glass-border)]
+                rounded-2xl backdrop-blur-xl shadow-sm
                 print:hidden
             ">
-                {/* ── Left: Logo + Org Name ── */}
+                {/* ── Left: Logo + Org Name — visible only on mobile (Header shows it on desktop) ── */}
                 <Link
                     to="/app"
-                    className="flex items-center gap-2.5 shrink-0 hover:opacity-80 transition-opacity"
+                    className="flex lg:hidden items-center gap-2.5 shrink-0 hover:opacity-80 transition-opacity"
                 >
                     {logoImage ? (
                         <img
@@ -88,13 +88,13 @@ export default function TopAppBar({
                             <span className="text-sm">🙏</span>
                         </div>
                     )}
-                    <span className="text-sm font-bold text-[var(--primary)] hidden sm:block truncate max-w-[180px]">
+                    <span className="text-sm font-bold text-[var(--primary)] truncate max-w-[160px]">
                         {orgName}
                     </span>
                 </Link>
 
-                {/* ── Centre: Module Switcher (desktop) ── */}
-                <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center" aria-label="Module navigation">
+                {/* ── Centre: Module Switcher (desktop) — full width when no mobile logo shown ── */}
+                <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-start" aria-label="Module navigation">
                     {visibleModules.map(mod => {
                         const Icon = mod.icon;
                         const isActive =
