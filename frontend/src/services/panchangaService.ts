@@ -1,4 +1,15 @@
-import srsPanchangaData from '../data/srs_panchanga_2026_2027.json';
+import {
+    PANCHANGA_METADATA,
+    PANCHANGA_TOC,
+    PANCHANGA_FESTIVALS,
+    RAYARU_ARADHANA_SAPTAHA,
+    type PanchangaMetadata,
+    type PanchangaTocItem,
+    type FestivalItem,
+    type AradhanaItem,
+} from '../data/panchangaStaticData';
+
+export type { PanchangaMetadata, PanchangaTocItem, FestivalItem, AradhanaItem };
 
 export interface SrsPanchangaDay {
     date: string;
@@ -20,61 +31,144 @@ export interface SrsPanchangaDay {
     dinamana: string;
     dharmashastra: string;
     shraddhaTithi?: string;
+    shraddhaTithiExpanded?: string;
     pdfPage: number;
     notes?: string;
     source: 'pdf_surya_siddhanta' | 'fallback_calculation';
 }
 
-export interface PanchangaTocItem {
-    id: number;
-    titleKn: string;
-    titleEn: string;
-    page: number;
-}
-
-export interface FestivalItem {
-    nameKn: string;
-    nameEn: string;
-    date: string;
-    endDate?: string;
-}
-
-export interface AradhanaItem {
-    date: string;
-    dayKn: string;
-    dayEn: string;
-    eventKn: string;
-    eventEn: string;
-}
-
-export interface PanchangaMetadata {
-    titleKn: string;
-    titleEn: string;
-    publisher: string;
-    shakaYear: number;
-    kaliYear: number;
-    pdfUrl: string;
-    startDate: string;
-    endDate: string;
-    totalDays: number;
-}
-
-const PANCHANGA_DATA = srsPanchangaData as {
+interface SrsPanchangaJsonStructure {
     metadata: PanchangaMetadata;
     tableOfContents: PanchangaTocItem[];
     festivals: FestivalItem[];
     aradhanaSaptaha: AradhanaItem[];
     days: Record<string, Omit<SrsPanchangaDay, 'source'>>;
-};
+}
+
+let cachedPanchangaData: SrsPanchangaJsonStructure | null = null;
+let dataLoadingPromise: Promise<SrsPanchangaJsonStructure> | null = null;
 
 /**
- * Format a Date object to YYYY-MM-DD in local time
+ * Lazily loads the official Sri Raghavendra Swamy Matha 385-day Panchanga dataset.
+ * This dynamic import keeps the ~240KB dataset out of the primary app entry bundle.
+ */
+export async function loadPanchangaData(): Promise<SrsPanchangaJsonStructure> {
+    if (cachedPanchangaData) {
+        return cachedPanchangaData;
+    }
+    if (!dataLoadingPromise) {
+        dataLoadingPromise = import('../data/srs_panchanga_2026_2027.json').then((module) => {
+            const rawData = (module.default || module) as SrsPanchangaJsonStructure;
+            cachedPanchangaData = rawData;
+            return rawData;
+        });
+    }
+    return dataLoadingPromise;
+}
+
+/**
+ * Converts a Date object or date string to YYYY-MM-DD in Asia/Kolkata timezone.
+ * Robust against timezone boundary shifts across midnight UTC.
+ */
+export function toIsoDateString(input: Date | string): string {
+    if (typeof input === 'string') {
+        const match = input.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+    const d = typeof input === 'string' ? new Date(input) : input;
+    if (isNaN(d.getTime())) {
+        const now = new Date();
+        return new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).format(now);
+    }
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(d);
+}
+
+/**
+ * Backward compatibility alias for formatDateToIso
  */
 export function formatDateToIso(d: Date): string {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return toIsoDateString(d);
+}
+
+/**
+ * Formats a traditional Hindu 30-hour clock time (e.g., '28:10' or '14:35') into
+ * a modern, user-friendly 12-hour format with period indicators in Kannada,
+ * while preserving the original traditional 30-hour reading in parentheses.
+ * 
+ * Examples:
+ * - '28:10' -> 'ಮರುದಿನ 04:10 (28:10)'
+ * - '22:15' -> 'ರಾತ್ರಿ 10:15 (22:15)'
+ * - '14:20' -> 'ಮಧ್ಯಾಹ್ನ 02:20 (14:20)'
+ * - '08:45' -> 'ಬೆಳಿಗ್ಗೆ 08:45 (08:45)'
+ */
+export function formatPanchangaEndTime(timeStr?: string): string {
+    if (!timeStr) return '';
+    const match = timeStr.trim().match(/^(\d{1,2})[:\s](\d{2})$/);
+    if (!match) return timeStr;
+
+    const rawHours = parseInt(match[1], 10);
+    const minutes = match[2];
+
+    if (rawHours >= 24) {
+        const nextDayHours = rawHours - 24;
+        const padH = String(nextDayHours).padStart(2, '0');
+        return `ಮರುದಿನ ${padH}:${minutes} (${timeStr})`;
+    } else if (rawHours >= 18) {
+        const h12 = rawHours - 12;
+        const padH = String(h12).padStart(2, '0');
+        return `ರಾತ್ರಿ ${padH}:${minutes} (${timeStr})`;
+    } else if (rawHours >= 12) {
+        const h12 = rawHours === 12 ? 12 : rawHours - 12;
+        const padH = String(h12).padStart(2, '0');
+        return `ಮಧ್ಯಾಹ್ನ ${padH}:${minutes} (${timeStr})`;
+    } else {
+        const padH = String(rawHours).padStart(2, '0');
+        return `ಬೆಳಿಗ್ಗೆ ${padH}:${minutes} (${timeStr})`;
+    }
+}
+
+/**
+ * Formats Shraddha Tithi abbreviation into complete, readable Kannada text.
+ */
+export function formatShraddhaTithi(shraddhaTithi?: string, expanded?: string): string {
+    if (expanded) return expanded;
+    if (!shraddhaTithi) return '';
+    if (shraddhaTithi === 'ಶ್ರಾದ್ಧಾಭಾವ') return 'ಶ್ರಾದ್ಧವಿಲ್ಲ (ಶ್ರಾದ್ಧಾಭಾವ)';
+
+    const abbreviations: Record<string, string> = {
+        'ಪ್ರತಿ': 'ಪ್ರತಿಪದೆ', 'ಪ್ರತಿಪತ್': 'ಪ್ರತಿಪದೆ',
+        'ದ್ವಿ': 'ದ್ವಿತೀಯಾ', 'ದ್ವಿತೀ': 'ದ್ವಿತೀಯಾ',
+        'ತೃತೀ': 'ತೃತೀಯಾ',
+        'ಚತು': 'ಚತುರ್ಥಿ', 'ಚತುರ್': 'ಚತುರ್ಥಿ', 'Zತು': 'ಚತುರ್ಥಿ', 'ಚ': 'ಚತುರ್ಥಿ',
+        'ಪಂ': 'ಪಂಚಮಿ', 'ಪಂಚ': 'ಪಂಚಮಿ',
+        'ಷ': 'ಷಷ್ಠಿ', 'ಷಷ್ಠಿ': 'ಷಷ್ಠಿ', 'ಷಷ್ಠೀ': 'ಷಷ್ಠಿ',
+        'ಸಪ್ತ': 'ಸಪ್ತಮಿ',
+        'ಅಷ್ಟ': 'ಅಷ್ಟಮಿ',
+        'ನವ': 'ನವಮಿ',
+        'ದಶ': 'ದಶಮಿ',
+        'ಏ': 'ಏಕಾದಶಿ', 'ಏಕಾ': 'ಏಕಾದಶಿ', 'ಎಕಾ': 'ಏಕಾದಶಿ',
+        'ದ್ವಾ': 'ದ್ವಾದಶಿ', 'ದ್ವಾದ': 'ದ್ವಾದಶಿ',
+        'ತ್ರ': 'ತ್ರಯೋದಶಿ', 'ತ್ರಯೋ': 'ತ್ರಯೋದಶಿ',
+        'ಪೂರ್ಣಿ': 'ಪೂರ್ಣಿಮೆ', 'ಅಮಾ': 'ಅಮಾವಾಸ್ಯೆ'
+    };
+
+    const parts = shraddhaTithi.split(/([,/])/);
+    return parts.map(p => {
+        const trimmed = p.trim();
+        if (trimmed === ',') return ', ';
+        if (trimmed === '/') return ' / ';
+        return abbreviations[trimmed] || trimmed;
+    }).join('');
 }
 
 /**
@@ -82,25 +176,30 @@ export function formatDateToIso(d: Date): string {
  * Prioritizes the official Sri Raghavendra Swamy Matha Surya Siddhanta PDF data (2026-2027).
  * Falls back to dynamic calculation if date is outside the official booklet's range.
  */
-export async function getPanchangaForDate(activeDate: Date): Promise<SrsPanchangaDay> {
-    const isoDate = formatDateToIso(activeDate);
+export async function getPanchangaForDate(activeDate: Date | string): Promise<SrsPanchangaDay> {
+    const isoDate = toIsoDateString(activeDate);
+    const parsedDate = typeof activeDate === 'string' ? new Date(`${isoDate}T12:00:00+05:30`) : activeDate;
     
     // Check if date is in the official PDF dataset
-    const pdfRecord = PANCHANGA_DATA.days[isoDate];
-    if (pdfRecord) {
-        return {
-            ...pdfRecord,
-            source: 'pdf_surya_siddhanta',
-            // Default sunset approximation based on sunrise + dinamana (or ~6:20 PM)
-            sunset: '06:20 PM',
-        };
+    try {
+        const fullData = await loadPanchangaData();
+        const pdfRecord = fullData.days[isoDate];
+        if (pdfRecord) {
+            return {
+                ...pdfRecord,
+                source: 'pdf_surya_siddhanta',
+                sunset: pdfRecord.sunset || '06:20 PM',
+            };
+        }
+    } catch (loadErr) {
+        console.warn('Failed to load official Panchanga data chunk:', loadErr);
     }
 
     // Fallback: Dynamic calculation for dates outside the 2026-2027 year
     try {
         const panchangam = await import('@ishubhamx/panchangam-js');
         const obs = new panchangam.Observer(12.2958, 76.6394, 0); // Mysore/Karnataka coordinates
-        const details = panchangam.getPanchangamDetails(activeDate, obs);
+        const details = panchangam.getPanchangamDetails(parsedDate, obs);
 
         const tithis = [
             'ಪ್ರತಿಪದೆ', 'ದ್ವಿತೀಯಾ', 'ತೃತೀಯಾ', 'ಚತುರ್ಥೀ', 'ಪಂಚಮಿ',
@@ -156,10 +255,10 @@ export async function getPanchangaForDate(activeDate: Date): Promise<SrsPanchang
 
         return {
             date: isoDate,
-            dayOfMonth: activeDate.getDate(),
-            dayOfWeek: dayNamesKn[activeDate.getDay()],
+            dayOfMonth: parsedDate.getDate(),
+            dayOfWeek: dayNamesKn[parsedDate.getDay()],
             samvatsara,
-            ayana: activeDate.getMonth() >= 0 && activeDate.getMonth() <= 5 ? 'ಉತ್ತರಾಯಣ' : 'ದಕ್ಷಿಣಾಯನ',
+            ayana: parsedDate.getMonth() >= 0 && parsedDate.getMonth() <= 5 ? 'ಉತ್ತರಾಯಣ' : 'ದಕ್ಷಿಣಾಯನ',
             ritu: 'ಋತು',
             masa: monthName,
             paksha: pakshaStr,
@@ -179,8 +278,8 @@ export async function getPanchangaForDate(activeDate: Date): Promise<SrsPanchang
         const dayNamesKn = ['ಭಾನುವಾರ', 'ಸೋಮವಾರ', 'ಮಂಗಳವಾರ', 'ಬುಧವಾರ', 'ಗುರುವಾರ', 'ಶುಕ್ರವಾರ', 'ಶನಿವಾರ'];
         return {
             date: isoDate,
-            dayOfMonth: activeDate.getDate(),
-            dayOfWeek: dayNamesKn[activeDate.getDay()],
+            dayOfMonth: parsedDate.getDate(),
+            dayOfWeek: dayNamesKn[parsedDate.getDay()],
             samvatsara: 'ಶ್ರೀ ಪರಾಭವ ನಾಮ ಸಂವತ್ಸರ',
             ayana: 'ದಕ್ಷಿಣಾಯನ',
             ritu: 'ವರ್ಷ ಋತು',
@@ -201,22 +300,22 @@ export async function getPanchangaForDate(activeDate: Date): Promise<SrsPanchang
 }
 
 export function getPanchangaMetadata(): PanchangaMetadata {
-    return PANCHANGA_DATA.metadata;
+    return PANCHANGA_METADATA;
 }
 
 export function getPanchangaTableOfContents(): PanchangaTocItem[] {
-    return PANCHANGA_DATA.tableOfContents;
+    return PANCHANGA_TOC;
 }
 
 export function getAnnualFestivals(): FestivalItem[] {
-    return PANCHANGA_DATA.festivals;
+    return PANCHANGA_FESTIVALS;
 }
 
 export function getRayaruAradhanaSaptaha(): AradhanaItem[] {
-    return PANCHANGA_DATA.aradhanaSaptaha;
+    return RAYARU_ARADHANA_SAPTAHA;
 }
 
 export function getPanchangaPdfUrl(page?: number): string {
-    const base = PANCHANGA_DATA.metadata.pdfUrl || '/documents/panchanga_parabhava_2026_27.pdf';
+    const base = PANCHANGA_METADATA.pdfUrl || '/documents/panchanga_parabhava_2026_27.pdf';
     return page && page > 0 ? `${base}#page=${page}` : base;
 }

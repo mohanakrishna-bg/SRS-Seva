@@ -4,13 +4,116 @@ from kannada_converter import KannadaConverter
 
 converter = KannadaConverter()
 
+NUDI_FIXES = [
+    ('ಶಾz್ರ Á್ಧಬಾs ವ', 'ಶ್ರಾದ್ಧಾಭಾವ'),
+    ('ಶಾz್ರ Á್ಧಬಾs', 'ಶ್ರಾದ್ಧಾಭಾವ'),
+    ('ಶಾz್ರ ್ಧÀ', 'ಶ್ರಾದ್ಧ'),
+    ('ಶಾz್ರ', 'ಶ್ರಾದ್ಧ'),
+    ('ಯಗಾದಿ', 'ಯುಗಾದಿ'),
+    ('ಪೆÇ್ರೀ', 'ಪ್ರೌ'),
+    ('ಪೆÇೀ', 'ಪೋ'),
+    ('ಶಸ್ತಾçಸ್ರ', 'ಶಸ್ತ್ರಾಸ್ತ್ರ'),
+    ('ಶಸ್ತಾçಸ್ತç', 'ಶಸ್ತ್ರಾಸ್ತ್ರ'),
+    ('ಹನುಮದ್ವçತ', 'ಹನುಮದ್ವ್ರತ'),
+    ('ಸಂಪತ್ಪçದಂ', 'ಸಂಪತ್ಪ್ರದಂ'),
+    ('ಚಿತ್ರವಸ್ತç', 'ಚಿತ್ರವಸ್ತ್ರ'),
+    ('ಸಚ್ಚಾಸ್ತç', 'ಸಚ್ಛಾಸ್ತ್ರ'),
+    ('ಸ್ತಿçೀಯ', 'ಸ್ತ್ರೀಯ'),
+    ('ತ್ರಯಸ್ತಿçಂಶ', 'ತ್ರಯಸ್ತ್ರಿಂಶ'),
+    ('ವç', 'ವ್ರ'),
+    ('ಸ್ತç', 'ಸ್ತ್ರ'),
+    ('ಅರುಣೋದಂiÉುೀ', 'ಅರುಣೋದಯೇ'),
+    ('ಪಂiÉೂೀ', 'ಪಯೋ'),
+    ('ಸಂiÉೂೀ', 'ಸಂಯೋ'),
+    ('ಪದ್ಮಕಂiÉೂೀಗ', 'ಪದ್ಮಕಯೋಗ'),
+    ('ಭಕ್ಷಣವiï', 'ಭಕ್ಷಣಮ್'),
+    ('ಶುಭವiï', 'ಶುಭಮ್'),
+    ('ಸ್ವಯವiï', 'ಸ್ವಯಮ್'),
+    ('ಬÁಗಿಣ', 'ಬಾಗಿಣ'),
+    ('ª Àುೃಗ', 'ಮೃಗ'),
+    ('¥ ÀÅನ', 'ಪುನ'),
+    ('¥ ÀÇಷಾ', 'ಪೂಷಾ'),
+    ('(ಶ್ರೀ gಂÀ U)À', '(ಶ್ರೀ ರಂಗ)'),
+    ('¥ದ್ರ Éೂೀಷ', 'ಪ್ರದೋಷ'),
+    ('ದ£s Àಲಕ್ಷ್ಮೀ', 'ಧನಲಕ್ಷ್ಮೀ'),
+    ('vಂÀ್ರ iÉೂೀದಶೀ', 'ತ್ರಯೋದಶೀ'),
+    ('ಕುಲದªs ರ್Àು', 'ಕುಲಧರ್ಮ'),
+    ('ನಾರೀPೃÀತ', 'ನಾರೀಕೃತ'),
+    ('ನೀರಾಜ£,À', 'ನೀರಾಜನ,'),
+    ('ಅ¨್ಯÀsಂಜ£,À', 'ಅಭ್ಯಂಜನ'),
+    ('¥ಶಿÀ ª್ಚ ುÀ', 'ಪಶ್ಚಿಮ'),
+    ('ಜಾUರ À', 'ಜಾಗರ'),
+    ('ªುÀ ಂUಳ ÁgತಿÀ', 'ಮಂಗಳಾರತಿ'),
+    ('ಪಾg್ರ ಂÀ ¨,Às', 'ಪ್ರಾರಂಭ'),
+    ('ಂiುÀ ªುÀ vಪ ರÀ ಣ', 'ಯಮತರ್ಪಣ'),
+    ('ದೀಪಾªಲಿÀ', 'ದೀಪಾವಲಿ'),
+    ('ರಾತಿಂ್ರ iುÀ ಲ‍್ಲಿ', 'ರಾತ್ರಿಯಲ್ಲಿ'),
+    ('ಲಕ್ಷೀ ¥ÇÀ e,É', 'ಲಕ್ಷ್ಮೀ ಪೂಜೆ'),
+    ('UೂÉ ೀ¥ÇÀ ಜಾ', 'ಗೋ ಪೂಜಾ'),
+    ('ಶ್ರೀ ªುÀೂಲರಾªುÀರಿU ÉªುÀಹಾಬಿµü ೀÉ P,À', 'ಶ್ರೀ ಮೂಲರಾಮರಿಗೆ ಮಹಾಭಿಷೇಕ'),
+    ('£ೂÀ vನ Àªಸ ್ತçÀ ದಾs gಣÀ', 'ನೂತನ ವಸ್ತ್ರಧಾರಣ'),
+    ('ªಷಿÀ ್ಟಕಾPಷ ರÀ ಣ', 'ಮೃಷ್ಟಾನ್ನ ಭಕ್ಷಣ'),
+    ('ZಂÀ z್ರÀ ಶ ರÀ £,À', 'ಚಂದ್ರದರ್ಶನ'),
+    ('ªiÀ Áರ್UÀ ಪಾಲೀ ಬಂzನs ,À', 'ಮಾರ್ಗಪಾಲೀ ಬಂಧನ'),
+    ('zೂÀ ್ಯತಾgಂÀ ¨,Às', 'ದ್ಯೂತಾರಂಭ'),
+    ('ಅP್ಷÀ ಕ್ರೀ ಡಾ', 'ಅಕ್ಷಕ್ರೀಡಾ'),
+    ('ಐzುÀಬಣ್ಣUಳಿÀ ಂz Àಬಲೀಂz£್ರÀ ನ ುÀ್ನ', 'ಐದು ಬಣ್ಣಗಳಿಂದ ಬಲೀಂದ್ರನನ್ನು'),
+    ('(ನಂಜನಗೂಡು)s', '(ನಂಜನಗೂಡು)')
+]
+
 def clean_kn(s):
     if not s:
         return ''
     res = converter.convert_ascii_to_unicode(s)
     res = res.replace('¯ï', 'ಲ್').replace('ð', 'ರ್')
-    res = res.replace('ಶಾz್ರ ್ಧÀ', 'ಶ್ರಾದ್ಧ').replace('ಶಾz್ರ Á್ಧಬಾs ವ', 'ಶ್ರಾದ್ಧಾಭಾವ').replace('ಯಗಾದಿ', 'ಯುಗಾದಿ')
+    for old, new in NUDI_FIXES:
+        res = res.replace(old, new)
+    res = re.sub(r'Zತು', 'ಚತು', res)
     return re.sub(r'\s+', ' ', res).strip()
+
+SHRADDHA_TOKENS = [
+    'ಶ್ರಾದ್ಧಾಭಾವ', 'ಪ್ರತಿಪತ್', 'ಪ್ರತಿ', 'ದ್ವಿತೀ', 'ದ್ವಿ', 'ತೃತೀ', 'ಚತುರ್', 'ಚತು', 'Zತು', 'ಚ',
+    'ಪಂಚ', 'ಪಂ', 'ಷಷ್ಠೀ', 'ಷಷ್ಠಿ', 'ಷ', 'ಸಪ್ತ', 'ಅಷ್ಟ', 'ನವ', 'ದಶ',
+    'ಏಕಾದಶೀ', 'ಏಕಾದಶಿ', 'ಏಕಾ', 'ಎಕಾ', 'ಏ', 'ದ್ವಾದಶೀ', 'ದ್ವಾದಶಿ', 'ದ್ವಾದ', 'ದ್ವಾ',
+    'ತ್ರಯೋದಶೀ', 'ತ್ರಯೋದಶಿ', 'ತ್ರಯೋ', 'ತ್ರ', 'ಪೂರ್ಣಿಮೆ', 'ಪೂರ್ಣಿ', 'ಅಮಾವಾಸ್ಯೆ', 'ಅಮಾ'
+]
+shraddha_atom = r'(?:' + '|'.join(SHRADDHA_TOKENS) + r')'
+shraddha_pattern = re.compile(rf'(?:,\s*|\s+)?({shraddha_atom}(?:\s*[,/]\s*{shraddha_atom})*)\s*$', re.UNICODE)
+
+SHRADDHA_EXPANSIONS = {
+    'ಪ್ರತಿಪತ್': 'ಪ್ರತಿಪದೆ', 'ಪ್ರತಿ': 'ಪ್ರತಿಪದೆ',
+    'ದ್ವಿತೀ': 'ದ್ವಿತೀಯಾ', 'ದ್ವಿ': 'ದ್ವಿತೀಯಾ',
+    'ತೃತೀ': 'ತೃತೀಯಾ',
+    'ಚತುರ್': 'ಚತುರ್ಥಿ', 'ಚತು': 'ಚತುರ್ಥಿ', 'Zತು': 'ಚತುರ್ಥಿ', 'ಚ': 'ಚತುರ್ಥಿ',
+    'ಪಂಚ': 'ಪಂಚಮಿ', 'ಪಂ': 'ಪಂಚಮಿ',
+    'ಷಷ್ಠೀ': 'ಷಷ್ಠಿ', 'ಷಷ್ಠಿ': 'ಷಷ್ಠಿ', 'ಷ': 'ಷಷ್ಠಿ',
+    'ಸಪ್ತ': 'ಸಪ್ತಮಿ',
+    'ಅಷ್ಟ': 'ಅಷ್ಟಮಿ',
+    'ನವ': 'ನವಮಿ',
+    'ದಶ': 'ದಶಮಿ',
+    'ಏಕಾದಶೀ': 'ಏಕಾದಶಿ', 'ಏಕಾದಶಿ': 'ಏಕಾದಶಿ', 'ಏಕಾ': 'ಏಕಾದಶಿ', 'ಎಕಾ': 'ಏಕಾದಶಿ', 'ಏ': 'ಏಕಾದಶಿ',
+    'ದ್ವಾದಶೀ': 'ದ್ವಾದಶಿ', 'ದ್ವಾದಶಿ': 'ದ್ವಾದಶಿ', 'ದ್ವಾದ': 'ದ್ವಾದಶಿ', 'ದ್ವಾ': 'ದ್ವಾದಶಿ',
+    'ತ್ರಯೋದಶೀ': 'ತ್ರಯೋದಶಿ', 'ತ್ರಯೋದಶಿ': 'ತ್ರಯೋದಶಿ', 'ತ್ರಯೋ': 'ತ್ರಯೋದಶಿ', 'ತ್ರ': 'ತ್ರಯೋದಶಿ',
+    'ಪೂರ್ಣಿಮೆ': 'ಪೂರ್ಣಿಮೆ', 'ಪೂರ್ಣಿ': 'ಪೂರ್ಣಿಮೆ',
+    'ಅಮಾವಾಸ್ಯೆ': 'ಅಮಾವಾಸ್ಯೆ', 'ಅಮಾ': 'ಅಮಾವಾಸ್ಯೆ'
+}
+
+def expand_shraddha(sh_str):
+    if not sh_str:
+        return ''
+    if sh_str == 'ಶ್ರಾದ್ಧಾಭಾವ':
+        return 'ಶ್ರಾದ್ಧವಿಲ್ಲ (ಶ್ರಾದ್ಧಾಭಾವ)'
+    parts = re.split(r'([,/])', sh_str)
+    expanded = []
+    for p in parts:
+        p_strip = p.strip()
+        if p_strip in [',', '/']:
+            expanded.append(', ' if p_strip == ',' else ' / ')
+        elif p_strip in SHRADDHA_EXPANSIONS:
+            expanded.append(SHRADDHA_EXPANSIONS[p_strip])
+        elif p_strip:
+            expanded.append(p_strip)
+    return ''.join(expanded)
 
 TITHI_MAP = {
     'ಪ್ರತಿ': 'ಪ್ರತಿಪದೆ', 'ಪ್ರತಿಪತ್': 'ಪ್ರತಿಪದೆ', 'ಪ್ರತಿ1': 'ಪ್ರತಿಪದೆ', 'ಅಮಾ1': 'ಪ್ರತಿಪದೆ',
@@ -167,14 +270,17 @@ def build_data():
                 if not day_of_week:
                     day_of_week = f'{vara_clean}ವಾರ'
                 
-                # Dharmashastra & Shraddha
-                rest_parts = rest_raw.rsplit(' ', 1)
-                if len(rest_parts) > 1:
-                    dharmashastra = clean_kn(rest_parts[0])
-                    shraddha = clean_kn(rest_parts[1])
+                # Dharmashastra & Shraddha separation
+                rest_clean = clean_kn(rest_raw).rstrip(',.; ').strip()
+                sm = shraddha_pattern.search(rest_clean)
+                if sm:
+                    shraddha_raw = sm.group(1).strip().rstrip(',.; ')
+                    dharmashastra = rest_clean[:sm.start()].strip().rstrip(',.; ').strip()
                 else:
-                    dharmashastra = clean_kn(rest_parts[0])
-                    shraddha = ''
+                    shraddha_raw = ''
+                    dharmashastra = rest_clean
+                
+                shraddha_expanded = expand_shraddha(shraddha_raw)
                 
                 mid_kn = clean_kn(mid_raw)
                 mid_tokens = mid_kn.split()
@@ -232,7 +338,8 @@ def build_data():
                     'sunrise': sr_val,
                     'dinamana': dm_val,
                     'dharmashastra': dharmashastra,
-                    'shraddhaTithi': shraddha,
+                    'shraddhaTithi': shraddha_raw,
+                    'shraddhaTithiExpanded': shraddha_expanded,
                     'pdfPage': page_num,
                     'notes': fn_note,
                 }

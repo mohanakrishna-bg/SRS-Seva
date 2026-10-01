@@ -3,7 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Sun, Moon, Star, Loader2, Clock, CalendarDays, BookOpen, Compass, Sparkles } from 'lucide-react';
 import CalendarWidget from './CalendarWidget';
 import PanchangaModal from './PanchangaModal';
-import { getPanchangaForDate, type SrsPanchangaDay } from '../services/panchangaService';
+import {
+    getPanchangaForDate,
+    formatPanchangaEndTime,
+    formatShraddhaTithi,
+    type SrsPanchangaDay,
+} from '../services/panchangaService';
 import { useSettings } from '../context/SettingsContext';
 
 interface ScheduleItem {
@@ -233,7 +238,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                                 label="ತಿಥಿ"
                                 value={
                                     panchanga.tithiEndTime
-                                        ? `${panchanga.tithi} (${panchanga.tithiEndTime} ರವರೆಗೆ)`
+                                        ? `${panchanga.tithi} (${formatPanchangaEndTime(panchanga.tithiEndTime)} ರವರೆಗೆ)`
                                         : panchanga.tithi
                                 }
                                 color="text-indigo-400"
@@ -274,7 +279,7 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                                     )}
                                     {panchanga.shraddhaTithi && (
                                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30">
-                                            ಶ್ರಾದ್ಧತಿಥಿ: {panchanga.shraddhaTithi}
+                                            ಶ್ರಾದ್ಧತಿಥಿ: {panchanga.shraddhaTithiExpanded || formatShraddhaTithi(panchanga.shraddhaTithi)}
                                         </span>
                                     )}
                                 </div>
