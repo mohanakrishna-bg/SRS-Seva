@@ -9,21 +9,16 @@ import PaymentStep from './registration/PaymentStep';
 import { useToast } from './Toast';
 import { useSettings } from '../context/SettingsContext';
 import { devoteeApi, registrationApi } from '../api';
+import {
+    SevaBookingCart,
+    calculateBookingTotal,
+    type SevaCatalogItem,
+    type SelectedSevaEntry
+} from '../domain/booking';
 
-export interface SevaItem {
-    SevaCode?: string;
-    ItemCode?: string;
-    Description: string;
-    DescriptionEn?: string;
-    Basic?: number;
-    Amount?: number;
-    TPQty: number;
-    Prasada_Addon_Limit?: number;
-    PrasadaAddonLimit?: number;
-    IsSpecialEvent?: boolean;
-    StartTime?: string;
-    IsAllDay?: boolean;
-}
+// Maintain backward-compatible exports for steps and regression tests
+export type SevaItem = SevaCatalogItem;
+export type SelectedSeva = SelectedSevaEntry;
 
 interface Customer {
     ID1?: number;
@@ -50,13 +45,6 @@ interface RegistrationModalProps {
     prefillEventCode?: string;
     prefillDevotee?: any;
     onSuccess: (invoice: any) => void;
-}
-
-export interface SelectedSeva {
-    sevaCode: string;
-    description: string;
-    amount: number | '';
-    isCustomPrice: boolean;
 }
 
 const Step = {
@@ -249,64 +237,31 @@ export default function RegistrationModal({
     };
 
     const validateDevotee = () => {
-        if (!customer.Name.trim()) { showToast('error', 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
-        if (!customer.Phone.trim()) { showToast('error', 'ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ'); return false; }
+        const cart = new SevaBookingCart();
+        cart.setDevotee(customer);
+        const result = cart.validateDevotee();
+        if (!result.valid) {
+            showToast('error', result.error || 'ಹೆಸರು ಮತ್ತು ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ');
+            return false;
+        }
         return true;
     };
 
     const validateSeva = () => {
-        if (!selectedDate) {
-            showToast('error', 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva date)');
+        const cart = new SevaBookingCart();
+        cart.setSevaDate(selectedDate);
+        cart.setSelectedSevas(selectedSevas);
+        const result = cart.validateSeva(items);
+        if (!result.valid) {
+            showToast('error', result.error || 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ');
             return false;
         }
-        if (selectedSevas.length === 0) {
-            showToast('error', 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva)');
-            return false;
-        }
-        
-        // Prevent past dates
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selDate = new Date(selectedDate);
-        selDate.setHours(0, 0, 0, 0);
-        
-        if (selDate < today) {
-            showToast('error', 'ಹಿಂದಿನ ದಿನಾಂಕಗಳಿಗೆ ಸೇವೆ ಬುಕ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ');
-            return false;
-        }
-
-        // Special check for event times if it is today
-        if (selDate.getTime() === today.getTime()) {
-            for (const s of selectedSevas) {
-                const item = getSelectedItem(s.sevaCode);
-                if (item && item.IsSpecialEvent && item.StartTime && !item.IsAllDay) {
-                    const timeParts = item.StartTime.split(':');
-                    if (timeParts.length >= 2) {
-                        const hours = parseInt(timeParts[0], 10);
-                        const mins = parseInt(timeParts[1], 10);
-                        const now = new Date();
-                        if (now.getHours() > hours || (now.getHours() === hours && now.getMinutes() >= mins)) {
-                            showToast('error', `ಈ ಸೇವೆಯ ಸಮಯ ಮುಕ್ತಾಯವಾಗಿದೆ (Event time ${item.StartTime} has passed for today)`);
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        
         return true;
     };
 
-    const getSelectedItem = (code: string | number) => items.find(i => String(i.ItemCode) === String(code));
+    const getSelectedItem = (code: string | number) => items.find(i => String(i.ItemCode ?? i.SevaCode) === String(code));
     const calculateTotal = () => {
-        let total = 0;
-        selectedSevas.forEach(s => {
-            if (typeof s.amount === 'number') total += s.amount;
-        });
-        if (optPrasada) {
-            total += familyMembers * (parseInt(foodServiceRateStr) || 0);
-        }
-        return total;
+        return calculateBookingTotal(selectedSevas, optPrasada, familyMembers, foodServiceRateStr);
     };
 
     const handleSubmit = async () => {
@@ -325,72 +280,35 @@ export default function RegistrationModal({
 
         setLoading(true);
         try {
-            // 1. Ensure Devotee exists or create them
-            let devoteeId = (customer as any).DevoteeId;
+            // Configure domain cart aggregate
+            const cart = new SevaBookingCart();
+            cart.setDevotee(customer);
+            cart.setSevaDate(selectedDate);
+            cart.setSelectedSevas(selectedSevas);
+            cart.setHastodaka(optPrasada, familyMembers, foodServiceRateStr);
+
+            // 1. Ensure Devotee exists or create them using normalized payload
+            let devoteeId = (customer as any).DevoteeId ?? customer.ID1;
             if (isNewCustomer || !devoteeId) {
-                const devoteePayload = {
-                    Name: customer.Name,
-                    Phone: customer.Phone || null,
-                    WhatsApp_Phone: customer.WhatsApp_Phone || null,
-                    Email: (customer as any).Email || null,
-                    Gotra: customer.Sgotra || null,
-                    Nakshatra: customer.SNakshatra || null,
-                    Address: customer.Address || null,
-                    City: customer.City || null,
-                    PinCode: (customer as any).PinCode || null,
-                };
+                const devoteePayload = cart.buildDevoteeCreatePayload();
                 const custRes = await devoteeApi.create(devoteePayload);
                 devoteeId = custRes.data.DevoteeId;
             }
 
-            // Format date as DDMMYY
-            const today = new Date();
-            const regDay = today.getDate().toString().padStart(2, '0');
-            const regMonth = (today.getMonth() + 1).toString().padStart(2, '0');
-            const regYear = today.getFullYear().toString().slice(-2);
-            const regDdmmyy = `${regDay}${regMonth}${regYear}`;
-            
-            const day = selectedDate.getDate().toString().padStart(2, '0');
-            const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-            const year = selectedDate.getFullYear().toString().slice(-2);
-            const sevaDdmmyy = `${day}${month}${year}`;
-
-            // 2. Submit SevaRegistrations
+            // 2. Build registration payloads from domain aggregate
             const voucherNo = `VCH-${Date.now()}`;
-            const hastodakaRate = parseInt(foodServiceRateStr) || 0;
-            const hastodakaTotal = optPrasada ? familyMembers * hastodakaRate : 0;
-            
-            const createdRegistrations = [];
-            
-            for (let i = 0; i < selectedSevas.length; i++) {
-                const s = selectedSevas[i];
-                const baseAmount = typeof s.amount === 'number' ? s.amount : 0;
-                
-                // Attach hastodaka to the first seva only to avoid duplicate accounting entries
-                const isFirst = (i === 0);
-                const regTotal = baseAmount + (isFirst ? hastodakaTotal : 0);
-                
-                const regData = {
-                    RegistrationDate: regDdmmyy,
-                    SevaDate: sevaDdmmyy,
-                    DevoteeId: devoteeId,
-                    SevaCode: s.sevaCode,
-                    Qty: 1,
-                    Rate: baseAmount,
-                    Amount: baseAmount,
-                    OptTheerthaPrasada: isFirst ? optPrasada : false,
-                    PrasadaCount: isFirst && optPrasada ? familyMembers : 0,
-                    PaymentMode: paymentMode,
-                    PaymentReference: paymentRef || null,
-                    PaymentDetails: paymentMode === 'UPI' ? upiDetails : 
-                                    (paymentMode === 'Cheque' || paymentMode === 'DD') ? chqDetails :
-                                    paymentMode === 'Netbanking' ? netDetails : null,
-                    VoucherNo: voucherNo,
-                    Remarks: null,
-                    GrandTotal: regTotal
-                };
+            const payloads = cart.buildRegistrationPayloads(devoteeId, voucherNo, {
+                paymentMode,
+                paymentRef,
+                upiDetails,
+                chqDetails,
+                netDetails
+            });
 
-                const invRes = await registrationApi.create(regData);
+            // 3. Submit SevaRegistrations
+            const createdRegistrations = [];
+            for (const payload of payloads) {
+                const invRes = await registrationApi.create(payload);
                 createdRegistrations.push(invRes.data);
             }
 
