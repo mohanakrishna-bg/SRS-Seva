@@ -14,7 +14,8 @@ import ReceiptGenerator from '../components/ReceiptGenerator';
 import PrintConfigModal from '../components/PrintConfigModal';
 import EntityPaginationBar from '../components/EntityPaginationBar';
 import { printTabularReport } from '../utils/printReport';
-import { devoteeApi, sevaApi, lookupApi } from '../api';
+import { sevaApi, lookupApi } from '../api';
+import { devoteeDirectory } from '../repositories';
 import { useToast } from '../components/Toast';
 import { useEntityCollection } from '../hooks/useEntityCollection';
 
@@ -72,10 +73,10 @@ export default function DevoteesPage() {
         onSave: async (data: DevoteeFormData, isEdit: boolean, currentItem: Devotee | null) => {
             try {
                 if (isEdit && currentItem) {
-                    await devoteeApi.update(currentItem.DevoteeId, data);
+                    await devoteeDirectory.update(currentItem.DevoteeId, data);
                     showToast('success', `${data.Name || currentItem.Name} ನವೀಕರಿಸಲಾಗಿದೆ`);
                 } else {
-                    await devoteeApi.create(data);
+                    await devoteeDirectory.create(data);
                     showToast('success', `${data.Name} ಸೇರಿಸಲಾಗಿದೆ`);
                 }
                 setRefreshTrigger(p => p + 1);
@@ -88,7 +89,7 @@ export default function DevoteesPage() {
         onDelete: async (d: Devotee) => {
             if (!confirm(`ನೀವು ಖಚಿತವಾಗಿ ${d.Name} ಅವರ ವಿವರಗಳನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ?`)) return;
             try {
-                await devoteeApi.delete(d.DevoteeId);
+                await devoteeDirectory.delete(d.DevoteeId);
                 showToast('success', `${d.Name} ಅಳಿಸಲಾಗಿದೆ`);
                 setAllDevotees(prev => prev.filter(item => item.DevoteeId !== d.DevoteeId));
                 setRefreshTrigger(p => p + 1);
@@ -156,12 +157,11 @@ export default function DevoteesPage() {
                 setLoading(true);
                 if (!debouncedQuery.trim()) {
                     const skip = (currentPage - 1) * pageSize;
-                    const res = await devoteeApi.list(skip, pageSize);
-                    setAllDevotees(res.data.items || res.data || []);
-                    setTotalServerCount(res.data.total || (res.data.items ? res.data.items.length : res.data.length) || 0);
+                    const res = await devoteeDirectory.list(skip, pageSize);
+                    setAllDevotees(res.items);
+                    setTotalServerCount(res.total);
                 } else {
-                    const res = await devoteeApi.searchBasic(debouncedQuery);
-                    const items = res.data || [];
+                    const items = await devoteeDirectory.searchBasic(debouncedQuery);
                     setAllDevotees(items);
                     setTotalServerCount(items.length);
                 }
@@ -193,8 +193,7 @@ export default function DevoteesPage() {
 
         try {
             setLoading(true);
-            const res = await devoteeApi.searchAdvanced(params);
-            const results = res.data || [];
+            const results = await devoteeDirectory.searchAdvanced(params);
             setAllDevotees(results);
             setTotalServerCount(results.length);
             setCurrentPage(1);
@@ -221,8 +220,8 @@ export default function DevoteesPage() {
         if (!confirm('ಅಳಿಸಲಾದ ಭಕ್ತರ ಡೇಟಾವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ಸ್ವಚ್ಛಗೊಳಿಸಬೇಕೇ? (ಇದು ಹಿಂಪಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ)')) return;
         try {
             setLoading(true);
-            const res = await devoteeApi.cleanup();
-            showToast('success', res.data?.message || 'ಡೇಟಾ ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗಿದೆ');
+            const res = await devoteeDirectory.cleanup();
+            showToast('success', res.message || 'ಡೇಟಾ ಸ್ವಚ್ಛಗೊಳಿಸಲಾಗಿದೆ');
             setRefreshTrigger(p => p + 1);
         } catch {
             showToast('error', 'ಸ್ವಚ್ಛಗೊಳಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ');
@@ -625,8 +624,8 @@ export default function DevoteesPage() {
                         if (debouncedQuery.trim()) {
                             printItems = allDevotees;
                         } else {
-                            const res = await devoteeApi.list(0, 5000);
-                            printItems = res.data.items || res.data || [];
+                            const res = await devoteeDirectory.list(0, 5000);
+                            printItems = res.items;
                         }
 
                         printTabularReport<Devotee>({

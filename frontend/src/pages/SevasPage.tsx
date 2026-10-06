@@ -11,7 +11,7 @@ import SevaDetailsModal from '../components/SevaDetailsModal';
 import PrintConfigModal from '../components/PrintConfigModal';
 import EntityPaginationBar from '../components/EntityPaginationBar';
 import { printTabularReport } from '../utils/printReport';
-import { sevaApi } from '../api';
+import { sevaCatalog } from '../repositories';
 import { useToast } from '../components/Toast';
 import { useEntityCollection } from '../hooks/useEntityCollection';
 
@@ -40,8 +40,8 @@ export default function SevasPage() {
     const fetchSevas = async () => {
         setLoading(true);
         try {
-            const res = await sevaApi.list();
-            setSevas((res.data || []).filter((s: any) => s.SevaCode && s.Description));
+            const list = await sevaCatalog.list();
+            setSevas(list);
         } catch {
             showToast('error', 'ಸೇವೆಗಳ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
         } finally {
@@ -87,14 +87,12 @@ export default function SevasPage() {
         onSave: async (data: SevaItem, isEdit: boolean, currentItem: SevaItem | null) => {
             try {
                 if (isEdit && currentItem) {
-                    const res = await sevaApi.update(currentItem.SevaCode, data);
+                    const updated = await sevaCatalog.update(currentItem.SevaCode, data);
                     showToast('success', `${data.Description} ನವೀಕರಿಸಲಾಗಿದೆ`);
-                    const updated = res.data || data;
                     setSevas((prev) => prev.map((s) => (s.SevaCode === currentItem.SevaCode ? updated : s)));
                 } else {
-                    const res = await sevaApi.create(data);
+                    const created = await sevaCatalog.create(data);
                     showToast('success', `${data.Description} ಸೇರಿಸಲಾಗಿದೆ`);
-                    const created = res.data || data;
                     setSevas((prev) => [created, ...prev.filter((s) => s.SevaCode !== created.SevaCode)]);
                 }
                 fetchSevas();
@@ -107,7 +105,7 @@ export default function SevasPage() {
         onDelete: async (s: SevaItem) => {
             if (!confirm(`${s.Description} ಅಳಿಸಬೇಕೇ?`)) return;
             try {
-                await sevaApi.delete(s.SevaCode);
+                await sevaCatalog.delete(s.SevaCode);
                 showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
                 setSevas((prev) => prev.filter((item) => item.SevaCode !== s.SevaCode));
                 fetchSevas();

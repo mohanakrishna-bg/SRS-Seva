@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { settingsApi } from '../api';
+import { settingsStore } from '../repositories';
 
 export interface OrgSettings {
     orgName: string;
@@ -74,9 +74,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const refreshSettings = async () => {
         try {
-            const response = await settingsApi.get(SETTINGS_KEY);
-            if (response.data && response.data.value) {
-                const merged = { ...defaultSettings, ...response.data.value };
+            const val = await settingsStore.get<OrgSettings>(SETTINGS_KEY);
+            if (val) {
+                const merged = { ...defaultSettings, ...val };
                 setSettings(merged);
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
             }
@@ -102,7 +102,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSettings(merged);
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
         try {
-            await settingsApi.save(SETTINGS_KEY, merged);
+            await settingsStore.save(SETTINGS_KEY, merged);
         } catch (error) {
             console.error('Failed to save settings to backend', error);
         }
