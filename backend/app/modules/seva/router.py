@@ -28,6 +28,7 @@ from app import database
 from app.core import auth
 from app.shared.fuzzy_search import fuzzy_search_records
 from app.modules.seva import reports
+from app.modules.seva.service import SevaRegistrationService, get_registration_service
 
 router = APIRouter(prefix="/api", tags=["seva"])
 router.include_router(reports.router)
@@ -464,34 +465,12 @@ def save_receipt_pdf(voucher_no: str, file: UploadFile = File(...), db: Session 
     return {"status": "success", "path": file_path}
 
 @router.post("/registrations", response_model=schemas.SevaRegistration)
-def create_registration(reg: schemas.SevaRegistrationCreate, db: Session = Depends(database.get_db)):
-    # Day Close lock check (cross-module call to Accounting)
-    from app.api.accounting import check_date_locked, auto_post_journal
-    import datetime as dt
-    try:
-        reg_dt = dt.datetime.strptime(reg.RegistrationDate, "%d%m%y")
-        formatted_date = reg_dt.strftime("%Y-%m-%d")
-    except Exception:
-        formatted_date = reg.RegistrationDate
-    check_date_locked(formatted_date, db)
-
-    db_reg = models.SevaRegistration(**reg.model_dump())
-    try:
-        db.add(db_reg)
-        db.flush()
-        
-        # Auto-post to accounting (cross-module integration)
-        auto_post_journal(db, db_reg)
-
-        db.commit()
-        db.refresh(db_reg)
-    except HTTPException:
-        db.rollback()
-        raise
-    except SQLAlchemyError as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Database operation failed")
-    return db_reg
+def create_registration(
+    reg: schemas.SevaRegistrationCreate,
+    db: Session = Depends(database.get_db),
+    registration_service: SevaRegistrationService = Depends(get_registration_service),
+):
+    return registration_service.register_seva(db, reg)
 
 
 @router.get("/registrations/by-devotee/{devotee_id}", response_model=List[schemas.SevaRegistration])
