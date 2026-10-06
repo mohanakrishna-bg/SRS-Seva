@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-
-import { Search, Ban, Edit3, Printer, X, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Ban, Edit3, Printer, X, Calendar, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { registrationApi } from '../../api';
 import { useToast } from '../Toast';
 import SplitPaneLayout from '../ui/SplitPaneLayout';
@@ -64,8 +63,29 @@ export default function BookedSevasTab() {
     const [showReceipt, setShowReceipt] = useState(false);
     const [additionalReceiptData, setAdditionalReceiptData] = useState<any>(null);
     const [showAdditionalReceipt, setShowAdditionalReceipt] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'fulfilled'>('all');
+    const [isTogglingFulfil, setIsTogglingFulfil] = useState(false);
     
     const { showToast } = useToast();
+
+    const handleToggleFulfilment = async (regToToggle = selectedReg) => {
+        if (!regToToggle) return;
+        setIsTogglingFulfil(true);
+        const nextState = !regToToggle.IsFulfilled;
+        try {
+            await registrationApi.fulfil(regToToggle.RegistrationId, nextState);
+            showToast('success', nextState ? 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಲಾಗಿದೆ (Seva marked fulfilled)' : 'ಸೇವೆ ಬಾಕಿ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ (Seva marked pending)');
+            setRegistrations(prev => prev.map(r => r.RegistrationId === regToToggle.RegistrationId ? { ...r, IsFulfilled: nextState } : r));
+            if (selectedReg && selectedReg.RegistrationId === regToToggle.RegistrationId) {
+                setSelectedReg((prev: any) => ({ ...prev, IsFulfilled: nextState }));
+            }
+        } catch (err) {
+            console.error('Failed to toggle fulfilment:', err);
+            showToast('error', 'ಪೂರೈಕೆ ಸ್ಥಿತಿ ನವೀಕರಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        } finally {
+            setIsTogglingFulfil(false);
+        }
+    };
 
     const fetchRegistrations = async (searchOverride?: string, forceAllDates?: boolean, dateOverride?: string) => {
         setIsLoading(true);
@@ -217,11 +237,18 @@ export default function BookedSevasTab() {
     };
 
     const filteredRegs = useMemo(() => {
-        if (!searchQuery.trim()) return registrations;
+        let items = registrations;
+        if (statusFilter === 'pending') {
+            items = items.filter(r => !r.IsFulfilled && !r.IsCancelled);
+        } else if (statusFilter === 'fulfilled') {
+            items = items.filter(r => r.IsFulfilled);
+        }
+
+        if (!searchQuery.trim()) return items;
         const q = searchQuery.toLowerCase().trim();
         const qClean = q.replace(/[\s\-\+]/g, '');
 
-        return registrations.filter(r => {
+        return items.filter(r => {
             const devoteeName = (r.devotee?.Name || '').toLowerCase();
             const phone = (r.devotee?.Phone || '').replace(/[\s\-\+]/g, '');
             const waPhone = (r.devotee?.WhatsApp_Phone || '').replace(/[\s\-\+]/g, '');
@@ -252,7 +279,7 @@ export default function BookedSevasTab() {
                 paymentMode.includes(q)
             );
         });
-    }, [registrations, searchQuery]);
+    }, [registrations, searchQuery, statusFilter]);
 
     const handleSearch = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -404,6 +431,46 @@ export default function BookedSevasTab() {
                                 </div>
 
                                 <div className="flex items-center gap-1">
+                                    {/* Status Filter Pills: All, Pending, Fulfilled */}
+                                    <div className="flex items-center bg-[var(--bg-dark)] border border-[var(--glass-border)] rounded-lg p-0.5 mr-1 shadow-sm">
+                                        <button
+                                            type="button"
+                                            onClick={() => setStatusFilter('all')}
+                                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                                                statusFilter === 'all'
+                                                    ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                            }`}
+                                            title="ಎಲ್ಲಾ ಸೇವೆಗಳು"
+                                        >
+                                            ಎಲ್ಲ
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setStatusFilter('pending')}
+                                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                                                statusFilter === 'pending'
+                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                    : 'text-blue-500 hover:text-blue-400'
+                                            }`}
+                                            title="ಬಾಕಿ ಇರುವ ಸೇವೆಗಳು"
+                                        >
+                                            ಬಾಕಿ
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setStatusFilter('fulfilled')}
+                                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                                                statusFilter === 'fulfilled'
+                                                    ? 'bg-emerald-600 text-white shadow-sm'
+                                                    : 'text-emerald-500 hover:text-emerald-400'
+                                            }`}
+                                            title="ಪೂರ್ಣಗೊಂಡ ಸೇವೆಗಳು"
+                                        >
+                                            ಪೂರ್ಣ
+                                        </button>
+                                    </div>
+
                                     {/* "ಇಂದು" (Today) Button - Defaults to today */}
                                     <button
                                         type="button"
@@ -589,6 +656,20 @@ export default function BookedSevasTab() {
                                 <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--glass-border)]">
                                     {!selectedReg.IsCancelled && (
                                         <>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleFulfilment()}
+                                                disabled={isTogglingFulfil}
+                                                className={`flex items-center gap-2 px-4 py-2 font-bold rounded-xl transition-all text-sm cursor-pointer ${
+                                                    selectedReg.IsFulfilled
+                                                        ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                                        : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20'
+                                                }`}
+                                                title={selectedReg.IsFulfilled ? 'ಮತ್ತೆ ಬಾಕಿ ಎಂದು ಗುರುತಿಸಿ' : 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಿ'}
+                                            >
+                                                <CheckCircle2 size={16} />
+                                                <span>{selectedReg.IsFulfilled ? 'ಸೇವೆ ಪೂರ್ಣಗೊಂಡಿದೆ (Fulfilled)' : 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಿ (Mark Done)'}</span>
+                                            </button>
                                             <button 
                                                 onClick={openModifyModal}
                                                 className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 font-bold rounded-xl transition-colors text-sm"

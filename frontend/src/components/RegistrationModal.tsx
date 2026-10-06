@@ -141,6 +141,25 @@ export default function RegistrationModal({
         }
     }, [isOpen, prefillDevotee]);
 
+    // Fast-counter keyboard accelerator: Ctrl+Enter / Cmd+Enter
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (step === Step.Details) {
+                    if (validateDevotee() && validateSeva()) {
+                        setStep(Step.Payment);
+                    }
+                } else if (step === Step.Payment) {
+                    handleSubmit();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, step, customer, selectedDate, selectedSevas, paymentMode, upiDetails, chqDetails, netDetails]);
+
     const fetchItems = async () => {
         try {
             // Use /api/sevas which maps directly to our modernized DB
@@ -208,6 +227,13 @@ export default function RegistrationModal({
             });
 
             setSearchResults(uniqueTkData);
+
+            // Fast POS counter: auto-select devotee if exactly 1 match found on phone search
+            const digits = searchQuery.replace(/\D/g, '');
+            if (digits.length >= 10 && uniqueTkData.length === 1) {
+                selectCustomer(uniqueTkData[0]);
+                showToast('success', `${uniqueTkData[0].Name} ಭಕ್ತರನ್ನು ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ`);
+            }
         } catch {
             showToast('error', 'ಹುಡುಕಾಟ ವಿಫಲವಾಗಿದೆ');
         } finally {
@@ -438,18 +464,23 @@ export default function RegistrationModal({
                                         {step > Step.Details ? 'ಹಿಂದಕ್ಕೆ' : 'ರದ್ದುಮಾಡಿ'}
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (step === Step.Details && validateDevotee() && validateSeva()) setStep(Step.Payment);
-                                            else if (step === Step.Payment) handleSubmit();
-                                        }}
-                                        disabled={loading}
-                                        className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white text-xs font-bold shadow-md hover:shadow-orange-500/30 transition-shadow disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {loading && <Loader2 size={16} className="animate-spin" />}
-                                        {step === Step.Payment ? 'ಮುಕ್ತಾಯ' : 'ಮುಂದುವರಿಯಿರಿ'}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <span className="hidden sm:inline-block text-[10px] text-[var(--text-secondary)] font-mono">
+                                            ⚡ Ctrl+Enter
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (step === Step.Details && validateDevotee() && validateSeva()) setStep(Step.Payment);
+                                                else if (step === Step.Payment) handleSubmit();
+                                            }}
+                                            disabled={loading}
+                                            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white text-xs font-bold shadow-md hover:shadow-orange-500/30 transition-shadow disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                                        >
+                                            {loading && <Loader2 size={16} className="animate-spin" />}
+                                            {step === Step.Payment ? 'ಮುಕ್ತಾಯ' : 'ಮುಂದುವರಿಯಿರಿ'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -21,6 +21,7 @@ import {
     Shield,
     UserCog,
     FileBarChart2,
+    CheckCircle2,
 } from 'lucide-react';
 import type { LayoutContextType } from '../components/Layout';
 
@@ -64,8 +65,10 @@ export const NAV_CONFIG: ModuleConfig[] = [
         permission: 'seva',
         primaryAction: { label: '+ ಸೇವೆ ಬುಕ್ ಮಾಡಿ', contextKey: 'openRegModal' },
         tabs: [
-            { id: 'booked',  label: 'ಸೇವೆ ನೋಂದಣಿ',  icon: ClipboardList,  path: 'booked'  },
-            { id: 'reports', label: 'ವರದಿಗಳು',       icon: FileBarChart2,  path: 'reports' },
+            { id: 'booked',      label: 'ಸೇವೆ ನೋಂದಣಿ',   icon: ClipboardList,  path: 'booked'      },
+            { id: 'fulfilment',  label: 'ಸೇವಾ ಪೂರೈಕೆ',   icon: CheckCircle2,   path: 'fulfilment'  },
+            { id: 'reports',     label: 'ವರದಿಗಳು',        icon: FileBarChart2,  path: 'reports'     },
+            { id: 'analytics',   label: 'ವಿಶ್ಲೇಷಣೆ',      icon: BarChart3,      path: 'analytics'   },
         ],
     },
     {

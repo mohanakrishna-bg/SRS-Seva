@@ -23,3 +23,19 @@ _Avoid_: Order, Ticket, BookingEntry
 **Hastodaka**:
 The sacred meal or Anna Prasada offering accompanying a seva, computed based on family member headcount.
 _Avoid_: Food Charge, Meal Option, Catering Fee
+
+**SevaFulfillment**:
+The verification and confirmation that a booked Seva has been ritually conducted by the Archaka (Priest) or sacred prasada handed over to the devotee.
+_Avoid_: Order Completion, Delivery, Checkout
+
+**SankalpaList**:
+The priest-facing operational agenda grouping scheduled sevas for a date, detailing Devotee Name, Gotra, Nakshatra, and Seva particulars for prayer recitation.
+_Avoid_: Priest Report, Ritual Manifest
+
+**HastodakaCount**:
+The kitchen-facing operational forecast itemizing the total count of sanctified Anna Prasada meals to prepare for a given date.
+_Avoid_: Meal Count, Catering Headcount
+
+**OperationsDispatch**:
+The transmission of daily operational agendas (Sankalpa lists and Hastodaka forecasts) directly to smartphone messaging channels (WhatsApp) for priests and kitchen managers.
+_Avoid_: Notification, Webhook, Ping

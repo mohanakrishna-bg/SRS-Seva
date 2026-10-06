@@ -7,7 +7,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import BookedSevasTab from '../components/seva/BookedSevasTab';
+import SevaFulfilmentTab from '../components/seva/SevaFulfilmentTab';
 import SevaReportsTab from '../components/seva/SevaReportsTab';
+import SevaAnalyticsTab from '../components/seva/SevaAnalyticsTab';
 
 export default function SevaPage() {
     const { can } = useAuth();
@@ -29,7 +31,9 @@ export default function SevaPage() {
             <Routes>
                 <Route path="" element={<Navigate to="booked" replace />} />
                 <Route path="booked" element={<BookedSevasTab />} />
+                <Route path="fulfilment" element={<SevaFulfilmentTab />} />
                 <Route path="reports" element={<SevaReportsTab />} />
+                <Route path="analytics" element={<SevaAnalyticsTab />} />
             </Routes>
         </div>
     );

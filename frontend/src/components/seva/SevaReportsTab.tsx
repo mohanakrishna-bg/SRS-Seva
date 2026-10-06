@@ -16,7 +16,8 @@ import {
     PanelLeftClose, 
     PanelLeft, 
     Filter, 
-    AlertCircle 
+    AlertCircle,
+    Share2
 } from 'lucide-react';
 import api, { sevaReportsApi } from '../../api';
 import { useToast } from '../Toast';
@@ -170,6 +171,137 @@ const formatIsoToDisplay = (iso: string) => {
     if (parts.length !== 3) return iso;
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
 };
+
+function generatePriestWhatsAppText(data: any): string {
+    if (!data) return '';
+    let msg = `🚩 *ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ, ಟಿ.ಕೆ. ಬಡಾವಣೆ, ಮೈಸೂರು*\n`;
+    msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    msg += `📜 *ಅರ್ಚಕರ ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ*\n`;
+    msg += `ಒಟ್ಟು ಸೇವೆಗಳು: ${data.total_bookings || 0} | ಸೇವಾರ್ಥಿಗಳು: ${data.total_devotees || 0}\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    data.days?.forEach((day: any) => {
+        day.sevas?.forEach((seva: any) => {
+            msg += `\n✨ *${seva.description}* (${seva.total_bookings} ಭಕ್ತರು):\n`;
+            seva.bookings?.forEach((b: any, idx: number) => {
+                msg += `${idx + 1}. *${b.devotee_name}* | ಗೋತ್ರ: ${b.gotra || '-'} | ನಕ್ಷತ್ರ: ${b.nakshatra || '-'}`;
+                if (b.phone) msg += ` | 📞 ${b.phone}`;
+                msg += `\n`;
+            });
+        });
+    });
+
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `_ಶ್ರೀ ಮದ್ಗುರುರಾಜೋ ವಿಜಯತೇ_`;
+    return msg;
+}
+
+function generateKitchenWhatsAppText(data: any): string {
+    if (!data) return '';
+    let msg = `🍲 *ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ, ಟಿ.ಕೆ. ಬಡಾವಣೆ, ಮೈಸೂರು*\n`;
+    msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    msg += `🍚 *ಪಾಕಶಾಲೆ ಹಸ್ತೋದಕ ತಯಾರಿಕಾ ಲೆಕ್ಕ*\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `• ಉಚಿತ ಹಸ್ತೋದಕ: ${data.grand_total_free_hastodaka || 0} ಎಲೆಗಳು\n`;
+    msg += `• ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: ${data.grand_total_additional_hastodaka || 0} ಎಲೆಗಳು\n`;
+    msg += `👉 *ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಹಸ್ತೋದಕ:* *${data.grand_total_hastodaka || 0} ಎಲೆಗಳು*\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    data.days?.forEach((day: any) => {
+        day.sevas?.forEach((s: any, idx: number) => {
+            if (s.total_hastodaka > 0) {
+                msg += `${idx + 1}. ${s.seva_name}: ${s.total_hastodaka} ಎಲೆಗಳು (${s.booking_count} ಬುಕಿಂಗ್)\n`;
+            }
+        });
+    });
+
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `_ಅನ್ನದಾತ ಸುಖೀಭವ_`;
+    return msg;
+}
+
+function exportReportToCsv(reportId: string, data: any, startDate: string, endDate: string) {
+    if (!data) return;
+    let csvContent = '\uFEFF'; // UTF-8 BOM for Excel
+    const filename = `${reportId}_${startDate}.csv`;
+
+    if (reportId === 'daily_priest') {
+        csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವಾ ಹೆಸರು,ಭಕ್ತರ ಹೆಸರು,ಗೋತ್ರ,ನಕ್ಷತ್ರ,ಮೊಬೈಲ್,ರಸೀದಿ ಸಂಖ್ಯೆ,ಸೇವಾ ದಿನಾಂಕ\n';
+        let count = 1;
+        data.days?.forEach((day: any) => {
+            day.sevas?.forEach((seva: any) => {
+                seva.bookings?.forEach((b: any) => {
+                    const row = [
+                        count++,
+                        `"${(seva.description || '').replace(/"/g, '""')}"`,
+                        `"${(b.devotee_name || '').replace(/"/g, '""')}"`,
+                        `"${(b.gotra || '').replace(/"/g, '""')}"`,
+                        `"${(b.nakshatra || '').replace(/"/g, '""')}"`,
+                        `"${(b.phone || '').replace(/"/g, '""')}"`,
+                        `"${(b.voucher_no || '').replace(/"/g, '""')}"`,
+                        `"${b.date_formatted || startDate}"`
+                    ];
+                    csvContent += row.join(',') + '\n';
+                });
+            });
+        });
+    } else if (reportId === 'daily_kitchen') {
+        csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವೆಯ ಹೆಸರು,ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ,ಒಳಗೊಂಡ ಹಸ್ತೋದಕ,ಉಚಿತ ಹಸ್ತೋದಕ,ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ,ಒಟ್ಟು ಹಸ್ತೋದಕ ಎಲೆಗಳು\n';
+        let count = 1;
+        data.days?.forEach((day: any) => {
+            day.sevas?.forEach((s: any) => {
+                const row = [
+                    count++,
+                    `"${(s.seva_name || '').replace(/"/g, '""')}"`,
+                    s.booking_count || 0,
+                    s.free_qty_per_seva || 0,
+                    s.total_free || 0,
+                    s.total_additional || 0,
+                    s.total_hastodaka || 0
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+        });
+        csvContent += `\nಒಟ್ಟು,,,,"${data.grand_total_free_hastodaka || 0}","${data.grand_total_additional_hastodaka || 0}","${data.grand_total_hastodaka || 0}"\n`;
+    } else if (reportId === 'on_demand_full') {
+        csvContent += 'ಕ್ರಮ ಸಂ.,ದಿನಾಂಕ,ಸೇವೆ,ಭಕ್ತರ ಹೆಸರು,ಮೊಬೈಲ್,ಗೋತ್ರ,ನಕ್ಷತ್ರ,ವೌಚರ್,ಮೊತ್ತ,ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ\n';
+        let count = 1;
+        data.days?.forEach((day: any) => {
+            day.sevas?.forEach((seva: any) => {
+                seva.bookings?.forEach((b: any) => {
+                    const row = [
+                        count++,
+                        `"${day.date_formatted || ''}"`,
+                        `"${(seva.description || '').replace(/"/g, '""')}"`,
+                        `"${(b.devotee_name || '').replace(/"/g, '""')}"`,
+                        `"${(b.phone || '').replace(/"/g, '""')}"`,
+                        `"${(b.gotra || '').replace(/"/g, '""')}"`,
+                        `"${(b.nakshatra || '').replace(/"/g, '""')}"`,
+                        `"${(b.voucher_no || '').replace(/"/g, '""')}"`,
+                        b.grand_total || 0,
+                        b.extra_prasada_count || 0
+                    ];
+                    csvContent += row.join(',') + '\n';
+                });
+            });
+        });
+    } else {
+        csvContent += 'ಮಾಹಿತಿ,ಮೌಲ್ಯ\n';
+        csvContent += `ವರದಿ,"${reportId}"\n`;
+        csvContent += `ಪ್ರಾರಂಭ ದಿನಾಂಕ,"${startDate}"\n`;
+        csvContent += `ಅಂತ್ಯ ದಿನಾಂಕ,"${endDate}"\n`;
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
 
 export default function SevaReportsTab() {
     const { showToast } = useToast();
@@ -481,15 +613,51 @@ export default function SevaReportsTab() {
                             <button
                                 onClick={fetchReport}
                                 disabled={isLoading}
-                                className="p-2 border border-[var(--glass-border)] rounded-xl text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                className="p-2 border border-[var(--glass-border)] rounded-xl text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                                 title="ವರದಿ ಮರುಲೋಡ್ ಮಾಡಿ (Refresh)"
                             >
                                 <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
                             </button>
 
                             <button
+                                onClick={() => exportReportToCsv(activeReport.id, reportData, startDate, endDate)}
+                                disabled={!reportData}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                                title="CSV / Excel ಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
+                            >
+                                <FileSpreadsheet size={16} />
+                                <span className="hidden sm:inline">CSV / Excel</span>
+                            </button>
+
+                            {(activeReport.id === 'daily_priest' || activeReport.id === 'daily_kitchen') && (
+                                <button
+                                    onClick={() => {
+                                        if (!reportData) {
+                                            showToast('error', 'ಹಂಚಿಕೊಳ್ಳಲು ಯಾವುದೇ ಡೇಟಾ ಇಲ್ಲ');
+                                            return;
+                                        }
+                                        let text = '';
+                                        if (activeReport.id === 'daily_priest') {
+                                            text = generatePriestWhatsAppText(reportData);
+                                        } else if (activeReport.id === 'daily_kitchen') {
+                                            text = generateKitchenWhatsAppText(reportData);
+                                        }
+                                        const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                                        window.open(waUrl, '_blank');
+                                        showToast('success', 'ವಾಟ್ಸಾಪ್‌ಗೆ ರವಾನಿಸಲಾಗುತ್ತಿದೆ...');
+                                    }}
+                                    disabled={!reportData}
+                                    className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-green-600/20 cursor-pointer disabled:opacity-50"
+                                    title="ವಾಟ್ಸಾಪ್‌ಗೆ ಕಳುಹಿಸಿ (Share via WhatsApp)"
+                                >
+                                    <Share2 size={16} />
+                                    <span>ವಾಟ್ಸಾಪ್ (WhatsApp)</span>
+                                </button>
+                            )}
+
+                            <button
                                 onClick={handlePrint}
-                                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[var(--primary)]/20"
+                                className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[var(--primary)]/20 cursor-pointer"
                             >
                                 <Printer size={16} /> ಮುದ್ರಿಸಿ (Print)
                             </button>
