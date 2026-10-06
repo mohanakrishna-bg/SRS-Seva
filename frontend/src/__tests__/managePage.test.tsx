@@ -64,6 +64,21 @@ describe('ManagePage', () => {
         expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
     });
 
+    it('renders devotees tab route directly without inline action buttons in rows', async () => {
+        render(
+            <AuthProvider>
+                <SettingsProvider>
+                    <MemoryRouter initialEntries={['/devotees']}>
+                        <ManagePage />
+                    </MemoryRouter>
+                </SettingsProvider>
+            </AuthProvider>
+        );
+        expect(await screen.findByText('ಭಕ್ತರು ಕಂಡುಬಂದಿಲ್ಲ')).toBeDefined();
+        // Actions column header should not exist
+        expect(screen.queryByText('ಕ್ರಿಯೆಗಳು')).toBeNull();
+    });
+
     it('renders sevas tab without inline action buttons in rows', async () => {
         render(
             <AuthProvider>

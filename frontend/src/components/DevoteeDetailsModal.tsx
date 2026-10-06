@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Phone, Mail, MapPin, Edit3, Trash2, Receipt, UserCircle2, ArrowLeft } from 'lucide-react';
 import Modal from './Modal';
-import CustomerForm from './CustomerForm';
+import DevoteeForm from './DevoteeForm';
 
 interface Devotee {
     DevoteeId: number;
@@ -58,7 +58,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
             isLocked={true}
         >
             {isEditing ? (
-                <CustomerForm
+                <DevoteeForm
                     isOpen={true}
                     onClose={() => setIsEditing(false)}
                     onSubmit={async (data) => {

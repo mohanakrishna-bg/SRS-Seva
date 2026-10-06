@@ -6,7 +6,7 @@
  */
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import CustomersPage from './CustomersPage';
+import DevoteesPage from './DevoteesPage';
 import SevasPage from './SevasPage';
 import SpecialEventsPage from './SpecialEventsPage';
 import SettingsPage from './SettingsPage';
@@ -28,14 +28,15 @@ export default function ManagePage() {
         >
             <ErrorBoundary fallbackTitle="ನಿರ್ವಹಣೆ ಪುಟವನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ">
                 <Routes>
-                    <Route path="customers" element={<CustomersPage />} />
+                    <Route path="devotees"  element={<DevoteesPage />} />
+                    <Route path="customers" element={<DevoteesPage />} />
                     <Route path="sevas"     element={<SevasPage />} />
                     <Route path="events"    element={<SpecialEventsPage />} />
                     <Route path="content"   element={<PublicContentTab />} />
                     <Route path="settings"  element={<SettingsPage />} />
                     <Route path="roles"     element={<RoleManagementTab />} />
                     <Route path="users"     element={<UserAdminTab />} />
-                    <Route path=""          element={<Navigate to="customers" replace />} />
+                    <Route path=""          element={<Navigate to="devotees" replace />} />
                 </Routes>
             </ErrorBoundary>
         </motion.div>

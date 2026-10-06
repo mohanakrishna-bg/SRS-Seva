@@ -1,59 +1,47 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
     HeartHandshake, Loader2, 
     Plus, ArrowUpDown, ArrowUp, ArrowDown,
-    ChevronLeft, ChevronRight, Printer
+    Printer
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import SevaForm from '../components/SevaForm';
 import SevaDetailsModal from '../components/SevaDetailsModal';
 import PrintConfigModal from '../components/PrintConfigModal';
+import EntityPaginationBar from '../components/EntityPaginationBar';
 import { printTabularReport } from '../utils/printReport';
 import { sevaApi } from '../api';
 import { useToast } from '../components/Toast';
+import { useEntityCollection } from '../hooks/useEntityCollection';
 
-interface SevaItem {
+export interface SevaItem {
     SevaCode: string;
     Description: string;
     DescriptionEn?: string;
     Amount: number;
     TPQty: number;
     PrasadaAddonLimit?: number;
+    IsSpecialEvent?: boolean;
+    EventDate?: string;
+    StartTime?: string;
+    EndTime?: string;
+    IsAllDay?: boolean;
+    RecurrenceRule?: string;
 }
 
 export default function SevasPage() {
     const [sevas, setSevas] = useState<SevaItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(() => {
-        const saved = localStorage.getItem('seva_page_size_pref');
-        return saved ? parseInt(saved) : 10;
-    });
-    const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
-    
-    // Form & Modal state
-    const [showForm, setShowForm] = useState(false);
-    const [editSeva, setEditSeva] = useState<SevaItem | null>(null);
-    const [viewSeva, setViewSeva] = useState<SevaItem | null>(null);
-    const [showPrintModal, setShowPrintModal] = useState(false);
-    
     const { showToast } = useToast();
-
-    useEffect(() => {
-        fetchSevas();
-    }, []);
 
     const fetchSevas = async () => {
         setLoading(true);
         try {
             const res = await sevaApi.list();
-            // Filter out invalid items if any and map to interface
-            setSevas(res.data.filter((s: any) => s.SevaCode && s.Description));
+            setSevas((res.data || []).filter((s: any) => s.SevaCode && s.Description));
         } catch {
             showToast('error', 'ಸೇವೆಗಳ ಪಟ್ಟಿ ಲೋಡ್ ಆಗಲಿಲ್ಲ');
         } finally {
@@ -61,92 +49,110 @@ export default function SevasPage() {
         }
     };
 
-    const handleSaveSeva = async (data: SevaItem) => {
-        try {
-            if (editSeva) {
-                const res = await sevaApi.update(editSeva.SevaCode, data);
-                showToast('success', `${data.Description} ನವೀಕರಿಸಲಾಗಿದೆ`);
-                const updated = res.data || data;
-                setSevas((prev) => prev.map((s) => (s.SevaCode === editSeva.SevaCode ? updated : s)));
-            } else {
-                const res = await sevaApi.create(data);
-                showToast('success', `${data.Description} ಸೇರಿಸಲಾಗಿದೆ`);
-                const created = res.data || data;
-                setSevas((prev) => [created, ...prev.filter((s) => s.SevaCode !== created.SevaCode)]);
-            }
-            setShowForm(false);
-            setEditSeva(null);
-            setViewSeva(null);
-            fetchSevas();
-        } catch (err: any) {
-            const detail = err?.response?.data?.detail || 'ಕಾರ್ಯ ವಿಫಲ';
-            showToast('error', detail);
-        }
-    };
+    useEffect(() => {
+        fetchSevas();
+    }, []);
 
-    const handleDeleteSeva = async (s: SevaItem) => {
-        if (!confirm(`${s.Description} ಅಳಿಸಬೇಕೇ?`)) return;
-        try {
-            await sevaApi.delete(s.SevaCode);
-            showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
-            setSevas((prev) => prev.filter((item) => item.SevaCode !== s.SevaCode));
-            if (viewSeva?.SevaCode === s.SevaCode) setViewSeva(null);
-            fetchSevas();
-        } catch (err: any) {
-            const detail = err?.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ';
-            showToast('error', detail);
-        }
-    };
-
-    const filteredAndSorted = useMemo(() => {
-        let result = [...sevas];
-        
-        // Filter
-        if (searchQuery.trim()) {
-            const rawQ = searchQuery.toLowerCase().trim();
+    // Unified Entity Collection Seam
+    const collection = useEntityCollection<SevaItem>({
+        items: sevas,
+        storageKey: 'seva_page_size_pref',
+        defaultPageSize: 10,
+        pageSizeOptions: [5, 10, 15, 20],
+        filterFn: (s, query) => {
+            if (!query.trim()) return true;
+            const rawQ = query.toLowerCase().trim();
             const cleanQ = rawQ.replace(/^[#\s]+/, '');
-            
-            result = result.filter((s) => {
-                const descKn = (s.Description || '').toLowerCase();
-                const descEn = (s.DescriptionEn || '').toLowerCase();
-                const code = (s.SevaCode || '').toLowerCase();
-                const amountStr = (s.Amount !== undefined && s.Amount !== null) ? s.Amount.toString() : '';
+            const descKn = (s.Description || '').toLowerCase();
+            const descEn = (s.DescriptionEn || '').toLowerCase();
+            const code = (s.SevaCode || '').toLowerCase();
+            const amountStr = (s.Amount !== undefined && s.Amount !== null) ? s.Amount.toString() : '';
 
-                return (
-                    descKn.includes(rawQ) ||
-                    (cleanQ && descKn.includes(cleanQ)) ||
-                    descEn.includes(rawQ) ||
-                    (cleanQ && descEn.includes(cleanQ)) ||
-                    code.includes(rawQ) ||
-                    (cleanQ && code.includes(cleanQ)) ||
-                    (amountStr && amountStr.includes(rawQ))
-                );
-            });
-        }
-        
-        // Sort
-        result.sort((a, b) => {
+            return (
+                descKn.includes(rawQ) ||
+                (Boolean(cleanQ) && descKn.includes(cleanQ)) ||
+                descEn.includes(rawQ) ||
+                (Boolean(cleanQ) && descEn.includes(cleanQ)) ||
+                code.includes(rawQ) ||
+                (Boolean(cleanQ) && code.includes(cleanQ)) ||
+                (Boolean(amountStr) && amountStr.includes(rawQ))
+            );
+        },
+        sortFn: (a, b) => {
             const valA = a.Amount || 0;
             const valB = b.Amount || 0;
             return sortOrder === 'asc' ? valA - valB : valB - valA;
-        });
-        
-        return result;
-    }, [sevas, searchQuery, sortOrder]);
+        },
+        getItemKey: (s) => s.SevaCode,
+        onSave: async (data: SevaItem, isEdit: boolean, currentItem: SevaItem | null) => {
+            try {
+                if (isEdit && currentItem) {
+                    const res = await sevaApi.update(currentItem.SevaCode, data);
+                    showToast('success', `${data.Description} ನವೀಕರಿಸಲಾಗಿದೆ`);
+                    const updated = res.data || data;
+                    setSevas((prev) => prev.map((s) => (s.SevaCode === currentItem.SevaCode ? updated : s)));
+                } else {
+                    const res = await sevaApi.create(data);
+                    showToast('success', `${data.Description} ಸೇರಿಸಲಾಗಿದೆ`);
+                    const created = res.data || data;
+                    setSevas((prev) => [created, ...prev.filter((s) => s.SevaCode !== created.SevaCode)]);
+                }
+                fetchSevas();
+            } catch (err: any) {
+                const detail = err?.response?.data?.detail || 'ಕಾರ್ಯ ವಿಫಲ';
+                showToast('error', detail);
+                throw err;
+            }
+        },
+        onDelete: async (s: SevaItem) => {
+            if (!confirm(`${s.Description} ಅಳಿಸಬೇಕೇ?`)) return;
+            try {
+                await sevaApi.delete(s.SevaCode);
+                showToast('success', `${s.Description} ಅಳಿಸಲಾಗಿದೆ`);
+                setSevas((prev) => prev.filter((item) => item.SevaCode !== s.SevaCode));
+                fetchSevas();
+            } catch (err: any) {
+                const detail = err?.response?.data?.detail || 'ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ';
+                showToast('error', detail);
+            }
+        }
+    });
+
+    const {
+        searchQuery,
+        setSearchQuery,
+        filteredItems,
+        paginatedItems: paginatedSevas,
+        totalCount,
+        totalPages,
+        currentPage,
+        setCurrentPage,
+        pageSize,
+        setPageSize,
+        pageSizeOptions,
+        startIndex,
+        endIndex,
+        canPrev,
+        canNext,
+        goToNextPage,
+        goToPrevPage,
+        viewingItem: viewSeva,
+        editingItem: editSeva,
+        isCreating: showForm,
+        openDetail,
+        closeDetail,
+        openCreate,
+        closeCreate,
+        showPrintModal,
+        openPrintModal,
+        closePrintModal,
+        handleSave,
+        handleDelete,
+    } = collection;
 
     const toggleSortOrder = () => {
         setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     };
-
-    const totalPages = Math.ceil(filteredAndSorted.length / pageSize);
-    const paginatedSevas = filteredAndSorted.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, sortOrder, pageSize]);
 
     if (loading) {
         return (
@@ -159,14 +165,14 @@ export default function SevasPage() {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
                 <div>
                     <h2 className="text-2xl font-bold flex items-center gap-3">
                         <HeartHandshake size={28} className="text-[var(--accent-saffron)]" />
                         ಸೇವೆಗಳು ಮತ್ತು ಪ್ರಸಾದ
                     </h2>
                     <p className="text-sm text-[var(--text-secondary)] mt-1">
-                        {sevas.length} ರಲ್ಲಿ {filteredAndSorted.length} ಸೇವೆಗಳು
+                        {sevas.length} ರಲ್ಲಿ {filteredItems.length} ಸೇವೆಗಳು
                     </p>
                 </div>
 
@@ -174,6 +180,7 @@ export default function SevasPage() {
                     <SearchBar placeholder="ಸೇವೆಗಳನ್ನು ಹುಡುಕಿ..." onSearch={setSearchQuery} />
                     
                     <button
+                        type="button"
                         onClick={toggleSortOrder}
                         className="p-2.5 rounded-xl border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] bg-white dark:bg-black/20 transition-all flex items-center gap-2 text-xs font-bold"
                         title={sortOrder === 'asc' ? 'Sort Descending' : 'Sort Ascending'}
@@ -183,15 +190,17 @@ export default function SevasPage() {
                     </button>
 
                     <button
-                        onClick={() => setShowPrintModal(true)}
-                        className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0 print:hidden"
+                        type="button"
+                        onClick={openPrintModal}
+                        className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0"
                         title="Print List"
                     >
                         <Printer size={18} />
                     </button>
                     
                     <button
-                        onClick={() => { setEditSeva(null); setShowForm(true); }}
+                        type="button"
+                        onClick={openCreate}
                         className="px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--primary)] to-amber-500 text-white font-bold shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2 shrink-0"
                     >
                         <Plus size={18} /> <span className="hidden sm:inline">Add New Seva</span>
@@ -199,39 +208,31 @@ export default function SevasPage() {
                 </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 mb-2">
-                <span className="text-xs text-[var(--text-secondary)] font-medium">Items per page:</span>
-                <select value={pageSize} onChange={e => {
-                    const newSize = Number(e.target.value);
-                    setPageSize(newSize);
-                    localStorage.setItem('seva_page_size_pref', String(newSize));
-                }}
-                    className="px-2 py-1.5 rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]">
-                    {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-            </div>
-
-            {/* List View */}
+            {/* List View: Unified list view, no grid, row click opens locked detail modal per AGENTS.md */}
             <div className="glass-card overflow-hidden print:shadow-none print:border-none print:bg-transparent">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-black/10 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">
-                                <th className="pb-3 pt-4 pl-4 w-28">ಕೋಡ್</th>
-                                <th className="pb-3 pt-4">ವಿವರಣೆ</th>
-                                <th className="pb-3 pt-4 text-right cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={toggleSortOrder}>
-                                    <div className="flex items-center justify-end gap-1">
-                                         ಶುಲ್ಕ
-                                         <ArrowUpDown size={12} />
-                                    </div>
-                                </th>
-                                <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell"># of Hastodaka included</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedSevas.map((s) => {
-                                const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
-                                return (
-                                <tr key={s.SevaCode} className="border-b border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors group cursor-pointer" onClick={() => setViewSeva(s)}>
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="border-b border-black/10 font-semibold text-[var(--text-secondary)] uppercase text-xs tracking-wider">
+                            <th className="pb-3 pt-4 pl-4 w-28">ಕೋಡ್</th>
+                            <th className="pb-3 pt-4">ವಿವರಣೆ</th>
+                            <th className="pb-3 pt-4 text-right cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={toggleSortOrder}>
+                                <div className="flex items-center justify-end gap-1">
+                                    ಶುಲ್ಕ
+                                    <ArrowUpDown size={12} />
+                                </div>
+                            </th>
+                            <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell"># of Hastodaka included</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {paginatedSevas.map((s) => {
+                            const pyClass = pageSize <= 5 ? 'py-6' : pageSize <= 10 ? 'py-4' : 'py-2';
+                            return (
+                                <tr
+                                    key={s.SevaCode}
+                                    className="border-b border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors group cursor-pointer"
+                                    onClick={() => openDetail(s)}
+                                >
                                     <td className={`${pyClass} pl-4 transition-all`}>
                                         <span className="px-2 py-1 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs border border-[var(--primary)]/20">
                                             {s.SevaCode}
@@ -254,116 +255,67 @@ export default function SevasPage() {
                                         {(s.TPQty ?? 0) > 0 ? `${s.TPQty}` : '—'}
                                     </td>
                                 </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                            );
+                        })}
+                    </tbody>
+                </table>
 
-                </div>
-
-            {/* Pagination Controls - Visible in both Grid and List views */}
-            {totalPages >= 1 && filteredAndSorted.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between pt-4 mt-4 border-t border-[var(--glass-border)] px-4 pb-3 gap-3">
-                    <div className="flex items-center gap-3">
-                        <span className="text-xs text-[var(--text-secondary)]">
-                            ಪುಟ {currentPage} / {totalPages} (ಒಟ್ಟು {filteredAndSorted.length} ಸೇವೆಗಳು)
-                        </span>
-                        <div className="flex items-center gap-1.5 ml-2">
-                            <span className="text-xs text-[var(--text-secondary)]">ಸಾಲುಗಳು:</span>
-                            <select
-                                value={pageSize}
-                                onChange={(e) => {
-                                    const newSize = Number(e.target.value);
-                                    setPageSize(newSize);
-                                    localStorage.setItem('seva_page_size_pref', String(newSize));
-                                    setCurrentPage(1);
-                                }}
-                                className="px-2 py-1 rounded-md bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] font-medium"
-                            >
-                                {PAGE_SIZE_OPTIONS.map((s) => (
-                                    <option key={s} value={s}>{s}</option>
-                                ))}
-                            </select>
-                        </div>
+                {/* Empty State */}
+                {filteredItems.length === 0 && (
+                    <div className="text-center py-12 text-[var(--text-secondary)]">
+                        {searchQuery ? `"${searchQuery}" ಗೆ ಸೇವೆಗಳಿಲ್ಲ` : 'ಸೇವೆಗಳು ಲಭ್ಯವಿಲ್ಲ'}
                     </div>
-                    {totalPages > 1 && (
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
-                                title="Previous Page"
-                            >
-                                <ChevronLeft size={18} />
-                            </button>
-                            <div className="flex items-center gap-1 mx-1">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                    const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
-                                    const p = start + i;
-                                    if (p > totalPages) return null;
-                                    return (
-                                        <button
-                                            key={p}
-                                            onClick={() => setCurrentPage(p)}
-                                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
-                                                currentPage === p
-                                                    ? 'bg-[var(--primary)] text-white'
-                                                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)]'
-                                            }`}
-                                        >
-                                            {p}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <button
-                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
-                                title="Next Page"
-                            >
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
 
-            {filteredAndSorted.length === 0 && (
-                <div className="text-center py-12 text-[var(--text-secondary)]">
-                    {searchQuery ? `"${searchQuery}" ಗೆ ಸೇವೆಗಳಿಲ್ಲ` : 'ಸೇವೆಗಳು ಲಭ್ಯವಿಲ್ಲ'}
-                </div>
-            )}
+                {/* Standardized Pagination Bar */}
+                <EntityPaginationBar
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    pageSizeOptions={pageSizeOptions}
+                    totalCount={totalCount}
+                    startIndex={startIndex}
+                    endIndex={endIndex}
+                    canPrev={canPrev}
+                    canNext={canNext}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                    onPrev={goToPrevPage}
+                    onNext={goToNextPage}
+                />
+            </div>
             
+            {/* Create / Edit Form Modal */}
             <SevaForm
                 isOpen={showForm}
-                onClose={() => { setShowForm(false); setEditSeva(null); }}
-                onSubmit={handleSaveSeva}
+                onClose={closeCreate}
+                onSubmit={handleSave}
                 initialData={editSeva || undefined}
-                isEdit={!!editSeva}
+                isEdit={Boolean(editSeva)}
                 existingSevas={sevas}
                 title={editSeva ? 'ಸೇವೆ ಬದಲಿಸಿ' : 'ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ'}
             />
             
+            {/* Centralized Detail Modal (max-w-2xl, max-h-[85vh], locked, inline editing) */}
             <SevaDetailsModal
-                isOpen={!!viewSeva}
-                onClose={() => setViewSeva(null)}
+                isOpen={Boolean(viewSeva)}
+                onClose={closeDetail}
                 seva={viewSeva}
-                onSave={handleSaveSeva}
-                onDelete={handleDeleteSeva}
+                onSave={handleSave}
+                onDelete={handleDelete}
                 existingSevas={sevas}
             />
 
             {/* Print Configuration Modal */}
             <PrintConfigModal
                 isOpen={showPrintModal}
-                onClose={() => setShowPrintModal(false)}
-                totalItems={filteredAndSorted.length}
+                onClose={closePrintModal}
+                totalItems={filteredItems.length}
                 defaultPageSize={pageSize}
                 onPrint={(chosenSize) => {
                     printTabularReport<SevaItem>({
                         title: 'Sevas List',
-                        items: filteredAndSorted,
+                        items: filteredItems,
                         itemsPerPage: chosenSize,
                         columns: [
                             {

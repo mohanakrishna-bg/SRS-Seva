@@ -93,7 +93,7 @@ export const NAV_CONFIG: ModuleConfig[] = [
         path: '/app/manage',
         permission: 'settings',
         tabs: [
-            { id: 'customers', label: 'ಭಕ್ತರು',              icon: Users,          path: 'customers' },
+            { id: 'devotees',  label: 'ಭಕ್ತರು',              icon: Users,          path: 'devotees', permission: 'customers' },
             { id: 'sevas',     label: 'ಸೇವೆಗಳು',            icon: HeartHandshake, path: 'sevas'     },
             { id: 'events',    label: 'ವಿಶೇಷ ಘಟನೆಗಳು',      icon: Sparkles,       path: 'events'    },
             { id: 'content',   label: 'ಸೌಲಭ್ಯ & ಕಾರ್ಯಕ್ರಮ', icon: Building2,      path: 'content'   },
