@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Sun, Moon, Star, Loader2, Clock, CalendarDays, BookOpen, Compass, Sparkles } from 'lucide-react';
+import { Calendar, Sun, Moon, Star, Loader2, Clock, CalendarDays, BookOpen, Compass, Sparkles, X } from 'lucide-react';
 import CalendarWidget from './CalendarWidget';
 import PanchangaModal from './PanchangaModal';
 import {
@@ -157,13 +157,22 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
 
                         {/* PDF Quick Button */}
                         <button
-                            onClick={() => setShowPdfModal(true)}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-800 dark:text-amber-200 text-xs font-bold transition-all shadow-sm group hover:scale-[1.03]"
-                            title="ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠದ ಅಧಿಕೃತ ಸೂರ್ಯಸಿದ್ಧಾಂತ ಪಂಚಾಂಗ ಪಿಡಿಎಫ್"
+                            onClick={() => setShowPdfModal((prev) => !prev)}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm group hover:scale-[1.03] cursor-pointer ${
+                                showPdfModal
+                                    ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 shadow-rose-500/10'
+                                    : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/35 text-amber-800 dark:text-amber-200'
+                            }`}
+                            title={showPdfModal ? 'ಪಂಚಾಂಗ ಪಿಡಿಎಫ್ ಮುಚ್ಚಿ' : 'ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠದ ಅಧಿಕೃತ ಸೂರ್ಯಸಿದ್ಧಾಂತ ಪಂಚಾಂಗ ಪಿಡಿಎಫ್'}
+                            aria-expanded={showPdfModal}
                         >
-                            <BookOpen size={14} className="text-orange-500 group-hover:scale-110 transition-transform" />
-                            <span>ಪಂಚಾಂಗ ಪಿಡಿಎಫ್</span>
-                            {panchanga?.pdfPage ? (
+                            {showPdfModal ? (
+                                <X size={14} className="text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform" />
+                            ) : (
+                                <BookOpen size={14} className="text-orange-500 group-hover:scale-110 transition-transform" />
+                            )}
+                            <span>{showPdfModal ? 'ಪಿಡಿಎಫ್ ಮುಚ್ಚಿ' : 'ಪಂಚಾಂಗ ಪಿಡಿಎಫ್'}</span>
+                            {panchanga?.pdfPage && !showPdfModal ? (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-orange-500 text-white font-mono font-bold leading-none shadow-sm">
                                     ಪುಟ {panchanga.pdfPage}
                                 </span>
@@ -374,12 +383,13 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                 </div>
             </motion.div>
 
-            {/* Embedded Panchanga PDF Viewer Modal */}
+            {/* Embedded Panchanga PDF Viewer restricted to Main Body */}
             <PanchangaModal
                 isOpen={showPdfModal}
                 onClose={() => setShowPdfModal(false)}
                 initialPage={panchanga?.pdfPage || 1}
                 initialSectionTitle={panchanga?.dharmashastra || (panchanga ? `${panchanga.masa} ${panchanga.paksha}` : '')}
+                mode="inline"
             />
         </>
     );
