@@ -359,16 +359,6 @@ export default function EeDinaCard({ date, onDateChange }: EeDinaCardProps) {
                                 )}
                             </AnimatePresence>
                         </div>
-
-                        {/* PDF Page note */}
-                        {panchanga?.pdfPage && (
-                            <button
-                                onClick={() => setShowPdfModal(true)}
-                                className="text-[11px] font-semibold text-[var(--text-secondary)] hover:text-orange-600 dark:hover:text-amber-300 flex items-center gap-1 transition-colors"
-                            >
-                                <span>ಮಠದ ಪಂಚಾಂಗ ಪುಟ {panchanga.pdfPage} ನೋಡಿ →</span>
-                            </button>
-                        )}
                     </div>
                 </div>
 
