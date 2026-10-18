@@ -39,3 +39,16 @@ _Avoid_: Meal Count, Catering Headcount
 **OperationsDispatch**:
 The transmission of daily operational agendas (Sankalpa lists and Hastodaka forecasts) directly to smartphone messaging channels (WhatsApp) for priests and kitchen managers.
 _Avoid_: Notification, Webhook, Ping
+
+**Archaka**:
+The sacred ritual priest performing the sevas, sanctifying the sankalpa, and confirming seva fulfillment.
+_Avoid_: Operator, Worker, Clergy
+
+**CounterCashier**:
+The front-desk seva booking staff member managing devotee lookups, receipt voucher generation, and daily cash drawer reconciliation.
+_Avoid_: Teller, Cashier, POS User
+
+**ReceiptCancellation**:
+An authorized administrative voiding of an issued seva registration voucher requiring supervisor override, reason logging, and fiscal journal reversal.
+_Avoid_: Refund, Void, Delete
+
