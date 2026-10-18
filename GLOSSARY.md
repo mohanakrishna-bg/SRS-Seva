@@ -52,3 +52,8 @@ _Avoid_: Teller, Cashier, POS User
 An authorized administrative voiding of an issued seva registration voucher requiring supervisor override, reason logging, and fiscal journal reversal.
 _Avoid_: Refund, Void, Delete
 
+**AuditTrail**:
+The immutable, append-only chronological record of all domain mutations, devotee updates, and financial voucher operations across the Matha system, secured with cryptographic hash-chaining.
+_Avoid_: System Log, Event Log, History
+
+
