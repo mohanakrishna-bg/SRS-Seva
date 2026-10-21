@@ -11,7 +11,9 @@ import {
     RefreshCw, 
     CheckCheck,
     Phone,
-    UserCheck
+    UserCheck,
+    AlertTriangle,
+    X
 } from 'lucide-react';
 import { registrationApi } from '../../api';
 import { useToast } from '../Toast';
@@ -40,6 +42,13 @@ export default function SevaFulfilmentTab() {
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isUpdatingId, setIsUpdatingId] = useState<number | null>(null);
+
+    // Exigency Exception State
+    const [exigencyModalReg, setExigencyModalReg] = useState<any | null>(null);
+    const [exigencyReason, setExigencyReason] = useState('');
+    const [exigencyStaffName, setExigencyStaffName] = useState('ಕಚೇರಿ ಸಿಬ್ಬಂದಿ');
+    const [exigencyAction, setExigencyAction] = useState<'reschedule' | 'refund'>('reschedule');
+    const [isSubmittingExigency, setIsSubmittingExigency] = useState(false);
 
     const { showToast } = useToast();
 
@@ -106,7 +115,7 @@ export default function SevaFulfilmentTab() {
     };
 
     const batchFulfilSevaGroup = async (sevaRegs: any[]) => {
-        const pendingOnes = sevaRegs.filter(r => !r.IsFulfilled && !r.IsCancelled);
+        const pendingOnes = sevaRegs.filter(r => !r.IsFulfilled && !r.IsCancelled && !r.IsExigencyCancelled);
         if (pendingOnes.length === 0) return;
 
         try {
@@ -127,12 +136,56 @@ export default function SevaFulfilmentTab() {
         }
     };
 
+    const handleOpenExigency = (reg: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setExigencyModalReg(reg);
+        setExigencyReason('');
+        setExigencyStaffName('ಕಚೇರಿ ಸಿಬ್ಬಂದಿ');
+        setExigencyAction('reschedule');
+    };
+
+    const handleConfirmExigency = async () => {
+        if (!exigencyModalReg) return;
+        if (!exigencyReason.trim()) {
+            showToast('error', 'ದಯವಿಟ್ಟು ಅನಿವಾರ್ಯ ಕಾರಣವನ್ನು ನಮೂದಿಸಿ (Reason is required)');
+            return;
+        }
+
+        setIsSubmittingExigency(true);
+        try {
+            await registrationApi.exigencyCancel(exigencyModalReg.RegistrationId, {
+                exigency_reason: exigencyReason.trim(),
+                staff_name: exigencyStaffName.trim() || 'ಕಚೇರಿ ಸಿಬ್ಬಂದಿ',
+                action: exigencyAction
+            });
+
+            setRegistrations(prev =>
+                prev.map(r => r.RegistrationId === exigencyModalReg.RegistrationId ? {
+                    ...r,
+                    IsExigencyCancelled: true,
+                    ExigencyReason: exigencyReason.trim(),
+                    ExigencyStaffName: exigencyStaffName.trim(),
+                    ExigencyAction: exigencyAction,
+                    IsFulfilled: false
+                } : r)
+            );
+
+            showToast('success', 'ಅಪವಾದ ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ (Exigency logged)');
+            setExigencyModalReg(null);
+        } catch (error) {
+            console.error('Failed to log exigency:', error);
+            showToast('error', 'ಅಪವಾದ ದಾಖಲಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        } finally {
+            setIsSubmittingExigency(false);
+        }
+    };
+
     // Filter registrations
     const filteredRegistrations = useMemo(() => {
         let items = registrations.filter(r => !r.IsCancelled);
 
         if (statusFilter === 'pending') {
-            items = items.filter(r => !r.IsFulfilled);
+            items = items.filter(r => !r.IsFulfilled && !r.IsExigencyCancelled);
         } else if (statusFilter === 'fulfilled') {
             items = items.filter(r => r.IsFulfilled);
         }
@@ -181,7 +234,8 @@ export default function SevaFulfilmentTab() {
     // KPI stats
     const totalCount = registrations.filter(r => !r.IsCancelled).length;
     const fulfilledCount = registrations.filter(r => !r.IsCancelled && r.IsFulfilled).length;
-    const pendingCount = totalCount - fulfilledCount;
+    const exigencyCount = registrations.filter(r => !r.IsCancelled && r.IsExigencyCancelled).length;
+    const pendingCount = registrations.filter(r => !r.IsCancelled && !r.IsFulfilled && !r.IsExigencyCancelled).length;
     const totalHastodakaMeals = registrations.filter(r => !r.IsCancelled).reduce((sum, r) => sum + (r.PrasadaCount || 0), 0);
 
     return (
@@ -262,7 +316,7 @@ export default function SevaFulfilmentTab() {
             </div>
 
             {/* ── Operational KPI Summary Strip ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <div className="p-3.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl shadow-sm">
                     <div className="text-[10px] uppercase font-bold text-[var(--text-secondary)] mb-0.5">ಇಂದಿನ ಒಟ್ಟು ಸೇವೆಗಳು</div>
                     <div className="text-xl font-bold text-[var(--text-primary)]">{totalCount}</div>
@@ -274,6 +328,10 @@ export default function SevaFulfilmentTab() {
                 <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl shadow-sm">
                     <div className="text-[10px] uppercase font-bold text-emerald-500 mb-0.5">ಪೂರ್ಣಗೊಂಡ ಸೇವೆಗಳು</div>
                     <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{fulfilledCount}</div>
+                </div>
+                <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl shadow-sm">
+                    <div className="text-[10px] uppercase font-bold text-rose-500 mb-0.5">ಅಪವಾದ / ರದ್ದು</div>
+                    <div className="text-xl font-bold text-rose-600 dark:text-rose-400">{exigencyCount}</div>
                 </div>
                 <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl shadow-sm">
                     <div className="text-[10px] uppercase font-bold text-amber-500 mb-0.5">ಹಸ್ತೋದಕ ಊಟಗಳು</div>
@@ -409,11 +467,13 @@ export default function SevaFulfilmentTab() {
                                     {group.items.map((reg) => (
                                         <div
                                             key={reg.RegistrationId}
-                                            onClick={() => toggleFulfilment(reg)}
-                                            className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
-                                                reg.IsFulfilled
-                                                    ? 'bg-emerald-500/5 border-emerald-500/20'
-                                                    : 'bg-[var(--bg-dark)] border-[var(--glass-border)] hover:border-[var(--primary)] shadow-sm'
+                                            onClick={() => !reg.IsExigencyCancelled && toggleFulfilment(reg)}
+                                            className={`p-3.5 rounded-xl border transition-all ${reg.IsExigencyCancelled ? 'cursor-default' : 'cursor-pointer'} flex items-start justify-between gap-3 ${
+                                                reg.IsExigencyCancelled
+                                                    ? 'bg-rose-500/10 border-rose-500/30'
+                                                    : reg.IsFulfilled
+                                                        ? 'bg-emerald-500/5 border-emerald-500/20'
+                                                        : 'bg-[var(--bg-dark)] border-[var(--glass-border)] hover:border-[var(--primary)] shadow-sm'
                                             }`}
                                         >
                                             <div className="space-y-1 min-w-0">
@@ -433,20 +493,40 @@ export default function SevaFulfilmentTab() {
                                                 <div className="text-[10px] text-[var(--text-secondary)] font-mono">
                                                     ವೌಚರ್: {reg.VoucherNo}
                                                 </div>
+
+                                                {/* Exigency Indicator or Action */}
+                                                {reg.IsExigencyCancelled ? (
+                                                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                                                        <AlertTriangle size={11} />
+                                                        <span>ಅಪವಾದ: {reg.ExigencyReason} ({reg.ExigencyAction === 'refund' ? 'ಮರುಪಾವತಿ' : 'ಮರುಹೊಂದಿಕೆ'})</span>
+                                                    </div>
+                                                ) : !reg.IsFulfilled ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleOpenExigency(reg, e)}
+                                                        className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/30 dark:hover:bg-rose-600 border border-rose-200 dark:border-rose-900/50 transition-colors cursor-pointer"
+                                                        title="ಅನಿವಾರ್ಯ ಕಾರಣದಿಂದ ಸೇವೆ ನೆರವೇರಿಸಲು ಸಾಧ್ಯವಾಗದಿದ್ದರೆ ಅಪವಾದ ದಾಖಲಿಸಿ"
+                                                    >
+                                                        <AlertTriangle size={10} />
+                                                        <span>ಅಪವಾದ ದಾಖಲಿಸಿ</span>
+                                                    </button>
+                                                ) : null}
                                             </div>
 
-                                            <button
-                                                type="button"
-                                                disabled={isUpdatingId === reg.RegistrationId}
-                                                className={`p-1.5 rounded-full transition-transform shrink-0 ${
-                                                    reg.IsFulfilled
-                                                        ? 'text-emerald-500 hover:scale-110'
-                                                        : 'text-[var(--text-secondary)] hover:text-emerald-500 hover:scale-110'
-                                                }`}
-                                                title={reg.IsFulfilled ? 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಂಡಿದೆ (Completed)' : 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಳಿಸಿ (Click to mark)'}
-                                            >
-                                                {reg.IsFulfilled ? <CheckCircle2 size={22} /> : <Circle size={22} />}
-                                            </button>
+                                            {!reg.IsExigencyCancelled && (
+                                                <button
+                                                    type="button"
+                                                    disabled={isUpdatingId === reg.RegistrationId}
+                                                    className={`p-1.5 rounded-full transition-transform shrink-0 ${
+                                                        reg.IsFulfilled
+                                                            ? 'text-emerald-500 hover:scale-110'
+                                                            : 'text-[var(--text-secondary)] hover:text-emerald-500 hover:scale-110'
+                                                    }`}
+                                                    title={reg.IsFulfilled ? 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಂಡಿದೆ (Completed)' : 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಳಿಸಿ (Click to mark)'}
+                                                >
+                                                    {reg.IsFulfilled ? <CheckCircle2 size={22} /> : <Circle size={22} />}
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -470,11 +550,13 @@ export default function SevaFulfilmentTab() {
                         {filteredRegistrations.map((reg) => (
                             <div
                                 key={reg.RegistrationId}
-                                onClick={() => toggleFulfilment(reg)}
-                                className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
-                                    reg.IsFulfilled
-                                        ? 'bg-emerald-500/5 border-emerald-500/20'
-                                        : 'bg-[var(--bg-dark)] border-[var(--glass-border)] hover:border-amber-500 shadow-sm'
+                                onClick={() => !reg.IsExigencyCancelled && toggleFulfilment(reg)}
+                                className={`p-4 rounded-xl border transition-all ${reg.IsExigencyCancelled ? 'cursor-default' : 'cursor-pointer'} flex items-start justify-between gap-3 ${
+                                    reg.IsExigencyCancelled
+                                        ? 'bg-rose-500/10 border-rose-500/30'
+                                        : reg.IsFulfilled
+                                            ? 'bg-emerald-500/5 border-emerald-500/20'
+                                            : 'bg-[var(--bg-dark)] border-[var(--glass-border)] hover:border-amber-500 shadow-sm'
                                 }`}
                             >
                                 <div className="space-y-1.5 min-w-0">
@@ -503,22 +585,152 @@ export default function SevaFulfilmentTab() {
                                     <div className="text-[10px] text-[var(--text-secondary)] font-mono pt-1">
                                         ವೌಚರ್: {reg.VoucherNo} • ID: #{reg.RegistrationId}
                                     </div>
+
+                                    {/* Exigency Indicator or Action */}
+                                    {reg.IsExigencyCancelled ? (
+                                        <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                                            <AlertTriangle size={11} />
+                                            <span>ಅಪವಾದ: {reg.ExigencyReason} ({reg.ExigencyAction === 'refund' ? 'ಮರುಪಾವತಿ' : 'ಮರುಹೊಂದಿಕೆ'})</span>
+                                        </div>
+                                    ) : !reg.IsFulfilled ? (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleOpenExigency(reg, e)}
+                                            className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 dark:bg-rose-950/30 dark:hover:bg-rose-600 border border-rose-200 dark:border-rose-900/50 transition-colors cursor-pointer"
+                                            title="ಅನಿವಾರ್ಯ ಕಾರಣದಿಂದ ಸೇವೆ ನೆರವೇರಿಸಲು ಸಾಧ್ಯವಾಗದಿದ್ದರೆ ಅಪವಾದ ದಾಖಲಿಸಿ"
+                                        >
+                                            <AlertTriangle size={10} />
+                                            <span>ಅಪವಾದ ದಾಖಲಿಸಿ</span>
+                                        </button>
+                                    ) : null}
                                 </div>
 
-                                <button
-                                    type="button"
-                                    disabled={isUpdatingId === reg.RegistrationId}
-                                    className={`p-2 rounded-xl transition-all shrink-0 ${
-                                        reg.IsFulfilled
-                                            ? 'bg-emerald-500/15 text-emerald-500'
-                                            : 'bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] hover:bg-emerald-600 hover:text-white'
-                                    }`}
-                                    title={reg.IsFulfilled ? 'ಪ್ರಸಾದ ವಿತರಿಸಲಾಗಿದೆ' : 'ಪ್ರಸಾದ ವಿತರಿಸಿ'}
-                                >
-                                    {reg.IsFulfilled ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                                </button>
+                                {!reg.IsExigencyCancelled && (
+                                    <button
+                                        type="button"
+                                        disabled={isUpdatingId === reg.RegistrationId}
+                                        className={`p-2 rounded-xl transition-all shrink-0 ${
+                                            reg.IsFulfilled
+                                                ? 'bg-emerald-500/15 text-emerald-500'
+                                                : 'bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] hover:bg-emerald-600 hover:text-white'
+                                        }`}
+                                        title={reg.IsFulfilled ? 'ಪ್ರಸಾದ ವಿತರಿಸಲಾಗಿದೆ' : 'ಪ್ರಸಾದ ವಿತರಿಸಿ'}
+                                    >
+                                        {reg.IsFulfilled ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                                    </button>
+                                )}
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Exigency Cancellation Modal (Centered & Constrained per UI Guidelines) ── */}
+            {exigencyModalReg && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="max-w-2xl w-full max-h-[85vh] overflow-y-auto bg-[var(--bg-light)] dark:bg-slate-900 border border-[var(--glass-border)] rounded-2xl p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-[var(--glass-border)]">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-rose-500/15 text-rose-600 rounded-xl">
+                                    <AlertTriangle size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-[var(--text-primary)]">
+                                        ಸೇವಾ ಅಪವಾದ / ಅನಿವಾರ್ಯ ರದ್ದತಿ ದಾಖಲಿಸಿ
+                                    </h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">
+                                        Log Seva Non-Fulfillment & Exigency Exception
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setExigencyModalReg(null)}
+                                className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/10"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Selected Seva Info */}
+                        <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-[var(--glass-border)] text-xs space-y-1">
+                            <div className="flex justify-between">
+                                <span className="text-[var(--text-secondary)]">ಸೇವಾರ್ಥಿ:</span>
+                                <strong className="text-[var(--text-primary)]">{exigencyModalReg.devotee?.Name || 'Unknown'}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-[var(--text-secondary)]">ಸೇವೆ:</span>
+                                <strong className="text-[var(--text-primary)]">{exigencyModalReg.seva?.Description || exigencyModalReg.SevaCode}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-[var(--text-secondary)]">ವೌಚರ್ ಸಂಖ್ಯೆ:</span>
+                                <span className="font-mono">{exigencyModalReg.VoucherNo}</span>
+                            </div>
+                        </div>
+
+                        {/* Mandatory Reason */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-between">
+                                <span>ಅನಿವಾರ್ಯ ಕಾರಣ (Mandatory Reason for Non-Fulfillment) <span className="text-rose-500">*</span></span>
+                            </label>
+                            <textarea
+                                value={exigencyReason}
+                                onChange={(e) => setExigencyReason(e.target.value)}
+                                placeholder="ಉದಾ: ಮಳೆ/ಪ್ರವಾಹದ ಕಾರಣ ಅಥವಾ ಅರ್ಚಕರ ಅಲಭ್ಯತೆಯಿಂದ ಸೇವೆ ನೆರವೇರಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ..."
+                                rows={3}
+                                className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-black/30 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                            />
+                        </div>
+
+                        {/* Proposed Action */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-[var(--text-primary)]">
+                                    ಪರಿಹಾರ ಕ್ರಮ (Proposed Resolution)
+                                </label>
+                                <select
+                                    value={exigencyAction}
+                                    onChange={(e) => setExigencyAction(e.target.value as any)}
+                                    className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-black/30 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-rose-500"
+                                >
+                                    <option value="reschedule">ಮುಂದಿನ ದಿನಕ್ಕೆ ಮರುಹೊಂದಿಕೆ (Reschedule Seva)</option>
+                                    <option value="refund">ಹಣ ಮರುಪಾವತಿ (Initiate Refund)</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-[var(--text-primary)]">
+                                    ದಾಖಲಿಸಿದ ಸಿಬ್ಬಂದಿ (Staff Name)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={exigencyStaffName}
+                                    onChange={(e) => setExigencyStaffName(e.target.value)}
+                                    placeholder="ಸಿಬ್ಬಂದಿ ಹೆಸರು"
+                                    className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-black/30 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-rose-500"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end items-center gap-2 pt-3 border-t border-[var(--glass-border)]">
+                            <button
+                                type="button"
+                                onClick={() => setExigencyModalReg(null)}
+                                className="px-4 py-2 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
+                            >
+                                ರದ್ದುಮಾಡಿ (Cancel)
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isSubmittingExigency || !exigencyReason.trim()}
+                                onClick={handleConfirmExigency}
+                                className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                            >
+                                {isSubmittingExigency ? <RefreshCw size={14} className="animate-spin" /> : <AlertTriangle size={14} />}
+                                <span>ಅಪವಾದ ದೃಢೀಕರಿಸಿ (Confirm Exigency)</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

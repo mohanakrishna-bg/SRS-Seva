@@ -217,6 +217,11 @@ class SevaRegistrationBase(BaseModel):
     GrandTotal: Optional[float] = 0.0
     IsFulfilled: Optional[bool] = False
     IsCancelled: Optional[bool] = False
+    DeemedFulfilledAt: Optional[datetime] = None
+    IsExigencyCancelled: Optional[bool] = False
+    ExigencyReason: Optional[str] = None
+    ExigencyStaffName: Optional[str] = None
+    ExigencyAction: Optional[str] = None
 
     @field_validator("Rate", "Amount", "GrandTotal", mode="before")
     @classmethod
@@ -251,6 +256,12 @@ class SevaRegistrationModify(BaseModel):
 class SevaRegistrationCancel(BaseModel):
     refund_amount: Optional[float] = 0.0
     refund_mode: Optional[str] = "Cash"
+
+class SevaRegistrationExigencyCancel(BaseModel):
+    reason: str
+    staff_name: Optional[str] = "Office Staff"
+    action: Optional[str] = "reschedule"  # reschedule / refund
+
 
 class SevaRef(BaseModel):
     """Lightweight Seva reference for embedding in registration responses."""

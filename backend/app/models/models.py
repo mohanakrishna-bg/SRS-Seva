@@ -122,13 +122,18 @@ class SevaRegistration(Base):
     VoucherNo = Column(String, nullable=True)
     Remarks = Column(Text, nullable=True)
     GrandTotal = Column(Float, default=0.0)            # INR, 2 decimal
-    IsTest = Column(Boolean, default=True)
     IsFulfilled = Column(Boolean, default=False)
     IsCancelled = Column(Boolean, default=False)
     CreatedAt = Column(DateTime, default=datetime.datetime.utcnow)
+    DeemedFulfilledAt = Column(DateTime, nullable=True)
+    IsExigencyCancelled = Column(Boolean, default=False)
+    ExigencyReason = Column(Text, nullable=True)
+    ExigencyStaffName = Column(String, nullable=True)
+    ExigencyAction = Column(String, nullable=True)  # reschedule / refund
 
     devotee = relationship("Devotee", back_populates="registrations")
     seva = relationship("Seva", back_populates="registrations")
+
 
 
 # ─── Legacy Tables (kept for migration reference, read-only) ───

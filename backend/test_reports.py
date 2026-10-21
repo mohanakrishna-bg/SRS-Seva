@@ -24,6 +24,12 @@ class TestSevaReports(unittest.TestCase):
             cls.db.add(cls.devotee)
             cls.db.commit()
             cls.db.refresh(cls.devotee)
+        else:
+            cls.devotee.Name = "ಭಕ್ತ ರಾಮಚಂದ್ರ (Test Devotee)"
+            cls.devotee.Gotra = "ಕೌಶಿಕ (Koushika)"
+            cls.devotee.Nakshatra = "ರೋಹಿಣಿ (Rohini)"
+            cls.db.commit()
+            cls.db.refresh(cls.devotee)
 
         # Test Seva
         cls.seva = cls.db.query(models.Seva).filter(models.Seva.SevaCode == "SV_TEST_REP").first()
@@ -93,7 +99,7 @@ class TestSevaReports(unittest.TestCase):
         self.assertIsNotNone(found_seva, "Test seva not found in priest report")
         self.assertGreaterEqual(found_seva["total_bookings"], 1)
 
-        booking = found_seva["bookings"][0]
+        booking = next((b for b in found_seva["bookings"] if b.get("voucher_no") == "VCH-REP-TEST-001"), found_seva["bookings"][0])
         self.assertEqual(booking["devotee_name"], "ಭಕ್ತ ರಾಮಚಂದ್ರ (Test Devotee)")
         self.assertEqual(booking["gothra"], "ಕೌಶಿಕ (Koushika)")
         self.assertEqual(booking["nakshatra"], "ರೋಹಿಣಿ (Rohini)")

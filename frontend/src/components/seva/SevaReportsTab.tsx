@@ -134,6 +134,23 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
         defaultDateMode: 'today',
         supportsDateRange: false,
         supportsDateType: false
+    },
+    {
+        id: 'exigency_exceptions',
+        category: 'on_demand',
+        titleKn: 'ವಿನಾಯಿತಿ / ಅಪವಾದ ವರದಿ',
+        titleEn: 'Exigency & Exceptions Report',
+        printTitleKn: 'ಸೇವಾ ಅಪವಾದ ಹಾಗೂ ವಿನಾಯಿತಿ ವರದಿ',
+        subtitleKn: 'ಅನಿವಾರ್ಯ ಕಾರಣಗಳಿಂದ ನೆರವೇರಿಸಲಾಗದ ಸೇವೆಗಳು, ಕಾರಣ ಹಾಗೂ ಭಕ್ತರ ವಿವರ',
+        subtitleEn: 'List of unperformed sevas with recorded staff reasons and refund/reschedule status',
+        audience: 'admin',
+        audienceLabelKn: 'ಆಡಳಿತ & ಕಚೇರಿ',
+        audienceLabelEn: 'Administration',
+        badgeColor: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
+        icon: AlertCircle,
+        defaultDateMode: 'range',
+        supportsDateRange: true,
+        supportsDateType: false
     }
 ];
 
@@ -384,6 +401,12 @@ export default function SevaReportsTab() {
                 const parts = startDate.split('-');
                 const ddmmyy = parts.length === 3 ? `${parts[2]}${parts[1]}${parts[0].slice(-2)}` : '';
                 const res = await api.get(`/stats/daily-summary?date=${ddmmyy}`);
+                setReportData(res.data);
+            } else if (activeReport.id === 'exigency_exceptions') {
+                const res = await sevaReportsApi.getExigencyExceptions({
+                    start_date: startDate,
+                    end_date: endDate || startDate
+                });
                 setReportData(res.data);
             }
         } catch (err: any) {
@@ -929,6 +952,10 @@ export default function SevaReportsTab() {
                             {activeReport.id === 'financial_summary' && (
                                 <FinancialSummaryReportView data={reportData} selectedDate={startDate} />
                             )}
+
+                            {activeReport.id === 'exigency_exceptions' && (
+                                <ExigencyExceptionsReportView data={reportData} filter={tableFilter} />
+                            )}
                         </div>
                     )}
                 </div>
@@ -1125,7 +1152,14 @@ function PriestSankalpaReportView({
                                                                 {bIdx + 1}
                                                             </td>
                                                             <td className="px-4 py-2 font-bold text-[var(--text-primary)] print:text-black text-sm print:text-xs">
-                                                                {b.devotee_name}
+                                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                                    <span>{b.devotee_name}</span>
+                                                                    {b.is_late_addition && (
+                                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 print:border-black print:text-black print:bg-gray-100">
+                                                                            ತಾಜಾ ಸೇರ್ಪಡೆ (Late Addition)
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                             <td className="px-4 py-2 font-semibold text-amber-700 dark:text-amber-400 print:text-black">
                                                                 {b.gothra}
@@ -1166,6 +1200,22 @@ function PriestSankalpaReportView({
             {/* Traditional Blessing Note */}
             <div className="text-center py-3 text-xs font-semibold text-[var(--text-secondary)] print:text-black border-t border-dashed border-[var(--glass-border)] print:border-gray-400">
                 || ಶ್ರೀ ಮೂಲರಾಮೋ ವಿಜಯತೇ || ಶ್ರೀ ಗುರುರಾಜೋ ವಿಜಯತೇ || ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಅನುಗ್ರಹ ಪ್ರಾಪ್ತಿರಸ್ತು ||
+            </div>
+
+            {/* Formal Archaka Signature and Matha Seal Block (Visible in Print) */}
+            <div className="hidden print:grid grid-cols-3 gap-6 pt-8 mt-6 border-t border-black text-xs text-black break-inside-avoid">
+                <div className="text-left space-y-8">
+                    <div>ವರದಿ ಸಿದ್ಧಪಡಿಸಿದ ಸಿಬ್ಬಂದಿ: _______________</div>
+                    <div className="text-[10px] text-gray-600">ಕಚೇರಿ ದಿನಾಂಕ & ಸಮಯ</div>
+                </div>
+                <div className="text-center space-y-8">
+                    <div>ಮಠದ ಮೊಹರು (Matha Seal)</div>
+                    <div className="text-[10px] text-gray-600">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಸೇವಾ ಟ್ರಸ್ಟ್</div>
+                </div>
+                <div className="text-right space-y-8">
+                    <div>ಪ್ರಧಾನ ಅರ್ಚಕರ ಸಹಿ: _______________</div>
+                    <div className="text-[10px] text-gray-600">ಸಂಕಲ್ಪ ನೆರವೇರಿಸಿದ ವಿವರ</div>
+                </div>
             </div>
         </div>
     );
@@ -1864,6 +1914,127 @@ function FinancialSummaryReportView({ data, selectedDate }: { data: any; selecte
                             </tfoot>
                         )}
                     </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SUB-VIEW 6: EXIGENCY & EXCEPTIONS REPORT
+// ═══════════════════════════════════════════════════════════
+function ExigencyExceptionsReportView({ data, filter }: { data: any; filter: string }) {
+    const q = (filter || '').toLowerCase().trim();
+    const items = (data?.items || []).filter((item: any) => {
+        if (!q) return true;
+        return (
+            item.devotee_name?.toLowerCase().includes(q) ||
+            item.voucher_no?.toLowerCase().includes(q) ||
+            item.seva_name?.toLowerCase().includes(q) ||
+            item.exigency_reason?.toLowerCase().includes(q) ||
+            item.phone?.includes(q)
+        );
+    });
+
+    return (
+        <div className="space-y-6 print:space-y-4">
+            {/* Top KPI Cards (SCREEN ONLY) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 print:hidden">
+                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
+                    <div className="text-[11px] font-bold uppercase text-rose-500">ಒಟ್ಟು ಅಪವಾದಗಳು (Total Exceptions)</div>
+                    <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+                        {data?.total_exceptions || 0}
+                    </div>
+                </div>
+
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ (Date Range)</div>
+                    <div className="text-base font-bold text-[var(--text-primary)]">
+                        {data?.start_date} ರಿಂದ {data?.end_date}
+                    </div>
+                </div>
+
+                <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಬಾಧಿತ ಸೇವಾ ಮೌಲ್ಯ (Amount Impacted)</div>
+                    <div className="text-2xl font-bold text-[var(--primary)]">
+                        ₹{(data?.items || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0).toFixed(2)}
+                    </div>
+                </div>
+            </div>
+
+            {/* Print Header */}
+            <div className="hidden print:block text-black font-bold text-sm mb-2 pt-2 border-b border-black pb-1">
+                ಸೇವಾ ಅಪವಾದ ಹಾಗೂ ವಿನಾಯಿತಿ ವರದಿ ({data?.start_date} ರಿಂದ {data?.end_date}) - ಒಟ್ಟು: {items.length}
+            </div>
+
+            {items.length === 0 ? (
+                <div className="text-center py-12 text-sm text-[var(--text-secondary)] border border-dashed border-[var(--glass-border)] rounded-2xl print:border-none print:text-black">
+                    ಈ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಸೇವಾ ಅಪವಾದಗಳು ದಾಖಲಾಗಿಲ್ಲ (No exceptions recorded)
+                </div>
+            ) : (
+                <div className="overflow-x-auto bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-none">
+                    <table className="w-full text-left border-collapse text-xs print:text-[11px]">
+                        <thead>
+                            <tr className="bg-black/5 dark:bg-white/5 border-b border-[var(--glass-border)] text-[var(--text-secondary)] font-bold print:bg-gray-100 print:text-black">
+                                <th className="px-3 py-2.5 w-10 text-center">ಕ್ರಮ</th>
+                                <th className="px-3 py-2.5">ವೌಚರ್ / ದಿನಾಂಕ</th>
+                                <th className="px-3 py-2.5">ಸೇವಾರ್ಥಿ & ಮೊಬೈಲ್</th>
+                                <th className="px-3 py-2.5">ಸೇವೆ</th>
+                                <th className="px-3 py-2.5">ಮೊತ್ತ</th>
+                                <th className="px-3 py-2.5">ಅನಿವಾರ್ಯ ಕಾರಣ</th>
+                                <th className="px-3 py-2.5">ಪರಿಹಾರ ಕ್ರಮ</th>
+                                <th className="px-3 py-2.5">ದಾಖಲಿಸಿದ ಸಿಬ್ಬಂದಿ</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[var(--glass-border)] print:divide-black">
+                            {items.map((it: any, idx: number) => (
+                                <tr key={it.registration_id} className="hover:bg-black/5 dark:hover:bg-white/5">
+                                    <td className="px-3 py-2 text-center font-mono text-[var(--text-secondary)] print:text-black">
+                                        {idx + 1}
+                                    </td>
+                                    <td className="px-3 py-2 font-mono text-xs">
+                                        <div className="font-bold text-[var(--text-primary)] print:text-black">{it.voucher_no}</div>
+                                        <div className="text-[10px] text-[var(--text-secondary)] print:text-black">{it.seva_date}</div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <div className="font-bold text-[var(--text-primary)] print:text-black">{it.devotee_name}</div>
+                                        <div className="text-[10px] text-[var(--text-secondary)] print:text-black font-mono">{it.phone}</div>
+                                    </td>
+                                    <td className="px-3 py-2 font-semibold text-[var(--primary)] print:text-black">
+                                        {it.seva_name}
+                                    </td>
+                                    <td className="px-3 py-2 font-mono font-bold">
+                                        ₹{it.amount}
+                                    </td>
+                                    <td className="px-3 py-2 text-rose-600 dark:text-rose-400 print:text-black font-medium">
+                                        {it.exigency_reason}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                            it.exigency_action === 'refund'
+                                                ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30'
+                                                : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                                        } print:border-black print:text-black`}>
+                                            {it.exigency_action === 'refund' ? 'ಹಣ ಮರುಪಾವತಿ' : 'ಮರುಹೊಂದಿಕೆ'}
+                                        </span>
+                                    </td>
+                                    <td className="px-3 py-2 text-[var(--text-secondary)] print:text-black text-[11px]">
+                                        {it.exigency_staff_name}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* Print Sign-off footer */}
+            <div className="hidden print:grid grid-cols-2 gap-8 pt-8 mt-6 border-t border-black text-xs text-black break-inside-avoid">
+                <div className="text-left space-y-8">
+                    <div>ಕಚೇರಿ ಪರಿಶೀಲನೆ (Verified by): _______________</div>
+                </div>
+                <div className="text-right space-y-8">
+                    <div>ಕಾರ್ಯದರ್ಶಿ / ಟ್ರಸ್ಟಿಗಳ ಸಹಿ: _______________</div>
                 </div>
             </div>
         </div>

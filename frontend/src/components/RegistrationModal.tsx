@@ -290,11 +290,38 @@ export default function RegistrationModal({
         return calculateBookingTotal(selectedSevas, optPrasada, familyMembers, foodServiceRateStr);
     };
 
+    const handleRebookSeva = (code: string) => {
+        const item = getSelectedItem(code);
+        if (!item) {
+            showToast('error', 'ಆಯ್ಕೆಮಾಡಿದ ಸೇವೆ ಲಭ್ಯವಿಲ್ಲ');
+            return;
+        }
+        const itemCodeStr = String(item.ItemCode ?? item.SevaCode);
+        if (selectedSevas.some(s => String(s.sevaCode) === itemCodeStr)) {
+            showToast('info', 'ಈ ಸೇವೆಯನ್ನು ಈಗಾಗಲೇ ಪಟ್ಟಿಗೆ ಸೇರಿಸಲಾಗಿದೆ');
+            return;
+        }
+        setSelectedSevas(prev => [
+            ...prev,
+            {
+                sevaCode: itemCodeStr,
+                description: item.Description,
+                amount: item.Basic ?? 0,
+                isCustomPrice: false
+            }
+        ]);
+        showToast('success', `${item.Description} ಸೇವೆಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ`);
+    };
+
     const handleSubmit = async () => {
         if (!validateDevotee() || !validateSeva() || !selectedDate) return;
 
         if (paymentMode === 'UPI') {
-            if (!upiDetails.transactionId) { showToast('error', 'Transaction ID is required'); return; }
+            const upiTxn = upiDetails.transactionId || paymentRef;
+            if (!upiTxn) { showToast('error', 'ವಹಿವಾಟು ಸಂಖ್ಯೆ ಅಥವಾ ಧ್ವನಿಪೆಟ್ಟಿಗೆ ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ'); return; }
+            if (!upiDetails.transactionId) {
+                setUpiDetails(prev => ({ ...prev, transactionId: upiTxn }));
+            }
         } else if (paymentMode === 'Cheque' || paymentMode === 'DD') {
             if (!chqDetails.bank) { showToast('error', 'Bank Name is required'); return; }
             if (!chqDetails.number) { showToast('error', 'Number is required'); return; }
@@ -409,6 +436,7 @@ export default function RegistrationModal({
                                                         isSearching={isSearching}
                                                         searchResults={searchResults}
                                                         selectCustomer={selectCustomer}
+                                                        onRebookSeva={handleRebookSeva}
                                                     />
                                                 </div>
 

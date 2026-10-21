@@ -17,7 +17,10 @@ export interface OrgSettings {
     accountNumber?: string;
     accountType?: string;
     upiVpa?: string;
+    upiPayeeName?: string;
     upiQrCode?: string;
+    dispatchCutoffTime?: string; // Standard operational cutoff e.g. "19:30"
+    enableDevoteeWhatsAppNotifications?: boolean;
     standardSchedule?: { id: number; title: string; time: string; period: 'AM' | 'PM' }[];
 }
 
@@ -33,6 +36,9 @@ export const defaultSettings: OrgSettings = {
     website: 'https://srigururaghavendrasevatrust.org',
     foodServiceCharges: '200, 220, 240, 260, 280, 300',
     upiVpa: 'pinelabs.stq3957386@pineaxis',
+    upiPayeeName: 'Sri Guru Raghavendra Seva Trust',
+    dispatchCutoffTime: '19:30',
+    enableDevoteeWhatsAppNotifications: false,
     standardSchedule: [
         { id: 1, title: 'ಅಭಿಷೇಕ', time: '6:30', period: 'AM' },
         { id: 2, title: 'ಬೆಳಗಿನ ಪೂಜೆ', time: '8:00', period: 'AM' },
@@ -42,6 +48,7 @@ export const defaultSettings: OrgSettings = {
         { id: 6, title: 'ರಾತ್ರಿ ಮಂಗಳಾರತಿ', time: '8:00', period: 'PM' },
     ],
 };
+
 
 interface SettingsContextType {
     settings: OrgSettings;

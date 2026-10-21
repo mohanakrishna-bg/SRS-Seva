@@ -73,8 +73,24 @@ export default function PaymentStep({
                         </div>
                     </div>
                     
-                    <div className="space-y-1 max-w-md mx-auto">
-                        <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">Transaction ID / UTR Number <span className="text-red-500">*</span></label>
+                    <div className="space-y-1.5 max-w-md mx-auto">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                                Transaction ID / UTR Number
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const sbCode = `SB-${Date.now().toString().slice(-6)}`;
+                                    setUpiDetails({ ...upiDetails, transactionId: sbCode, gateway: 'Soundbox' });
+                                    setPaymentRef(sbCode);
+                                }}
+                                className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20"
+                                title="ಧ್ವನಿಪೆಟ್ಟಿಗೆಯಲ್ಲಿ ದೃಢೀಕರಣಗೊಂಡಿದೆ ಎಂದು ಗುರುತಿಸಿ"
+                            >
+                                🔔 ಧ್ವನಿಪೆಟ್ಟಿಗೆ (Soundbox Verified)
+                            </button>
+                        </div>
                         <input
                             type="text"
                             value={upiDetails.transactionId}
@@ -84,9 +100,10 @@ export default function PaymentStep({
                                 setPaymentRef(cleaned);
                             }}
                             className="w-full px-2 py-2 rounded-lg bg-white dark:bg-black/20 border border-[var(--glass-border)] text-xs font-mono text-center tracking-widest focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                            placeholder="123456789012"
+                            placeholder="123456789012 ಅಥವಾ 'ಧ್ವನಿಪೆಟ್ಟಿಗೆ' ಕ್ಲಿಕ್ ಮಾಡಿ"
                         />
                     </div>
+
                 </motion.div>
             )}
 

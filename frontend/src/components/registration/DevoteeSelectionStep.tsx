@@ -1,6 +1,8 @@
-import { Search, Loader2, X, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Loader2, X, Check, RotateCcw, Plus } from 'lucide-react';
 import TransliteratedInput from '../TransliteratedInput';
 import { GOTRAS, NAKSHATRAS } from '../../constants/panchanga';
+import { registrationApi } from '../../api';
 
 export const convertKnNumeralsToEn = (knStr: string) => {
     const knMap: { [key: string]: string } = { '೦': '0', '೧': '1', '೨': '2', '೩': '3', '೪': '4', '೫': '5', '೬': '6', '೭': '7', '೮': '8', '೯': '9' };
@@ -21,12 +23,39 @@ interface DevoteeSelectionStepProps {
     isSearching: boolean;
     searchResults: any[];
     selectCustomer: (c: any) => void;
+    onRebookSeva?: (sevaCode: string) => void;
 }
 
 export default function DevoteeSelectionStep({
     customer, setCustomer, isNewCustomer, setIsNewCustomer,
-    searchQuery, setSearchQuery, isSearching, searchResults, selectCustomer
+    searchQuery, setSearchQuery, isSearching, searchResults, selectCustomer,
+    onRebookSeva
 }: DevoteeSelectionStepProps) {
+    const [pastSevas, setPastSevas] = useState<any[]>([]);
+    const [loadingPastSevas, setLoadingPastSevas] = useState(false);
+
+    useEffect(() => {
+        const devId = customer?.DevoteeId || customer?.ID1;
+        if (!isNewCustomer && devId) {
+            setLoadingPastSevas(true);
+            registrationApi.byDevotee(devId)
+                .then((res: any) => {
+                    const regs: any[] = res.data || [];
+                    const map = new Map<string, any>();
+                    for (const r of regs) {
+                        if (r.SevaCode && !map.has(r.SevaCode)) {
+                            map.set(r.SevaCode, r);
+                        }
+                    }
+                    setPastSevas(Array.from(map.values()).slice(0, 4));
+                })
+                .catch(() => setPastSevas([]))
+                .finally(() => setLoadingPastSevas(false));
+        } else {
+            setPastSevas([]);
+        }
+    }, [isNewCustomer, customer?.DevoteeId, customer?.ID1]);
+
     return (
         <div className="flex flex-col space-y-2 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)] h-full">
             <h3 className="text-xs font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5">
@@ -47,19 +76,52 @@ export default function DevoteeSelectionStep({
                     </div>
                 </div>
             ) : (
-                <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/20 rounded-lg p-2 mb-1 flex items-center justify-between">
-                    <div>
-                        <p className="text-[9px] font-bold text-green-700 dark:text-green-400 mb-0.5 uppercase tracking-wider">ಆಯ್ಕೆಯಾದ ಭಕ್ತರು</p>
-                        <p className="text-xs font-bold text-[var(--text-primary)]">{customer.Name}</p>
-                        <p className="text-xs text-[var(--text-secondary)]">{customer.Phone}</p>
+                <div className="space-y-2 mb-1">
+                    <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/20 rounded-lg p-2 flex items-center justify-between">
+                        <div>
+                            <p className="text-[9px] font-bold text-green-700 dark:text-green-400 mb-0.5 uppercase tracking-wider">ಆಯ್ಕೆಯಾದ ಭಕ್ತರು</p>
+                            <p className="text-xs font-bold text-[var(--text-primary)]">{customer.Name}</p>
+                            <p className="text-xs text-[var(--text-secondary)]">{customer.Phone}</p>
+                        </div>
+                        <button 
+                            type="button"
+                            onClick={() => { setIsNewCustomer(true); setCustomer({ Name: '', Phone: '', Sgotra: '', SNakshatra: '', Address: '', City: '' }); setSearchQuery(''); }} 
+                            className="text-xs flex py-1.5 px-2.5 items-center gap-1 font-bold text-green-700 dark:text-green-400 hover:bg-green-200/50 dark:hover:bg-green-800/30 rounded-lg transition-colors cursor-pointer"
+                        >
+                            <X size={14} /> ಬದಲಾಯಿಸಿ
+                        </button>
                     </div>
-                    <button 
-                        type="button"
-                        onClick={() => { setIsNewCustomer(true); setCustomer({ Name: '', Phone: '', Sgotra: '', SNakshatra: '', Address: '', City: '' }); setSearchQuery(''); }} 
-                        className="text-xs flex py-1.5 px-2.5 items-center gap-1 font-bold text-green-700 dark:text-green-400 hover:bg-green-200/50 dark:hover:bg-green-800/30 rounded-lg transition-colors"
-                    >
-                        <X size={14} /> ಬದಲಾಯಿಸಿ
-                    </button>
+
+                    {/* Quick Rebook for returning devotees */}
+                    <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-2.5">
+                        <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                                <RotateCcw size={12} className="text-amber-600" /> ಹಿಂದಿನ ಸೇವೆಗಳ ಮರು ನೋಂದಣಿ (Quick Rebook)
+                            </span>
+                            {loadingPastSevas && <Loader2 size={12} className="animate-spin text-amber-600" />}
+                        </div>
+                        {pastSevas.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                                {pastSevas.map((ps) => (
+                                    <button
+                                        key={ps.RegistrationId || ps.SevaCode}
+                                        type="button"
+                                        onClick={() => onRebookSeva && onRebookSeva(ps.SevaCode)}
+                                        className="text-xs bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-900 dark:text-amber-200 px-2 py-1 rounded-md flex items-center gap-1.5 shadow-xs transition-all font-medium cursor-pointer"
+                                        title={`${ps.SevaName || ps.SevaCode} - ₹${ps.Amount}`}
+                                    >
+                                        <span>{ps.SevaNameKn || ps.SevaName || ps.SevaCode}</span>
+                                        <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold">₹{ps.Amount}</span>
+                                        <Plus size={12} className="text-amber-700 dark:text-amber-300" />
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-[10px] text-[var(--text-secondary)] italic">
+                                {loadingPastSevas ? 'ಹಿಂದಿನ ಸೇವೆಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' : 'ಹಿಂದಿನ ಸೇವೆಗಳ ದಾಖಲೆ ಇಲ್ಲ'}
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
 

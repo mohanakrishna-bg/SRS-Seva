@@ -86,6 +86,8 @@ describe('API module exports', () => {
         expect(typeof registrationApi.byDate).toBe('function');
         expect(typeof registrationApi.fulfil).toBe('function');
         expect(typeof registrationApi.cancel).toBe('function');
+        expect(typeof registrationApi.exigencyCancel).toBe('function');
+        expect(typeof registrationApi.sweepDeemedFulfillment).toBe('function');
     });
 });
 

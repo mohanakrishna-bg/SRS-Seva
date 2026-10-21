@@ -139,6 +139,16 @@ def get_seva_bookings_report(
                 total_devotees += 1
                 day_bookings_count += (r.Qty or 1)
 
+                is_late = False
+                if r.CreatedAt and r.SevaDate and len(r.SevaDate) == 6 and r.SevaDate.isdigit():
+                    try:
+                        s_date = datetime.datetime.strptime(r.SevaDate, "%d%m%y").date()
+                        cutoff_dt = datetime.datetime.combine(s_date - datetime.timedelta(days=1), datetime.time(19, 30))
+                        if r.CreatedAt > cutoff_dt:
+                            is_late = True
+                    except Exception:
+                        pass
+
                 item: Dict[str, Any] = {
                     "registration_id": r.RegistrationId,
                     "voucher_no": r.VoucherNo or f"REG-{r.RegistrationId}",
@@ -148,7 +158,8 @@ def get_seva_bookings_report(
                     "nakshatra": nakshatra or "—",
                     "qty": r.Qty or 1,
                     "amount": r.Amount or 0.0,
-                    "grand_total": r.GrandTotal or 0.0
+                    "grand_total": r.GrandTotal or 0.0,
+                    "is_late_addition": is_late
                 }
 
                 if report_type == "on_demand_full":
@@ -156,6 +167,7 @@ def get_seva_bookings_report(
                     item["additional_hastodaka"] = extra_hastodaka
 
                 bookings_list.append(item)
+
 
             sevas_list.append({
                 "seva_code": seva_code,
@@ -325,3 +337,73 @@ def get_hastodaka_report(
         "grand_total_hastodaka": grand_total_hastodaka,
         "days": days_result
     }
+
+
+@router.get("/exigency-exceptions")
+def get_exigency_exceptions_report(
+    start_date: str = Query(..., description="Start date in YYYY-MM-DD or DDMMYY"),
+    end_date: Optional[str] = Query(None, description="End date in YYYY-MM-DD or DDMMYY (defaults to start_date)"),
+    db: Session = Depends(database.get_db),
+):
+    """
+    Returns an operational exception report of sevas that could not be ritually performed due to unforeseen emergencies.
+    """
+    start_iso = normalize_to_iso(start_date)
+    end_iso = normalize_to_iso(end_date or start_date)
+
+    try:
+        start_dt = datetime.date.fromisoformat(start_iso)
+        end_dt = datetime.date.fromisoformat(end_iso)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Expected YYYY-MM-DD or DDMMYY.")
+
+    if start_dt > end_dt:
+        start_dt, end_dt = end_dt, start_dt
+
+    date_keys = set()
+    curr = start_dt
+    while curr <= end_dt:
+        date_keys.add(curr.strftime("%d%m%y"))
+        curr += datetime.timedelta(days=1)
+
+    exceptions = (
+        db.query(models.SevaRegistration)
+        .options(
+            joinedload(models.SevaRegistration.devotee),
+            joinedload(models.SevaRegistration.seva)
+        )
+        .filter(models.SevaRegistration.IsExigencyCancelled == True)
+        .filter(models.SevaRegistration.SevaDate.in_(list(date_keys)))
+        .order_by(models.SevaRegistration.SevaDate.desc(), models.SevaRegistration.RegistrationId.desc())
+        .all()
+    )
+
+    items = []
+    for r in exceptions:
+        dev = r.devotee
+        seva = r.seva
+        items.append({
+            "registration_id": r.RegistrationId,
+            "voucher_no": r.VoucherNo or f"REG-{r.RegistrationId}",
+            "seva_date": r.SevaDate,
+            "seva_code": r.SevaCode,
+            "seva_name": seva.Description if seva else r.SevaCode,
+            "devotee_id": r.DevoteeId,
+            "devotee_name": dev.Name if dev else "Unknown",
+            "phone": dev.Phone if dev else "—",
+            "gothra": dev.Gotra if dev else "—",
+            "nakshatra": dev.Nakshatra if dev else "—",
+            "amount": r.GrandTotal or r.Amount or 0.0,
+            "exigency_reason": r.ExigencyReason or "Unspecified exigency",
+            "exigency_staff_name": r.ExigencyStaffName or "Office Staff",
+            "exigency_action": r.ExigencyAction or "reschedule",
+            "created_at": r.CreatedAt.isoformat() if r.CreatedAt else None
+        })
+
+    return {
+        "start_date": start_dt.strftime("%Y-%m-%d"),
+        "end_date": end_dt.strftime("%Y-%m-%d"),
+        "total_exceptions": len(items),
+        "items": items
+    }
+

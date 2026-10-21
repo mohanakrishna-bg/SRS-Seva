@@ -82,6 +82,9 @@ export const registrationApi = {
     fulfil: (id: number, isFulfilled: boolean) => api.put(`/registrations/${id}/fulfil?is_fulfilled=${isFulfilled}`),
     cancel: (id: number, data: { refund_amount: number; refund_mode: string }) => api.put(`/registrations/${id}/cancel`, data),
     modify: (id: number, data: any) => api.put(`/registrations/${id}/modify`, data),
+    exigencyCancel: (id: number, data: { exigency_reason: string; staff_name?: string; action?: string }) =>
+        api.post(`/registrations/${id}/exigency-cancel`, data),
+    sweepDeemedFulfillment: () => api.post('/registrations/deemed-fulfillment-sweep'),
 };
 
 // ─── Lookup API ───
@@ -201,6 +204,8 @@ export const sevaReportsApi = {
         api.get('/reports/seva-bookings', { params }),
     getHastodaka: (params: { start_date: string; end_date?: string }) =>
         api.get('/reports/hastodaka', { params }),
+    getExigencyExceptions: (params?: { start_date?: string; end_date?: string }) =>
+        api.get('/reports/exigency-exceptions', { params }),
 };
 
 export const testApi = {

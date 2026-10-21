@@ -399,7 +399,14 @@ def list_registrations(
     date_type: Optional[str] = "SevaDate",
     search: Optional[str] = None,
     db: Session = Depends(database.get_db),
+    registration_service: SevaRegistrationService = Depends(get_registration_service),
 ):
+    # Lazy sweep of past scheduled sevas to ensure deemed fulfillment consistency
+    try:
+        registration_service.sweep_deemed_fulfillment(db)
+    except Exception:
+        pass
+
     query = db.query(models.SevaRegistration)
     if date:
         if date_type == "RegistrationDate":
@@ -438,7 +445,17 @@ def list_registrations(
     )
 
 @router.get("/registrations/by-date/{date}", response_model=List[schemas.SevaRegistration])
-def registrations_by_date(date: str, date_type: Optional[str] = "SevaDate", db: Session = Depends(database.get_db)):
+def registrations_by_date(
+    date: str, 
+    date_type: Optional[str] = "SevaDate", 
+    db: Session = Depends(database.get_db),
+    registration_service: SevaRegistrationService = Depends(get_registration_service)
+):
+    try:
+        registration_service.sweep_deemed_fulfillment(db)
+    except Exception:
+        pass
+
     query = db.query(models.SevaRegistration)
     if date_type == "RegistrationDate":
         query = query.filter(models.SevaRegistration.RegistrationDate == date)
@@ -446,6 +463,34 @@ def registrations_by_date(date: str, date_type: Optional[str] = "SevaDate", db: 
         query = query.filter(models.SevaRegistration.SevaDate == date)
     
     return query.order_by(models.SevaRegistration.RegistrationId.desc()).all()
+
+
+@router.post("/registrations/deemed-fulfillment-sweep")
+def deemed_fulfillment_sweep(
+    db: Session = Depends(database.get_db),
+    registration_service: SevaRegistrationService = Depends(get_registration_service)
+):
+    """Trigger deemed fulfillment sweep for all past sevas."""
+    count = registration_service.sweep_deemed_fulfillment(db)
+    return {"status": "success", "deemed_fulfilled_count": count}
+
+
+@router.post("/registrations/{registration_id}/exigency-cancel", response_model=schemas.SevaRegistration)
+def cancel_registration_exigency(
+    registration_id: int,
+    data: schemas.SevaRegistrationExigencyCancel,
+    db: Session = Depends(database.get_db),
+    registration_service: SevaRegistrationService = Depends(get_registration_service)
+):
+    """Record an unforeseen exigency preventing ritual seva performance."""
+    return registration_service.log_exigency_cancellation(
+        db=db,
+        registration_id=registration_id,
+        reason=data.reason,
+        staff_name=data.staff_name,
+        action=data.action
+    )
+
 
 
 
