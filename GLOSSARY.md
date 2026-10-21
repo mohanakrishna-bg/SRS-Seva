@@ -56,4 +56,13 @@ _Avoid_: Refund, Void, Delete
 The immutable, append-only chronological record of all domain mutations, devotee updates, and financial voucher operations across the Matha system, secured with cryptographic hash-chaining.
 _Avoid_: System Log, Event Log, History
 
+**DeemedFulfillment**:
+The automated end-of-day completion of scheduled, non-cancelled sevas on a calendar date without requiring manual per-devotee sign-offs.
+_Avoid_: Auto-Complete, Batch Close, Auto-Fulfillment
+
+**ExigencyExceptionReport**:
+An operational and financial audit report itemizing scheduled sevas that could not be ritually performed on a date due to unforeseen emergencies, detailing the recorded staff reason, enrolled devotees, and rescheduling or refund status.
+_Avoid_: Error Report, Failed Seva List, Incident Log
+
+
 
