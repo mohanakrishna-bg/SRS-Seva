@@ -1,28 +1,42 @@
 # Matha Operational Role Taxonomy and Permission Matrix
 
-Generic staff roles (`clerk`, `accountant`, `storekeeper`) in the intranet application fail to reflect sacred temple operational realities, lacking necessary privacy protections for devotees and strict financial controls for counter cash.
+Generic staff roles (`clerk`, `accountant`, `storekeeper`) in the intranet application fail to reflect sacred temple operational realities, lacking necessary privacy protections for devotees and strict financial controls for counter cash. Furthermore, physical personnel such as Archakas, Kitchen Supervisors, and external Statutory Auditors do not require interactive system logins or complex intranet UI access.
 
-We decided to establish a dedicated five-persona Matha domain role taxonomy and permission matrix:
+We decided to establish a clear separation between **3 Interactive System Roles** (with direct login credentials) and **3 Physical Domain Stakeholders** (who interact strictly via dispatches, printed agendas, or exported audit packs):
 
-1. **Archaka (Priest)**:
-   - **Ritual Scope**: Read-only access to the daily `SankalpaList` and write access to mark `SevaFulfillment` (confirming ritual conduct and prasada preparation).
-   - **Devotee Privacy Boundary**: Allowed to view only ritual prayer attributes (Devotee Name, Gotra, Nakshatra, Rashi). Devotee contact particulars (phone, WhatsApp, email, home address) are masked on all priest-facing operational views and dispatches.
-   - **Zero Financial Access**: No access to accounting ledgers, financial vouchers, or administrative settings.
+### Interactive System Roles (Intranet Users)
 
-2. **CounterCashier**:
+1. **Office Admin (`admin`)**:
+   - **Administrative Scope**: Full administrative control across all operational modules, master settings, Seva catalog quotas and pricing, fiscal date locks, and user administration.
+   - **Supervisory Controls**: Sole operational authority to approve `ReceiptCancellation` events, void records, manage system users, and review transactional audit trails (`can_cancel_receipts = true`).
+
+2. **Counter Cashier (`cashier`)**:
    - **Operational Scope**: High-speed write access to `seva` bookings (`SevaRegistration`, `SevaBookingCart`, receipt printing) and `devotee` directory management (phone search and profile creation).
    - **Cash Management**: Financial write access is restricted strictly to counter receipt vouchers and daily counter drawer reconciliation.
-   - **Cancellation Restriction**: Counter cashiers cannot void or cancel issued receipt vouchers. Any `ReceiptCancellation` requires Office Admin supervisor credentials and mandatory audit reason capture.
+   - **Cancellation Restriction**: Counter cashiers cannot void or cancel issued receipt vouchers (`can_cancel_receipts = false`). Any `ReceiptCancellation` requires Office Admin supervisor credentials and mandatory audit reason capture.
 
-3. **Office Admin**:
-   - **Administrative Scope**: Full administrative control across all operational modules, master settings, Seva catalog quotas and pricing, and user administration.
-   - **Supervisory Controls**: Sole operational authority to approve `ReceiptCancellation` events, adjust fiscal date locks, and review transactional audit trails.
+3. **Trustee (`trustee`)**:
+   - **Executive Oversight**: Read-only governance visibility across all modules (`seva`, `devotees`, `accounting`, `inventory`, `reports`, `audit`). Zero write or mutation permissions to eliminate any risk of operational ledger modification (`can_export_financial_reports = true`).
 
-4. **Trustee (Management Committee)**:
-   - **Executive Oversight**: Read-only governance visibility across all modules (`seva`, `devotees`, `accounting`, `inventory`, `reports`, `audit`). Zero write permissions to eliminate risk of operational ledger modification.
+### Physical Domain Stakeholders (Zero Interactive Logins)
 
-5. **Auditor (Chartered Accountant)**:
-   - **Compliance Scope**: Read-only statutory access across accounting ledgers, vouchers, donations, and immutable audit logs, with unrestricted export capabilities for trust audit filings.
+1. **Archaka (Priest)**:
+   - **Ritual Scope**: Receives the daily `SankalpaList` via Operations Dispatch (WhatsApp / physical printout) detailing devotee prayer attributes (Devotee Name, Gotra, Nakshatra, Rashi).
+   - **Privacy Boundary**: Devotee contact particulars (phone, WhatsApp, email, home address) are masked on all priest-facing operational views and dispatches.
+   - **Ritual Fulfillment**: Scheduled sevas are ritually executed and closed via automated end-of-day `DeemedFulfillment` (ADR 0008), requiring zero physical login or tablet interaction in the sanctum sanctorum.
 
-6. **Enforcement Contract**:
-   - Policies are defined through module-level permissions (`none`, `read`, `write`, `full`) augmented with explicit capability flags (`can_cancel_receipts`, `can_export_financial_reports`, `can_view_devotee_pii`).
+2. **Kitchen Supervisor (*Mahanasa Adhikari*)**:
+   - **Catering Scope**: Receives the daily `HastodakaCount` operational meal preparation forecast via Operations Dispatch (WhatsApp / printout), detailing Dine-in Plates, Advance Take-Home Parcels (`ParcelHastodaka`), and Total Meal Count.
+   - **Zero System Burden**: Operates without direct intranet login or software terminal overhead.
+
+3. **Auditor (Chartered Accountant)**:
+   - **Compliance Scope**: Receives formal export packages of statutory trial balances, vouchers, donations, and immutable, cryptographically hash-chained `AuditTrail` packs generated by the Office Admin.
+
+### Enforcement Contract
+
+- Policies are defined through module-level permissions (`none`, `read`, `write`, `full`) augmented with explicit capability flags:
+  - `can_cancel_receipts`: `True` strictly for `admin`.
+  - `can_export_financial_reports`: `True` for `admin` and `trustee`.
+  - `can_view_devotee_pii`: `True` for `admin` and `cashier`.
+- Legacy role aliases (`clerk` mapped to `cashier`, `viewer` mapped to `trustee`) are maintained for seamless backward compatibility during database schema transitions.
+

@@ -258,6 +258,8 @@ export default function Layout() {
                         sevas,
                         amount: totalAmount,
                         hastodakaAmount: hastodakaAmount > 0 ? hastodakaAmount : undefined,
+                        familyMembers: firstInvoice.PrasadaCount || undefined,
+                        parcelCount: firstInvoice.ParcelCount || undefined,
                         paymentMode:
                             firstInvoice.PaymentMode ||
                             firstInvoice.Payment_Mode ||

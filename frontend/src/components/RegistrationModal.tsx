@@ -9,6 +9,7 @@ import PaymentStep from './registration/PaymentStep';
 import { useToast } from './Toast';
 import { useSettings } from '../context/SettingsContext';
 import { devoteeApi, registrationApi } from '../api';
+import { recordRecentBookings } from '../services/dynamicQuickPicks';
 import {
     SevaBookingCart,
     calculateBookingTotal,
@@ -80,6 +81,7 @@ export default function RegistrationModal({
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedSevas, setSelectedSevas] = useState<SelectedSeva[]>([]);
     const [familyMembers, setFamilyMembers] = useState<number>(0);
+    const [parcelCount, setParcelCount] = useState<number>(0);
     const [optPrasada, setOptPrasada] = useState<boolean>(false);
     
     // Parse settings for food service
@@ -287,7 +289,7 @@ export default function RegistrationModal({
 
     const getSelectedItem = (code: string | number) => items.find(i => String(i.ItemCode ?? i.SevaCode) === String(code));
     const calculateTotal = () => {
-        return calculateBookingTotal(selectedSevas, optPrasada, familyMembers, foodServiceRateStr);
+        return calculateBookingTotal(selectedSevas, optPrasada, familyMembers, foodServiceRateStr, parcelCount);
     };
 
     const handleRebookSeva = (code: string) => {
@@ -338,7 +340,7 @@ export default function RegistrationModal({
             cart.setDevotee(customer);
             cart.setSevaDate(selectedDate);
             cart.setSelectedSevas(selectedSevas);
-            cart.setHastodaka(optPrasada, familyMembers, foodServiceRateStr);
+            cart.setHastodaka(optPrasada, familyMembers, foodServiceRateStr, parcelCount);
 
             // 1. Ensure Devotee exists or create them using normalized payload
             let devoteeId = (customer as any).DevoteeId ?? customer.ID1;
@@ -365,6 +367,9 @@ export default function RegistrationModal({
                 createdRegistrations.push(invRes.data);
             }
 
+            // Record booked sevas into recent history to dynamically adapt quick-pick pills
+            recordRecentBookings(selectedSevas.map(s => s.sevaCode));
+
             showToast('success', 'ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ!');
             
             onSuccess({ invoices: createdRegistrations, customer: { ...customer, DevoteeId: devoteeId } });
@@ -381,7 +386,7 @@ export default function RegistrationModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] overflow-hidden flex items-start justify-center p-4 pt-24 pointer-events-none">
+                <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center p-3 sm:p-6 pointer-events-none">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -390,32 +395,30 @@ export default function RegistrationModal({
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity pointer-events-auto"
                     />
 
-                    {/* Wrapper aligned with Layout max-w-6xl */}
-                    <div className="relative w-full max-w-6xl mx-auto flex justify-end pointer-events-none">
-                        {/* Modal Card pushed to the right to clear sidebar */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-[var(--glass-border)] flex flex-col max-h-[calc(100vh-6rem)] z-10 overflow-hidden pointer-events-auto"
-                        >
+                    {/* Modal Card Centered with Expanded Width */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        className="relative w-full max-w-5xl xl:max-w-6xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-[var(--glass-border)] flex flex-col max-h-[92vh] z-10 overflow-hidden pointer-events-auto"
+                    >
                         {/* Unified Modal Header */}
-                        <div className="bg-gradient-to-r from-[var(--primary)] to-amber-600 text-white px-4 py-3 flex justify-between items-center shrink-0 border-b border-[var(--glass-border)] z-20">
+                        <div className="bg-gradient-to-r from-[var(--primary)] to-amber-600 text-white px-6 py-4 flex justify-between items-center shrink-0 border-b border-[var(--glass-border)] z-20">
                             <div>
-                                <h2 className="text-sm font-bold">ಸೇವಾ ನೋಂದಣಿ</h2>
-                                <p className="text-[10px] text-white/80">
+                                <h2 className="text-base sm:text-lg font-bold">ಸೇವಾ ನೋಂದಣಿ (Seva Booking)</h2>
+                                <p className="text-xs text-white/90 mt-0.5">
                                     {step === Step.Details ? 'ಹಂತ 1/2: ಭಕ್ತರ & ಸೇವಾ ವಿವರ (Step 1/2: Devotee & Seva Details)' : 'ಹಂತ 2/2: ಪಾವತಿ ಮಾಹಿತಿ (Step 2/2: Payment Info)'}
                                 </p>
                             </div>
-                            <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-full transition-colors text-white">
-                                <X size={20} />
+                            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white cursor-pointer" title="ಮುಚ್ಚಿ (Close)">
+                                <X size={22} />
                             </button>
                         </div>
 
                         {/* Content Area */}
-                        <div className="flex-1 p-5 overflow-y-auto w-full flex flex-col min-h-0">
-                            <div className="flex items-center justify-between mb-3 shrink-0">
+                        <div className="flex-1 p-5 sm:p-6 overflow-y-auto w-full flex flex-col min-h-0">
+                            <div className="flex items-center justify-between mb-3.5 shrink-0">
                                 <GlobalInputToolbar />
                             </div>
 
@@ -423,9 +426,10 @@ export default function RegistrationModal({
                                 {/* STEP 1: DETAILS (DEVOTEE + SEVA) */}
                                 {step === Step.Details && (
                                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col h-full overflow-hidden">
-                                        <div className="flex-1 overflow-y-auto pr-1.5 pb-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
-                                                <div className="flex-1 min-w-[280px]">
+                                        <div className="flex-1 overflow-y-auto pr-1 pb-2">
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+                                                {/* Left Column: Devotee Info (5 cols, ~41.7%) */}
+                                                <div className="lg:col-span-5 min-w-[280px]">
                                                     <DevoteeSelectionStep
                                                         customer={customer}
                                                         setCustomer={setCustomer}
@@ -440,8 +444,8 @@ export default function RegistrationModal({
                                                     />
                                                 </div>
 
-                                                {/* Right Column: Seva */}
-                                                <div className="flex-1 min-w-[280px]">
+                                                {/* Right Column: Seva Details (7 cols, ~58.3%) */}
+                                                <div className="lg:col-span-7 min-w-[320px]">
                                                     <SevaDetailsStep
                                                         selectedDate={selectedDate}
                                                         setSelectedDate={setSelectedDate}
@@ -452,6 +456,8 @@ export default function RegistrationModal({
                                                         setOptPrasada={setOptPrasada}
                                                         familyMembers={familyMembers}
                                                         setFamilyMembers={setFamilyMembers}
+                                                        parcelCount={parcelCount}
+                                                        setParcelCount={setParcelCount}
                                                         foodServiceRateStr={foodServiceRateStr}
                                                         setFoodServiceRateStr={setFoodServiceRateStr}
                                                         defaultFoodRates={defaultFoodRates}
@@ -476,25 +482,26 @@ export default function RegistrationModal({
                                         customer={customer}
                                         optPrasada={optPrasada}
                                         familyMembers={familyMembers}
+                                        parcelCount={parcelCount}
                                     />
                                 )}
 
                                 {/* Footer Nav */}
-                                <div className="flex justify-between mt-2 pt-2 border-t border-[var(--glass-border)] shrink-0 bg-white dark:bg-slate-900 z-10">
+                                <div className="flex justify-between items-center mt-3 pt-3 border-t border-[var(--glass-border)] shrink-0 bg-white dark:bg-slate-900 z-10">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             if (step > Step.Details) setStep(step - 1 as Step);
                                             else onClose();
                                         }}
-                                        className="px-4 py-1.5 rounded-lg text-xs font-bold text-[var(--text-secondary)] hover:bg-slate-50 dark:bg-slate-800 transition-colors"
+                                        className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                     >
-                                        {step > Step.Details ? 'ಹಿಂದಕ್ಕೆ' : 'ರದ್ದುಮಾಡಿ'}
+                                        {step > Step.Details ? '← ಹಿಂದಕ್ಕೆ (Back)' : 'ರದ್ದುಮಾಡಿ (Cancel)'}
                                     </button>
 
-                                    <div className="flex items-center gap-2">
-                                        <span className="hidden sm:inline-block text-[10px] text-[var(--text-secondary)] font-mono">
-                                            ⚡ Ctrl+Enter
+                                    <div className="flex items-center gap-3">
+                                        <span className="hidden sm:inline-block text-xs text-[var(--text-secondary)] font-mono bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-[var(--glass-border)]">
+                                            ⚡ Ctrl + Enter
                                         </span>
                                         <button
                                             type="button"
@@ -503,17 +510,16 @@ export default function RegistrationModal({
                                                 else if (step === Step.Payment) handleSubmit();
                                             }}
                                             disabled={loading}
-                                            className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white text-xs font-bold shadow-md hover:shadow-orange-500/30 transition-shadow disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                                            className="px-6 py-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-orange-500/30 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                                         >
                                             {loading && <Loader2 size={16} className="animate-spin" />}
-                                            {step === Step.Payment ? 'ಮುಕ್ತಾಯ' : 'ಮುಂದುವರಿಯಿರಿ'}
+                                            {step === Step.Payment ? 'ಮುಕ್ತಾಯ & ರಸೀದಿ (Finish & Print)' : 'ಮುಂದುವರಿಯಿರಿ (Next: Payment) →'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        </motion.div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
         </AnimatePresence>

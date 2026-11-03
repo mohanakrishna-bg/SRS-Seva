@@ -43,20 +43,40 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token", auto_error=False)
 
 # ─── Role Constants ───
 ROLE_ADMIN = "admin"
+ROLE_CASHIER = "cashier"
+ROLE_TRUSTEE = "trustee"
+
+# Legacy role constants for backwards compatibility
 ROLE_ACCOUNTANT = "accountant"
 ROLE_CLERK = "clerk"
 ROLE_STOREKEEPER = "storekeeper"
 ROLE_VIEWER = "viewer"
 
-ALL_ROLES = [ROLE_ADMIN, ROLE_ACCOUNTANT, ROLE_CLERK, ROLE_STOREKEEPER, ROLE_VIEWER]
+ROLE_ALIASES = {
+    "clerk": "cashier",
+    "viewer": "trustee",
+    "manager": "admin",
+}
+
+def normalize_role(role: Optional[str]) -> str:
+    """Normalize role string handling legacy aliases and case."""
+    if not role:
+        return ""
+    r = role.lower().strip()
+    return ROLE_ALIASES.get(r, r)
+
+ALL_ROLES = [ROLE_ADMIN, ROLE_CASHIER, ROLE_TRUSTEE]
 
 # Role metadata — business-friendly labels for UI
 ROLE_META = {
-    ROLE_ADMIN:       {"label": "Manager",      "description": "Full access to all modules and system settings"},
-    ROLE_ACCOUNTANT:  {"label": "Accountant",   "description": "Accounting, financial reports, and donations"},
-    ROLE_CLERK:       {"label": "Assistant",     "description": "Seva booking, devotee management, and donations"},
-    ROLE_STOREKEEPER: {"label": "Storekeeper",  "description": "Assets, consumables inventory, and donations"},
-    ROLE_VIEWER:      {"label": "Viewer",        "description": "Read-only access to all modules"},
+    ROLE_ADMIN:       {"label": "Office Admin",    "description": "Full access to all modules, fiscal date locks, and receipt cancellation"},
+    ROLE_CASHIER:     {"label": "Counter Cashier",  "description": "Seva booking, devotee management, receipt printing, and daily cash drawer"},
+    ROLE_TRUSTEE:     {"label": "Trustee",          "description": "Read-only governance visibility across all modules and financial reports export"},
+    # Legacy role mappings for UI compatibility
+    ROLE_CLERK:       {"label": "Counter Cashier",  "description": "Seva booking, devotee management, and receipt printing (legacy alias)"},
+    ROLE_VIEWER:      {"label": "Trustee",          "description": "Read-only access to all modules (legacy alias)"},
+    ROLE_ACCOUNTANT:  {"label": "Accountant",       "description": "Accounting, financial reports, and donations"},
+    ROLE_STOREKEEPER: {"label": "Storekeeper",      "description": "Assets, consumables inventory, and donations"},
 }
 
 # Module metadata — icons and labels for the permissions UI
@@ -75,12 +95,12 @@ PERMISSION_LEVELS = ["none", "read", "write", "full"]
 
 # Default module-to-role permission mapping (fallback when DB is unavailable)
 MODULE_PERMISSIONS = {
-    "seva":         {ROLE_ADMIN, ROLE_CLERK},
-    "customers":    {ROLE_ADMIN, ROLE_CLERK},
+    "seva":         {ROLE_ADMIN, ROLE_CASHIER, ROLE_CLERK},
+    "customers":    {ROLE_ADMIN, ROLE_CASHIER, ROLE_CLERK},
     "accounting":   {ROLE_ADMIN, ROLE_ACCOUNTANT},
     "assets":       {ROLE_ADMIN, ROLE_STOREKEEPER},
     "consumables":  {ROLE_ADMIN, ROLE_STOREKEEPER},
-    "donations":    {ROLE_ADMIN, ROLE_ACCOUNTANT, ROLE_CLERK, ROLE_STOREKEEPER},
+    "donations":    {ROLE_ADMIN, ROLE_CASHIER, ROLE_CLERK, ROLE_ACCOUNTANT, ROLE_STOREKEEPER},
     "settings":     {ROLE_ADMIN},
     "users":        {ROLE_ADMIN},
 }
@@ -89,24 +109,14 @@ MODULE_PERMISSIONS = {
 BUILTIN_ROLES = [
     {
         "name": ROLE_ADMIN,
-        "label": "Manager",
-        "description": "Full access to all modules and system settings",
+        "label": "Office Admin",
+        "description": "Full access to all modules, fiscal date locks, and receipt cancellation",
         "permissions": {mod: "full" for mod in MODULE_META},
     },
     {
-        "name": ROLE_ACCOUNTANT,
-        "label": "Accountant",
-        "description": "Accounting, financial reports, and donations",
-        "permissions": {
-            "seva": "none", "customers": "none", "accounting": "full",
-            "assets": "none", "consumables": "none", "donations": "full",
-            "settings": "none", "users": "none",
-        },
-    },
-    {
-        "name": ROLE_CLERK,
-        "label": "Assistant",
-        "description": "Seva booking, devotee management, and donations",
+        "name": ROLE_CASHIER,
+        "label": "Counter Cashier",
+        "description": "Seva booking, devotee management, receipt printing, and daily cash drawer",
         "permissions": {
             "seva": "full", "customers": "full", "accounting": "none",
             "assets": "none", "consumables": "none", "donations": "full",
@@ -114,19 +124,9 @@ BUILTIN_ROLES = [
         },
     },
     {
-        "name": ROLE_STOREKEEPER,
-        "label": "Storekeeper",
-        "description": "Assets, consumables inventory, and donations",
-        "permissions": {
-            "seva": "none", "customers": "none", "accounting": "none",
-            "assets": "full", "consumables": "full", "donations": "full",
-            "settings": "none", "users": "none",
-        },
-    },
-    {
-        "name": ROLE_VIEWER,
-        "label": "Viewer",
-        "description": "Read-only access to all modules",
+        "name": ROLE_TRUSTEE,
+        "label": "Trustee",
+        "description": "Read-only governance visibility across all modules and financial exports",
         "permissions": {mod: "read" for mod in MODULE_META},
     },
 ]
@@ -135,8 +135,11 @@ BUILTIN_ROLES = [
 # ─── DB-Backed Role Lookups ───
 
 def get_role_permissions_from_db(db: Session, role_name: str) -> dict:
-    """Get a role's per-module permissions from the database."""
-    role = db.query(models.Role).filter(models.Role.name == role_name).first()
+    """Get a role's per-module permissions from the database, checking aliases."""
+    canonical = normalize_role(role_name)
+    role = db.query(models.Role).filter(
+        (models.Role.name == role_name) | (models.Role.name == canonical)
+    ).first()
     if role and role.permissions:
         return role.permissions
     # Fallback to hardcoded defaults
@@ -145,14 +148,15 @@ def get_role_permissions_from_db(db: Session, role_name: str) -> dict:
 
 def _hardcoded_role_permissions(role_name: str) -> dict:
     """Fallback: build permissions dict from hardcoded MODULE_PERMISSIONS."""
+    canonical = normalize_role(role_name)
     perms = {}
     for module in MODULE_META:
-        if role_name == ROLE_ADMIN:
+        if canonical == ROLE_ADMIN:
             perms[module] = "full"
-        elif role_name in MODULE_PERMISSIONS.get(module, set()):
-            perms[module] = "full"
-        elif role_name == ROLE_VIEWER:
+        elif canonical == ROLE_TRUSTEE:
             perms[module] = "read"
+        elif canonical in MODULE_PERMISSIONS.get(module, set()) or role_name in MODULE_PERMISSIONS.get(module, set()):
+            perms[module] = "full"
         else:
             perms[module] = "none"
     return perms
@@ -179,7 +183,36 @@ def seed_builtin_roles(db: Session):
                 is_builtin=True,
             )
             db.add(role)
+        else:
+            existing.label = role_data["label"]
+            existing.description = role_data["description"]
+            if existing.is_builtin:
+                existing.permissions = role_data["permissions"]
     db.commit()
+
+
+# ─── Domain Capability Helpers ───
+
+def can_cancel_receipts(user: Optional[models.User]) -> bool:
+    """Receipt cancellation requires Office Admin supervisor authority."""
+    if not user:
+        return False
+    return normalize_role(user.role) == ROLE_ADMIN
+
+
+def can_export_financial_reports(user: Optional[models.User]) -> bool:
+    """Financial export is authorized for Office Admin and Trustees."""
+    if not user:
+        return False
+    return normalize_role(user.role) in {ROLE_ADMIN, ROLE_TRUSTEE}
+
+
+def can_view_devotee_pii(user: Optional[models.User]) -> bool:
+    """Devotee contact PII can be viewed by Office Admin and Counter Cashier."""
+    if not user:
+        return False
+    return normalize_role(user.role) in {ROLE_ADMIN, ROLE_CASHIER}
+
 
 
 # ─── Password Utilities ───
@@ -279,9 +312,9 @@ def require_role(*allowed_roles: str):
     Factory that creates a FastAPI dependency restricting access to specific roles.
     """
     async def _check_role(user: models.User = Depends(get_current_user)) -> models.User:
-        user_role = (user.role or "").lower().strip()
-        normalized_allowed = [r.lower().strip() for r in allowed_roles]
-        if user_role not in normalized_allowed and user_role != "admin":
+        user_role = normalize_role(user.role)
+        normalized_allowed = [normalize_role(r) for r in allowed_roles]
+        if user_role not in normalized_allowed and user_role != ROLE_ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Insufficient permissions. Required: {', '.join(allowed_roles)}. Your role: {user.role}",

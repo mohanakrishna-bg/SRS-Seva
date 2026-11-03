@@ -194,43 +194,54 @@ def consolidate_hastodaka_sevas(db: Session):
         print(f"Notice: Hastodaka consolidation error: {e}")
 
 
+def run_schema_migrations(target_engine=None):
+    """Lightweight auto-migration for newly added columns and legacy data alignment."""
+    if target_engine is None:
+        target_engine = database.engine
+    from sqlalchemy import text
+    with target_engine.connect() as conn:
+        if settings.is_postgres:
+            for stmt in [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR;",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS modules JSON;",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT TRUE;",
+                'ALTER TABLE "Seva" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;',
+                'ALTER TABLE "Devotee" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;',
+                'ALTER TABLE "SevaRegistration" ADD COLUMN IF NOT EXISTS "ParcelCount" INTEGER DEFAULT 0;',
+                "UPDATE users SET role = 'cashier' WHERE role = 'clerk';",
+                "UPDATE users SET role = 'trustee' WHERE role = 'viewer';"
+            ]:
+                try:
+                    conn.execute(text(stmt))
+                    conn.commit()
+                except Exception as ex:
+                    conn.rollback()
+                    print(f"Notice: Migration statement '{stmt}' failed: {ex}")
+        else:
+            for stmt in [
+                "ALTER TABLE users ADD COLUMN is_deleted BOOLEAN DEFAULT 0;",
+                "ALTER TABLE users ADD COLUMN display_name VARCHAR;",
+                "ALTER TABLE users ADD COLUMN modules JSON;",
+                "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 1;",
+                'ALTER TABLE "Seva" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;',
+                'ALTER TABLE "Devotee" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;',
+                'ALTER TABLE "SevaRegistration" ADD COLUMN "ParcelCount" INTEGER DEFAULT 0;',
+                "UPDATE users SET role = 'cashier' WHERE role = 'clerk';",
+                "UPDATE users SET role = 'trustee' WHERE role = 'viewer';"
+            ]:
+                try:
+                    conn.execute(text(stmt))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+
+
 @app.on_event("startup")
 def on_startup():
     try:
         models.Base.metadata.create_all(bind=database.engine)
-        
-        # Lightweight auto-migration for newly added columns
-        from sqlalchemy import text
-        with database.engine.connect() as conn:
-            if settings.is_postgres:
-                for stmt in [
-                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;",
-                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR;",
-                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS modules JSON;",
-                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT TRUE;",
-                    'ALTER TABLE "Seva" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;',
-                    'ALTER TABLE "Devotee" ADD COLUMN IF NOT EXISTS "IsDeleted" BOOLEAN DEFAULT FALSE;'
-                ]:
-                    try:
-                        conn.execute(text(stmt))
-                        conn.commit()
-                    except Exception as ex:
-                        conn.rollback()
-                        print(f"Notice: Migration statement '{stmt}' failed: {ex}")
-            else:
-                for stmt in [
-                    "ALTER TABLE users ADD COLUMN is_deleted BOOLEAN DEFAULT 0;",
-                    "ALTER TABLE users ADD COLUMN display_name VARCHAR;",
-                    "ALTER TABLE users ADD COLUMN modules JSON;",
-                    "ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 1;",
-                    'ALTER TABLE "Seva" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;',
-                    'ALTER TABLE "Devotee" ADD COLUMN "IsDeleted" BOOLEAN DEFAULT 0;'
-                ]:
-                    try:
-                        conn.execute(text(stmt))
-                        conn.commit()
-                    except Exception:
-                        conn.rollback()
+        run_schema_migrations()
     except Exception as e:
         print(f"Error creating tables on startup: {e}")
 

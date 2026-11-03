@@ -10,6 +10,8 @@ from app.modules.seva.reports import get_seva_bookings_report, get_hastodaka_rep
 class TestSevaReports(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        from app.main import run_schema_migrations
+        run_schema_migrations()
         cls.db = next(database.get_db())
         
         # Test Devotee
@@ -59,8 +61,9 @@ class TestSevaReports(unittest.TestCase):
             SevaDate=cls.test_date_ddmmyy,
             Qty=2,
             Amount=500.0,
-            PrasadaCount=3,  # 3 additional hastodakas
-            GrandTotal=1000.0,
+            PrasadaCount=3,   # 3 additional dine-in hastodakas
+            ParcelCount=2,    # 2 take-home parcels
+            GrandTotal=1500.0,
             PaymentMode="Cash",
             VoucherNo="VCH-REP-TEST-001",
             IsCancelled=False
@@ -139,12 +142,16 @@ class TestSevaReports(unittest.TestCase):
         self.assertIsNotNone(found_seva)
 
         # Qty = 2, TPQty = 2 => Free = 4
-        # Additional = 3 => Total = 7
+        # Additional Dine-in = 3 => Total Dine-in = 7
+        # Parcels = 2 => Total Hastodaka = 9
         self.assertEqual(found_seva["booking_count"], 2)
         self.assertEqual(found_seva["tp_qty_per_booking"], 2)
         self.assertEqual(found_seva["free_hastodaka"], 4)
         self.assertEqual(found_seva["additional_hastodaka"], 3)
-        self.assertEqual(found_seva["total_hastodaka"], 7)
+        self.assertEqual(found_seva["parcel_hastodaka"], 2)
+        self.assertEqual(found_seva["total_dine_in"], 7)
+        self.assertEqual(found_seva["total_hastodaka"], 9)
 
 if __name__ == "__main__":
     unittest.main()
+

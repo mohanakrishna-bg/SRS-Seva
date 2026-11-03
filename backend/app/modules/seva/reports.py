@@ -265,6 +265,8 @@ def get_hastodaka_report(
     grand_total_bookings = 0
     grand_total_free_hastodaka = 0
     grand_total_additional_hastodaka = 0
+    grand_total_parcel_hastodaka = 0
+    grand_total_dine_in = 0
     grand_total_hastodaka = 0
 
     days_result = []
@@ -273,6 +275,8 @@ def get_hastodaka_report(
         day_bookings = 0
         day_free = 0
         day_additional = 0
+        day_parcel = 0
+        day_dine_in = 0
         day_total = 0
         sevas_list = []
 
@@ -286,11 +290,15 @@ def get_hastodaka_report(
             booking_count = sum(r.Qty or 1 for r in reg_list)
             free_hastodaka = booking_count * tp_qty
             additional_hastodaka = sum(r.PrasadaCount or 0 for r in reg_list)
-            total_seva_hastodaka = free_hastodaka + additional_hastodaka
+            parcel_hastodaka = sum(r.ParcelCount or 0 for r in reg_list)
+            total_dine_in = free_hastodaka + additional_hastodaka
+            total_seva_hastodaka = total_dine_in + parcel_hastodaka
 
             day_bookings += booking_count
             day_free += free_hastodaka
             day_additional += additional_hastodaka
+            day_parcel += parcel_hastodaka
+            day_dine_in += total_dine_in
             day_total += total_seva_hastodaka
 
             sevas_list.append({
@@ -301,6 +309,8 @@ def get_hastodaka_report(
                 "tp_qty_per_booking": tp_qty,
                 "free_hastodaka": free_hastodaka,
                 "additional_hastodaka": additional_hastodaka,
+                "parcel_hastodaka": parcel_hastodaka,
+                "total_dine_in": total_dine_in,
                 "total_hastodaka": total_seva_hastodaka
             })
 
@@ -309,6 +319,8 @@ def get_hastodaka_report(
         grand_total_bookings += day_bookings
         grand_total_free_hastodaka += day_free
         grand_total_additional_hastodaka += day_additional
+        grand_total_parcel_hastodaka += day_parcel
+        grand_total_dine_in += day_dine_in
         grand_total_hastodaka += day_total
 
         days_result.append({
@@ -320,6 +332,8 @@ def get_hastodaka_report(
             "day_bookings": day_bookings,
             "day_free_hastodaka": day_free,
             "day_additional_hastodaka": day_additional,
+            "day_parcel_hastodaka": day_parcel,
+            "day_total_dine_in": day_dine_in,
             "day_total_hastodaka": day_total,
             "sevas_count": len(sevas_list),
             "sevas": sevas_list
@@ -334,6 +348,8 @@ def get_hastodaka_report(
         "grand_total_bookings": grand_total_bookings,
         "grand_total_free_hastodaka": grand_total_free_hastodaka,
         "grand_total_additional_hastodaka": grand_total_additional_hastodaka,
+        "grand_total_parcel_hastodaka": grand_total_parcel_hastodaka,
+        "grand_total_dine_in": grand_total_dine_in,
         "grand_total_hastodaka": grand_total_hastodaka,
         "days": days_result
     }

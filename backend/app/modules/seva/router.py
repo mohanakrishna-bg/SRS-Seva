@@ -556,30 +556,31 @@ def modify_registration(
     additional_voucher_no = None
     update_data = data.model_dump(exclude_unset=True)
     
-    # ── Handle Hastodaka increase ──
+    # ── Handle Hastodaka & Parcel increase ──
     new_prasada_count = update_data.pop("PrasadaCount", None)
+    new_parcel_count = update_data.pop("ParcelCount", None)
     additional_amount = update_data.pop("AdditionalAmount", None)
     additional_payment_mode = update_data.pop("AdditionalPaymentMode", None)
     
-    if new_prasada_count is not None:
-        if new_prasada_count < (reg.PrasadaCount or 0):
+    if new_prasada_count is not None or new_parcel_count is not None:
+        old_prasada = reg.PrasadaCount or 0
+        old_parcel = reg.ParcelCount or 0
+        effective_new_prasada = new_prasada_count if new_prasada_count is not None else old_prasada
+        effective_new_parcel = new_parcel_count if new_parcel_count is not None else old_parcel
+
+        if effective_new_prasada < old_prasada:
             raise HTTPException(status_code=400, detail="Hastodaka count can only be increased, not decreased")
+        if effective_new_parcel < old_parcel:
+            raise HTTPException(status_code=400, detail="Parcel count can only be increased, not decreased")
         
-        old_count = reg.PrasadaCount or 0
-        delta_count = new_prasada_count - old_count
+        delta_count = (effective_new_prasada - old_prasada) + (effective_new_parcel - old_parcel)
         
         if delta_count > 0:
             # Calculate per-head rate from existing data
-            if old_count > 0 and reg.Amount is not None:
-                per_head_rate = ((reg.GrandTotal or 0) - (reg.Amount or 0)) / old_count
+            if (old_prasada + old_parcel) > 0 and reg.Amount is not None:
+                per_head_rate = ((reg.GrandTotal or 0) - (reg.Amount or 0)) / (old_prasada + old_parcel)
             else:
-                # Fallback: use seva TPQty rate from the Seva master
-                seva = db.query(models.Seva).filter(models.Seva.SevaCode == reg.SevaCode).first()
                 per_head_rate = 200.0  # default fallback
-                if seva and seva.Amount and reg.Amount:
-                    # If the original registration has a base amount that differs,
-                    # the per-head rate was encoded in the GrandTotal
-                    per_head_rate = 200.0  # Use standard rate
             
             calculated_additional = round(delta_count * per_head_rate, 2)
             
@@ -589,7 +590,8 @@ def modify_registration(
             else:
                 actual_additional = calculated_additional
             
-            reg.PrasadaCount = new_prasada_count
+            reg.PrasadaCount = effective_new_prasada
+            reg.ParcelCount = effective_new_parcel
             reg.OptTheerthaPrasada = True
             reg.GrandTotal = round((reg.GrandTotal or 0) + actual_additional, 2)
             
@@ -611,7 +613,7 @@ def modify_registration(
                     je = accounting.JournalEntry(
                         EntryDate=dt.datetime.now().strftime("%Y-%m-%d"),
                         VoucherNo=additional_voucher_no,
-                        Narration=f"Hastodaka Increase for Seva Reg #{reg.RegistrationId} (+{delta_count} heads, {additional_payment_mode})",
+                        Narration=f"Hastodaka/Parcel Increase for Seva Reg #{reg.RegistrationId} (+{delta_count} meals, {additional_payment_mode})",
                         SourceModule="Seva",
                         SourceRefId=str(reg.RegistrationId),
                         IsTest=is_test
@@ -623,9 +625,12 @@ def modify_registration(
                     jl_income = accounting.JournalLine(JournalEntryId=je.Id, AccountId=income_acc.Id, Debit=0.0, Credit=actual_additional, IsTest=is_test)
                     db.add_all([jl_asset, jl_income])
                     db.flush()
+        else:
+            reg.PrasadaCount = effective_new_prasada
+            reg.ParcelCount = effective_new_parcel
     
     # Apply remaining simple field updates (Remarks, SevaDate, DevoteeId, OptTheerthaPrasada)
-    skip_fields = {"AdditionalAmount", "AdditionalPaymentMode", "PrasadaCount"}
+    skip_fields = {"AdditionalAmount", "AdditionalPaymentMode", "PrasadaCount", "ParcelCount"}
     for key, value in update_data.items():
         if key not in skip_fields and value is not None:
             setattr(reg, key, value)

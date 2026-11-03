@@ -81,6 +81,8 @@ export interface BookingPricingSummary {
     hastodakaAmount: number;
     totalAmount: number;
     itemCount: number;
+    familyMembers?: number;
+    parcelCount?: number;
 }
 
 export interface ValidationResult {
@@ -123,6 +125,7 @@ export interface SevaRegistrationPayload {
     GrandTotal: number;
     OptTheerthaPrasada: boolean;
     PrasadaCount: number;
+    ParcelCount: number;
     PrasadaOpted: boolean;
     FamilyCount: number;
     PaymentMode: string;
@@ -153,7 +156,8 @@ export function calculateBookingTotal(
     itemOrItems: SevaCatalogItem | SelectedSevaEntry | (SevaCatalogItem | SelectedSevaEntry)[] | undefined,
     optPrasada: boolean,
     familyMembers: number,
-    foodServiceRateStr: string | number
+    foodServiceRateStr: string | number,
+    parcelCount: number = 0
 ): number {
     if (!itemOrItems) return 0;
     
@@ -186,9 +190,9 @@ export function calculateBookingTotal(
         baseSum += finalVal;
     }
 
-    if (optPrasada && familyMembers > 0) {
+    if (optPrasada && (familyMembers > 0 || parcelCount > 0)) {
         const rate = parseFloat(String(foodServiceRateStr)) || 0;
-        baseSum += familyMembers * rate;
+        baseSum += (familyMembers + parcelCount) * rate;
     }
 
     return baseSum;
@@ -210,6 +214,7 @@ export class SevaBookingCart {
     private selectedDate: Date | null = null;
     private optPrasada: boolean = false;
     private familyMembers: number = 0;
+    private parcelCount: number = 0;
     private foodServiceRate: number = 200;
 
     // ─── Devotee Management ───
@@ -323,9 +328,10 @@ export class SevaBookingCart {
     }
 
     // ─── Hastodaka (Anna Prasada) Management ───
-    setHastodaka(optPrasada: boolean, familyMembers: number, rate: number | string): void {
+    setHastodaka(optPrasada: boolean, familyMembers: number, rate: number | string, parcelCount: number = 0): void {
         this.optPrasada = Boolean(optPrasada);
         this.familyMembers = Math.max(0, parseInt(String(familyMembers), 10) || 0);
+        this.parcelCount = Math.max(0, parseInt(String(parcelCount), 10) || 0);
         const parsedRate = parseFloat(String(rate));
         this.foodServiceRate = !isNaN(parsedRate) && parsedRate > 0 ? parsedRate : 200;
     }
@@ -336,6 +342,10 @@ export class SevaBookingCart {
 
     getFamilyMembers(): number {
         return this.familyMembers;
+    }
+
+    getParcelCount(): number {
+        return this.parcelCount;
     }
 
     getHastodakaRate(): number {
@@ -351,7 +361,8 @@ export class SevaBookingCart {
             }
         }
 
-        const hastodakaAmount = this.optPrasada ? this.familyMembers * this.foodServiceRate : 0;
+        const totalHeads = this.familyMembers + this.parcelCount;
+        const hastodakaAmount = this.optPrasada ? totalHeads * this.foodServiceRate : 0;
         const totalAmount = baseAmount + hastodakaAmount;
 
         return {
@@ -360,6 +371,8 @@ export class SevaBookingCart {
             hastodakaAmount,
             totalAmount,
             itemCount: this.selectedSevas.length,
+            familyMembers: this.familyMembers,
+            parcelCount: this.parcelCount,
         };
     }
 
@@ -465,6 +478,7 @@ export class SevaBookingCart {
                 GrandTotal: totalForSeva,
                 OptTheerthaPrasada: isFirst ? this.optPrasada : false,
                 PrasadaCount: isFirst && this.optPrasada ? this.familyMembers : 0,
+                ParcelCount: isFirst && this.optPrasada ? this.parcelCount : 0,
                 PrasadaOpted: isFirst && this.optPrasada,
                 FamilyCount: isFirst ? this.familyMembers : 0,
                 PaymentMode: payment.paymentMode,
@@ -503,6 +517,7 @@ export class SevaBookingCart {
         this.selectedDate = null;
         this.optPrasada = false;
         this.familyMembers = 0;
+        this.parcelCount = 0;
         this.foodServiceRate = 200;
     }
 }

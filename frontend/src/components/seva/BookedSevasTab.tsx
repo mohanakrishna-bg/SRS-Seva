@@ -56,6 +56,7 @@ export default function BookedSevasTab() {
     const [modifyRemarks, setModifyRemarks] = useState('');
     const [modifySevaDate, setModifySevaDate] = useState('');
     const [modifyPrasadaCount, setModifyPrasadaCount] = useState(0);
+    const [modifyParcelCount, setModifyParcelCount] = useState(0);
     const [modifyOptPrasada, setModifyOptPrasada] = useState(false);
     const [modifyPaymentMode, setModifyPaymentMode] = useState('Cash');
     const [isModifying, setIsModifying] = useState(false);
@@ -146,9 +147,12 @@ export default function BookedSevasTab() {
         setIsModifying(true);
         try {
             const oldCount = selectedReg.PrasadaCount || 0;
-            const deltaCount = modifyPrasadaCount - oldCount;
+            const oldParcel = selectedReg.ParcelCount || 0;
+            const deltaPrasada = modifyPrasadaCount - oldCount;
+            const deltaParcel = modifyParcelCount - oldParcel;
+            const totalDelta = (deltaPrasada > 0 ? deltaPrasada : 0) + (deltaParcel > 0 ? deltaParcel : 0);
             const hastodakaRate = getHastodakaPerHeadRate();
-            const additionalAmount = deltaCount > 0 ? deltaCount * hastodakaRate : 0;
+            const additionalAmount = totalDelta > 0 ? totalDelta * hastodakaRate : 0;
 
             const payload: any = {
                 Remarks: modifyRemarks,
@@ -162,9 +166,15 @@ export default function BookedSevasTab() {
                 }
             }
 
-            // Only send hastodaka fields if count actually changed
-            if (deltaCount > 0) {
+            // Only send hastodaka / parcel fields if count actually changed
+            if (modifyPrasadaCount !== oldCount) {
                 payload.PrasadaCount = modifyPrasadaCount;
+            }
+            if (modifyParcelCount !== oldParcel) {
+                payload.ParcelCount = modifyParcelCount;
+            }
+
+            if (totalDelta > 0) {
                 payload.OptTheerthaPrasada = true;
                 payload.AdditionalAmount = additionalAmount;
                 payload.AdditionalPaymentMode = modifyPaymentMode;
@@ -177,7 +187,7 @@ export default function BookedSevasTab() {
             setShowModifyModal(false);
 
             // If there was an additional payment, show receipt for delta
-            if (deltaCount > 0 && additionalAmount > 0) {
+            if (totalDelta > 0 && additionalAmount > 0) {
                 setAdditionalReceiptData({
                     voucherNo: `VCH-ADD-${selectedReg.RegistrationId}`,
                     date: selectedReg.RegistrationDate,
@@ -192,6 +202,8 @@ export default function BookedSevasTab() {
                     amount: additionalAmount,
                     hastodakaAmount: additionalAmount,
                     paymentMode: modifyPaymentMode,
+                    familyMembers: deltaPrasada > 0 ? deltaPrasada : 0,
+                    parcelCount: deltaParcel > 0 ? deltaParcel : 0,
                 });
                 setShowAdditionalReceipt(true);
             }
@@ -206,10 +218,10 @@ export default function BookedSevasTab() {
 
     const getHastodakaPerHeadRate = (): number => {
         if (!selectedReg) return 200;
-        const oldCount = selectedReg.PrasadaCount || 0;
+        const oldCount = (selectedReg.PrasadaCount || 0) + (selectedReg.ParcelCount || 0);
         const sevaAmount = selectedReg.Amount || 0;
         const grandTotal = selectedReg.GrandTotal || 0;
-        if (oldCount > 0) {
+        if (oldCount > 0 && grandTotal > sevaAmount) {
             return (grandTotal - sevaAmount) / oldCount;
         }
         return 200; // default per-head rate
@@ -225,6 +237,7 @@ export default function BookedSevasTab() {
         setModifySevaDate(formattedDate);
         setModifyRemarks(selectedReg.Remarks || '');
         setModifyPrasadaCount(selectedReg.PrasadaCount || 0);
+        setModifyParcelCount(selectedReg.ParcelCount || 0);
         setModifyOptPrasada(selectedReg.OptTheerthaPrasada || false);
         setModifyPaymentMode('Cash');
         setShowModifyModal(true);
@@ -322,9 +335,12 @@ export default function BookedSevasTab() {
 
     // ── Compute hastodaka delta for modify modal ──
     const oldPrasadaCount = selectedReg?.PrasadaCount || 0;
-    const deltaCount = modifyPrasadaCount - oldPrasadaCount;
+    const oldParcelCount = selectedReg?.ParcelCount || 0;
+    const deltaPrasada = modifyPrasadaCount - oldPrasadaCount;
+    const deltaParcel = modifyParcelCount - oldParcelCount;
+    const totalDelta = (deltaPrasada > 0 ? deltaPrasada : 0) + (deltaParcel > 0 ? deltaParcel : 0);
     const hastodakaRate = selectedReg ? getHastodakaPerHeadRate() : 200;
-    const additionalAmount = deltaCount > 0 ? deltaCount * hastodakaRate : 0;
+    const additionalAmount = totalDelta > 0 ? totalDelta * hastodakaRate : 0;
 
     return (
         <div className="absolute inset-0 flex">
@@ -617,8 +633,10 @@ export default function BookedSevasTab() {
                                     </div>
                                     {selectedReg.OptTheerthaPrasada && (
                                         <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl">
-                                            <div className="text-[10px] uppercase tracking-wider text-orange-500 mb-1">ಹಸ್ತೋದಕ</div>
-                                            <div className="font-bold">{selectedReg.PrasadaCount || 0} ಜನರು</div>
+                                            <div className="text-[10px] uppercase tracking-wider text-orange-500 mb-1">ಹಸ್ತೋದಕ / ಪ್ರಸಾದ</div>
+                                            <div className="font-bold">
+                                                {selectedReg.PrasadaCount || 0} ಊಟ{selectedReg.ParcelCount > 0 ? ` + ${selectedReg.ParcelCount} ಪಾರ್ಸಲ್` : ''}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -632,7 +650,9 @@ export default function BookedSevasTab() {
                                     </div>
                                     {selectedReg.OptTheerthaPrasada && (selectedReg.GrandTotal - selectedReg.Amount) > 0 && (
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-[var(--text-secondary)]">ಹಸ್ತೋದಕ ಮೊತ್ತ ({selectedReg.PrasadaCount} ಜನರು)</span>
+                                            <span className="text-[var(--text-secondary)]">
+                                                ಹಸ್ತೋದಕ ಮೊತ್ತ ({selectedReg.PrasadaCount || 0} ಊಟ{selectedReg.ParcelCount > 0 ? ` + ${selectedReg.ParcelCount} ಪಾರ್ಸಲ್` : ''})
+                                            </span>
                                             <span className="font-bold">₹{((selectedReg.GrandTotal || 0) - (selectedReg.Amount || 0)).toLocaleString()}</span>
                                         </div>
                                     )}
@@ -792,35 +812,56 @@ export default function BookedSevasTab() {
                                             setModifyOptPrasada(e.target.checked);
                                             if (!e.target.checked) {
                                                 setModifyPrasadaCount(selectedReg.PrasadaCount || 0);
+                                                setModifyParcelCount(selectedReg.ParcelCount || 0);
                                             }
                                         }}
                                     />
-                                    ಹಸ್ತೋದಕ
+                                    ಹಸ್ತೋದಕ / ಪ್ರಸಾದ (Hastodaka & Parcels)
                                 </label>
                                 
                                 {modifyOptPrasada && (
                                     <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">
-                                                ಹಸ್ತೋದಕ ಸಂಖ್ಯೆ (ಪ್ರಸ್ತುತ: {oldPrasadaCount})
-                                            </label>
-                                            <input 
-                                                type="number"
-                                                min={oldPrasadaCount}
-                                                value={modifyPrasadaCount}
-                                                onChange={(e) => {
-                                                    const val = Math.max(oldPrasadaCount, Number(e.target.value));
-                                                    setModifyPrasadaCount(val);
-                                                }}
-                                                className="w-full px-3 py-2 rounded-xl bg-[var(--bg-light)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-orange-500"
-                                            />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                                                    ಊಟದ ಸಂಖ್ಯೆ (ಪ್ರಸ್ತುತ: {oldPrasadaCount})
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    min={oldPrasadaCount}
+                                                    value={modifyPrasadaCount}
+                                                    onChange={(e) => {
+                                                        const val = Math.max(oldPrasadaCount, Number(e.target.value));
+                                                        setModifyPrasadaCount(val);
+                                                    }}
+                                                    className="w-full px-3 py-2 rounded-xl bg-[var(--bg-light)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-orange-500"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1">
+                                                    ಪಾರ್ಸಲ್ ಸಂಖ್ಯೆ (ಪ್ರಸ್ತುತ: {oldParcelCount})
+                                                </label>
+                                                <input 
+                                                    type="number"
+                                                    min={oldParcelCount}
+                                                    value={modifyParcelCount}
+                                                    onChange={(e) => {
+                                                        const val = Math.max(oldParcelCount, Number(e.target.value));
+                                                        setModifyParcelCount(val);
+                                                    }}
+                                                    className="w-full px-3 py-2 rounded-xl bg-[var(--bg-light)] border border-[var(--glass-border)] text-sm focus:outline-none focus:border-orange-500"
+                                                />
+                                            </div>
                                         </div>
 
-                                        {deltaCount > 0 && (
+                                        {totalDelta > 0 && (
                                             <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl space-y-2">
                                                 <div className="text-xs font-bold text-green-500">ಹೆಚ್ಚುವರಿ ಪಾವತಿ</div>
                                                 <div className="flex justify-between text-sm">
-                                                    <span className="text-[var(--text-secondary)]">+{deltaCount} ಜನರು × ₹{hastodakaRate}</span>
+                                                    <span className="text-[var(--text-secondary)]">
+                                                        +{totalDelta} (ಊಟ: {deltaPrasada > 0 ? deltaPrasada : 0}, ಪಾರ್ಸಲ್: {deltaParcel > 0 ? deltaParcel : 0}) × ₹{hastodakaRate}
+                                                    </span>
                                                     <span className="font-bold text-green-500">₹{additionalAmount.toLocaleString()}</span>
                                                 </div>
                                                 <div>
@@ -895,6 +936,8 @@ export default function BookedSevasTab() {
                         sevas: sevas,
                         amount: totalAmount,
                         hastodakaAmount: hastodakaAmount > 0 ? hastodakaAmount : undefined,
+                        familyMembers: firstReg.PrasadaCount || 0,
+                        parcelCount: firstReg.ParcelCount || 0,
                         paymentMode: firstReg.PaymentMode,
                         phone: firstReg.devotee?.Phone,
                         whatsappPhone: firstReg.devotee?.WhatsApp_Phone

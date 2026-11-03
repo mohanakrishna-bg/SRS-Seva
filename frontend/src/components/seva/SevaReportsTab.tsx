@@ -219,15 +219,17 @@ function generateKitchenWhatsAppText(data: any): string {
     msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
     msg += `🍚 *ಪಾಕಶಾಲೆ ಹಸ್ತೋದಕ ತಯಾರಿಕಾ ಲೆಕ್ಕ*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
-    msg += `• ಉಚಿತ ಹಸ್ತೋದಕ: ${data.grand_total_free_hastodaka || 0} ಎಲೆಗಳು\n`;
-    msg += `• ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ: ${data.grand_total_additional_hastodaka || 0} ಎಲೆಗಳು\n`;
-    msg += `👉 *ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಹಸ್ತೋದಕ:* *${data.grand_total_hastodaka || 0} ಎಲೆಗಳು*\n`;
+    const dineInTotal = data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0));
+    msg += `• ಊಟದ ಹಸ್ತೋದಕ (Dine-in): ${dineInTotal} (ಉಚಿತ: ${data.grand_total_free_hastodaka || 0}, ಹೆಚ್ಚುವರಿ: ${data.grand_total_additional_hastodaka || 0})\n`;
+    msg += `• ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels): ${data.grand_total_parcel_hastodaka || 0} ಪ್ಯಾಕೆಟ್\n`;
+    msg += `👉 *ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು:* *${data.grand_total_hastodaka || 0}*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
 
     data.days?.forEach((day: any) => {
         day.sevas?.forEach((s: any, idx: number) => {
             if (s.total_hastodaka > 0) {
-                msg += `${idx + 1}. ${s.seva_name}: ${s.total_hastodaka} ಎಲೆಗಳು (${s.booking_count} ಬುಕಿಂಗ್)\n`;
+                const pText = s.parcel_hastodaka ? ` | ಪಾರ್ಸಲ್: ${s.parcel_hastodaka}` : '';
+                msg += `${idx + 1}. ${s.seva_name}: ಒಟ್ಟು ${s.total_hastodaka} (ಊಟ: ${s.total_dine_in || (s.free_hastodaka + s.additional_hastodaka)}${pText}) [${s.booking_count} ಬುಕಿಂಗ್]\n`;
             }
         });
     });
@@ -263,7 +265,7 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
             });
         });
     } else if (reportId === 'daily_kitchen') {
-        csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವೆಯ ಹೆಸರು,ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ,ಒಳಗೊಂಡ ಹಸ್ತೋದಕ,ಉಚಿತ ಹಸ್ತೋದಕ,ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ,ಒಟ್ಟು ಹಸ್ತೋದಕ ಎಲೆಗಳು\n';
+        csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವೆಯ ಹೆಸರು,ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ,ಒಳಗೊಂಡ ಹಸ್ತೋದಕ,ಉಚಿತ ಹಸ್ತೋದಕ,ಹೆಚ್ಚುವರಿ ಊಟ,ಪಾರ್ಸಲ್,ಒಟ್ಟು ಊಟಗಳು\n';
         let count = 1;
         data.days?.forEach((day: any) => {
             day.sevas?.forEach((s: any) => {
@@ -271,15 +273,16 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
                     count++,
                     `"${(s.seva_name || '').replace(/"/g, '""')}"`,
                     s.booking_count || 0,
-                    s.free_qty_per_seva || 0,
-                    s.total_free || 0,
-                    s.total_additional || 0,
+                    s.tp_qty_per_booking || s.free_qty_per_seva || 0,
+                    s.free_hastodaka || s.total_free || 0,
+                    s.additional_hastodaka || s.total_additional || 0,
+                    s.parcel_hastodaka || 0,
                     s.total_hastodaka || 0
                 ];
                 csvContent += row.join(',') + '\n';
             });
         });
-        csvContent += `\nಒಟ್ಟು,,,,"${data.grand_total_free_hastodaka || 0}","${data.grand_total_additional_hastodaka || 0}","${data.grand_total_hastodaka || 0}"\n`;
+        csvContent += `\nಒಟ್ಟು,,,,"${data.grand_total_free_hastodaka || 0}","${data.grand_total_additional_hastodaka || 0}","${data.grand_total_parcel_hastodaka || 0}","${data.grand_total_hastodaka || 0}"\n`;
     } else if (reportId === 'on_demand_full') {
         csvContent += 'ಕ್ರಮ ಸಂ.,ದಿನಾಂಕ,ಸೇವೆ,ಭಕ್ತರ ಹೆಸರು,ಮೊಬೈಲ್,ಗೋತ್ರ,ನಕ್ಷತ್ರ,ವೌಚರ್,ಮೊತ್ತ,ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ\n';
         let count = 1;
@@ -1249,30 +1252,30 @@ function KitchenHastodakaReportView({
                 </div>
 
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಉಚಿತ ಹಸ್ತೋದಕ (Included Free)</div>
+                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ (Dine-in Meals)</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                        {data.grand_total_free_hastodaka}
+                        {data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0))}
                     </div>
-                    <div className="text-[11px] text-[var(--text-secondary)]">ಸೇವೆಗೆ ಸೇರಿರುವ ಲೆಕ್ಕ</div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">ಉಚಿತ: {data.grand_total_free_hastodaka || 0} + ಹೆಚ್ಚುವರಿ: {data.grand_total_additional_hastodaka || 0}</div>
                 </div>
 
                 <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ (Additional)</div>
+                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels)</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-                        {data.grand_total_additional_hastodaka}
+                        {data.grand_total_parcel_hastodaka || 0}
                     </div>
-                    <div className="text-[11px] text-[var(--text-secondary)]">ಕೋರಿಕೆಯ ಹೆಚ್ಚುವರಿ ಎಲೆಗಳು</div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">ತೆಗೆದುಕೊಂಡು ಹೋಗುವ ಊಟ</div>
                 </div>
 
                 <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl shadow-lg shadow-emerald-500/10">
                     <div className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-300">
-                        ಒಟ್ಟು ಹಸ್ತೋದಕ ಎಲೆಗಳು (Total Plates)
+                        ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು (Total Meals)
                     </div>
                     <div className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
                         {data.grand_total_hastodaka}
                     </div>
                     <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">
-                        ಪಾಕಶಾಲೆಯಲ್ಲಿ ತಯಾರಿಸಬೇಕಾದ ಎಣಿಕೆ
+                        ಪಾಕಶಾಲೆಯಲ್ಲಿ ಒಟ್ಟು ತಯಾರಿಕೆ
                     </div>
                 </div>
             </div>
@@ -1297,7 +1300,7 @@ function KitchenHastodakaReportView({
                                     ಸೇವೆವಾರು ಹಸ್ತೋದಕ ಎಲೆಗಳ ಸಿದ್ಧತಾ ಪಟ್ಟಿ
                                 </h3>
                                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                                    ಪ್ರತಿ ಸೇವೆಗೆ ನಿಗದಿತ ಉಚಿತ ಹಸ್ತೋದಕ ಮತ್ತು ಹೆಚ್ಚುವರಿ ಕೋರಿಕೆಗಳ ಒಟ್ಟುಗೂಡಿಸಿದ ಲೆಕ್ಕ
+                                    ಪ್ರತಿ ಸೇವೆಗೆ ನಿಗದಿತ ಉಚಿತ ಹಸ್ತೋದಕ, ಹೆಚ್ಚುವರಿ ಕೋರಿಕೆಗಳು ಮತ್ತು ಪಾರ್ಸಲ್ ಒಟ್ಟುಗೂಡಿಸಿದ ಲೆಕ್ಕ
                                 </p>
                             </div>
                             <span className="text-xs px-2.5 py-1 rounded-lg bg-[var(--primary)] text-white font-bold">
@@ -1312,11 +1315,11 @@ function KitchenHastodakaReportView({
                                         <th className="px-4 py-2.5 w-12 text-center">ಕ್ರಮ ಸಂ.</th>
                                         <th className="px-4 py-2.5">ಸೇವೆಯ ಹೆಸರು</th>
                                         <th className="px-4 py-2.5 text-center">ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ</th>
-                                        <th className="px-4 py-2.5 text-center">ಒಳಗೊಂಡ ಹಸ್ತೋದಕ</th>
                                         <th className="px-4 py-2.5 text-right">ಉಚಿತ ಹಸ್ತೋದಕ</th>
-                                        <th className="px-4 py-2.5 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2.5 text-right">ಹೆಚ್ಚುವರಿ ಊಟ</th>
+                                        <th className="px-4 py-2.5 text-right text-purple-700 dark:text-purple-400 print:text-black">ಪಾರ್ಸಲ್</th>
                                         <th className="px-4 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-200 print:text-black">
-                                            ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಹಸ್ತೋದಕ
+                                            ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು
                                         </th>
                                     </tr>
                                 </thead>
@@ -1338,20 +1341,20 @@ function KitchenHastodakaReportView({
                                                         {s.seva_name}
                                                     </div>
                                                     <div className="text-[11px] text-[var(--text-secondary)] font-mono print:hidden">
-                                                        {s.seva_code}
+                                                        {s.seva_code} {s.tp_qty_per_booking > 0 && `(TP: ${s.tp_qty_per_booking})`}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-2 text-center font-bold text-sm print:text-xs print:text-black">
                                                     {s.booking_count}
-                                                </td>
-                                                <td className="px-4 py-2 text-center font-semibold text-[var(--text-secondary)] print:text-black">
-                                                    {s.tp_qty_per_booking}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-bold text-blue-700 dark:text-blue-400 print:text-black">
                                                     {s.free_hastodaka}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-bold text-purple-700 dark:text-purple-400 print:text-black">
                                                     {s.additional_hastodaka}
+                                                </td>
+                                                <td className="px-4 py-2 text-right font-bold text-purple-700 dark:text-purple-400 print:text-black">
+                                                    {s.parcel_hastodaka || 0}
                                                 </td>
                                                 <td className="px-4 py-2 text-right font-extrabold text-sm print:text-xs text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-100 print:text-black">
                                                     {s.total_hastodaka}
@@ -1366,12 +1369,14 @@ function KitchenHastodakaReportView({
                                             ಒಟ್ಟು:
                                         </td>
                                         <td className="px-4 py-2 text-center text-sm print:text-xs">{day.day_bookings}</td>
-                                        <td className="px-4 py-2 text-center">—</td>
                                         <td className="px-4 py-2 text-right text-sm print:text-xs text-blue-700 dark:text-blue-400 print:text-black">
                                             {day.day_free_hastodaka}
                                         </td>
                                         <td className="px-4 py-2 text-right text-sm print:text-xs text-purple-700 dark:text-purple-400 print:text-black">
                                             {day.day_additional_hastodaka}
+                                        </td>
+                                        <td className="px-4 py-2 text-right text-sm print:text-xs text-purple-700 dark:text-purple-400 print:text-black">
+                                            {day.day_parcel_hastodaka || 0}
                                         </td>
                                         <td className="px-4 py-2 text-right text-base print:text-sm font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 print:bg-gray-200 print:text-black">
                                             {day.day_total_hastodaka}
@@ -1665,17 +1670,19 @@ function HastodakaDistributionReportView({
                 </div>
 
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಅವಧಿಯ ಉಚಿತ ಹಸ್ತೋದಕ</div>
+                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ (Dine-in)</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                        {data.grand_total_free_hastodaka}
+                        {data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0))}
                     </div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">ಉಚಿತ: {data.grand_total_free_hastodaka || 0} + ಹೆಚ್ಚುವರಿ: {data.grand_total_additional_hastodaka || 0}</div>
                 </div>
 
                 <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಅವಧಿಯ ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</div>
+                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels)</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-                        {data.grand_total_additional_hastodaka}
+                        {data.grand_total_parcel_hastodaka || 0}
                     </div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">ತೆಗೆದುಕೊಂಡು ಹೋಗುವ ಊಟ</div>
                 </div>
 
                 <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl">
@@ -1728,22 +1735,25 @@ function HastodakaDistributionReportView({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 text-xs font-bold">
+                            <div className="flex items-center gap-3 text-xs font-bold">
                                 <span className="px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-blue-700 dark:text-blue-400">
                                     ಉಚಿತ: {day.day_free_hastodaka}
                                 </span>
                                 <span className="px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-purple-700 dark:text-purple-400">
                                     ಹೆಚ್ಚುವರಿ: {day.day_additional_hastodaka}
                                 </span>
+                                <span className="px-2.5 py-1 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)] text-purple-700 dark:text-purple-400">
+                                    ಪಾರ್ಸಲ್: {day.day_parcel_hastodaka || 0}
+                                </span>
                                 <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold">
-                                    ದಿನದ ಒಟ್ಟು ಎಲೆಗಳು: {day.day_total_hastodaka}
+                                    ಒಟ್ಟು: {day.day_total_hastodaka}
                                 </span>
                             </div>
                         </div>
 
                         {/* Print Day Header (Clean, no buttons/pills) */}
                         <div className="hidden print:block font-bold text-sm text-black mb-1 mt-4 border-b border-black pb-1">
-                            ದಿನಾಂಕ: {day.formatted_date} ({day.day_kannada}) — ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ: {day.day_total_hastodaka} (ಉಚಿತ: {day.day_free_hastodaka}, ಹೆಚ್ಚುವರಿ: {day.day_additional_hastodaka})
+                            ದಿನಾಂಕ: {day.formatted_date} ({day.day_kannada}) — ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ: {day.day_total_hastodaka} (ಉಚಿತ: {day.day_free_hastodaka}, ಹೆಚ್ಚುವರಿ: {day.day_additional_hastodaka}, ಪಾರ್ಸಲ್: {day.day_parcel_hastodaka || 0})
                         </div>
 
                         {/* Seva table inside day (ALWAYS VISIBLE IN PRINT) */}
@@ -1754,9 +1764,9 @@ function HastodakaDistributionReportView({
                                         <th className="px-4 py-2 w-12 text-center">ಕ್ರ.ಸಂ.</th>
                                         <th className="px-4 py-2">ಸೇವೆಯ ಹೆಸರು</th>
                                         <th className="px-4 py-2 text-center">ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ</th>
-                                        <th className="px-4 py-2 text-center">ಒಳಗೊಂಡ ಹಸ್ತೋದಕ</th>
                                         <th className="px-4 py-2 text-right">ಉಚಿತ ಹಸ್ತೋದಕ</th>
-                                        <th className="px-4 py-2 text-right">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</th>
+                                        <th className="px-4 py-2 text-right">ಹೆಚ್ಚುವರಿ ಊಟ</th>
+                                        <th className="px-4 py-2 text-right text-purple-700 dark:text-purple-400 print:text-black">ಪಾರ್ಸಲ್</th>
                                         <th className="px-4 py-2 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-200 print:text-black">
                                             ದಿನದ ಒಟ್ಟು ಹಸ್ತೋದಕ
                                         </th>
@@ -1775,20 +1785,27 @@ function HastodakaDistributionReportView({
                                                 <td className="px-4 py-1.5 text-center font-mono text-[var(--text-secondary)] print:text-black">
                                                     {sIdx + 1}
                                                 </td>
-                                                <td className="px-4 py-1.5 font-bold text-[var(--text-primary)] print:text-black">
-                                                    {s.seva_name}
+                                                <td className="px-4 py-1.5">
+                                                    <div className="font-bold text-[var(--text-primary)] print:text-black">
+                                                        {s.seva_name}
+                                                    </div>
+                                                    {s.tp_qty_per_booking > 0 && (
+                                                        <div className="text-[10px] text-[var(--text-secondary)] print:hidden">
+                                                            TP: {s.tp_qty_per_booking}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-1.5 text-center font-semibold print:text-black">
                                                     {s.booking_count}
-                                                </td>
-                                                <td className="px-4 py-1.5 text-center font-mono text-[var(--text-secondary)] print:text-black">
-                                                    {s.tp_qty_per_booking}
                                                 </td>
                                                 <td className="px-4 py-1.5 text-right font-semibold text-blue-700 dark:text-blue-400 print:text-black">
                                                     {s.free_hastodaka}
                                                 </td>
                                                 <td className="px-4 py-1.5 text-right font-semibold text-purple-700 dark:text-purple-400 print:text-black">
                                                     {s.additional_hastodaka}
+                                                </td>
+                                                <td className="px-4 py-1.5 text-right font-semibold text-purple-700 dark:text-purple-400 print:text-black">
+                                                    {s.parcel_hastodaka || 0}
                                                 </td>
                                                 <td className="px-4 py-1.5 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 print:bg-gray-100 print:text-black">
                                                     {s.total_hastodaka}
@@ -1803,9 +1820,9 @@ function HastodakaDistributionReportView({
                                             {day.formatted_date} ದಿನದ ಒಟ್ಟು:
                                         </td>
                                         <td className="px-4 py-2 text-center">{day.day_bookings}</td>
-                                        <td></td>
                                         <td className="px-4 py-2 text-right text-blue-700 dark:text-blue-400 print:text-black">{day.day_free_hastodaka}</td>
                                         <td className="px-4 py-2 text-right text-purple-700 dark:text-purple-400 print:text-black">{day.day_additional_hastodaka}</td>
+                                        <td className="px-4 py-2 text-right text-purple-700 dark:text-purple-400 print:text-black">{day.day_parcel_hastodaka || 0}</td>
                                         <td className="px-4 py-2 text-right font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 print:bg-gray-200 print:text-black">
                                             {day.day_total_hastodaka}
                                         </td>

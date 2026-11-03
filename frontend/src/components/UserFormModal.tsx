@@ -16,12 +16,12 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('clerk');
+    const [role, setRole] = useState('cashier');
     const [displayName, setDisplayName] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [modules, setModules] = useState<Record<string, string> | null>(null);
 
-    const [availableRoles, setAvailableRoles] = useState<string[]>(['admin', 'accountant', 'clerk', 'storekeeper', 'viewer']);
+    const [availableRoles, setAvailableRoles] = useState<string[]>(['admin', 'cashier', 'trustee']);
     const [permMatrix, setPermMatrix] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -52,7 +52,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
 
             if (isEditing) {
                 setUsername(user.username || '');
-                setRole(user.role || 'clerk');
+                setRole(user.role || 'cashier');
                 setDisplayName(user.display_name || '');
                 setIsActive(user.is_active ?? true);
                 setModules(user.modules || null);
@@ -60,7 +60,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
             } else {
                 setUsername('');
                 setPassword('');
-                setRole('clerk');
+                setRole('cashier');
                 setDisplayName('');
                 setIsActive(true);
                 setModules(null);

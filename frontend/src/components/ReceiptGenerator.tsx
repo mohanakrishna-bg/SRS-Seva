@@ -20,6 +20,8 @@ interface ReceiptData {
     sevas: { description: string, descriptionEn?: string, amount: number }[];
     amount: number;
     hastodakaAmount?: number;
+    parcelCount?: number;
+    familyMembers?: number;
     paymentMode: string;
     paymentModeEn?: string;
     phone?: string;
@@ -220,6 +222,8 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         amount: lang === 'en' ? 'Amount' : 'ಮೊತ್ತ',
         sevaAmount: lang === 'en' ? 'Seva Amount' : 'ಸೇವಾ ಮೊತ್ತ',
         hastodakaAmount: lang === 'en' ? 'Hastodaka' : 'ಹಸ್ತೋದಕ',
+        parcelHastodaka: lang === 'en' ? 'Parcel' : 'ಪಾರ್ಸಲ್',
+        dineInHastodaka: lang === 'en' ? 'Dine-in' : 'ಊಟ',
         totalAmount: lang === 'en' ? 'Total' : 'ಒಟ್ಟು',
         payment: lang === 'en' ? 'Payment' : 'ಪಾವತಿ',
         greeting: lang === 'en' ? '🙏 Harih Om 🙏' : '🙏 ಹರಿಃ ಓಂ 🙏'
@@ -240,7 +244,13 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
         ...(currentData.nakshatra ? [`${labels.nakshatra}: ${currentData.nakshatra}`] : []),
         `━━━━━━━━━━━━━━━━━`,
         ...currentData.sevas.map(s => `${s.description}: ₹${s.amount}`),
-        ...(currentData.hastodakaAmount ? [`${labels.hastodakaAmount}: ₹${currentData.hastodakaAmount}`] : []),
+        ...(currentData.hastodakaAmount ? [
+            `${labels.hastodakaAmount}: ₹${currentData.hastodakaAmount}` +
+            (currentData.parcelCount || currentData.familyMembers ? ` (${[
+                currentData.familyMembers ? `${labels.dineInHastodaka}: ${currentData.familyMembers}` : '',
+                currentData.parcelCount ? `${labels.parcelHastodaka}: ${currentData.parcelCount}` : ''
+            ].filter(Boolean).join(', ')})` : '')
+        ] : []),
         `━━━━━━━━━━━━━━━━━`,
         `${labels.totalAmount}: ₹${currentData.amount}`,
         `${labels.payment}: ${currentData.paymentMode}`,
@@ -469,9 +479,19 @@ export default function ReceiptGenerator({ isOpen, onClose, receiptData }: Recei
                                 ))}
                                 
                                 {currentData.hastodakaAmount != null && currentData.hastodakaAmount > 0 && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500 text-sm">{labels.hastodakaAmount}</span>
-                                        <span className="text-gray-700">₹{currentData.hastodakaAmount.toLocaleString()}</span>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <span className="text-gray-500 text-sm">{labels.hastodakaAmount}</span>
+                                            {(currentData.familyMembers || currentData.parcelCount) ? (
+                                                <span className="text-[11px] text-gray-500 block">
+                                                    {[
+                                                        currentData.familyMembers ? `${labels.dineInHastodaka}: ${currentData.familyMembers}` : '',
+                                                        currentData.parcelCount ? `${labels.parcelHastodaka}: ${currentData.parcelCount}` : ''
+                                                    ].filter(Boolean).join(' | ')}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        <span className="text-gray-700 font-semibold">₹{currentData.hastodakaAmount.toLocaleString()}</span>
                                     </div>
                                 )}
 

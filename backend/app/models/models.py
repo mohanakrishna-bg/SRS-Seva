@@ -116,6 +116,7 @@ class SevaRegistration(Base):
     Amount = Column(Float, default=0.0)                # INR, 2 decimal
     OptTheerthaPrasada = Column(Boolean, default=False)
     PrasadaCount = Column(Integer, default=0)          # Additional heads above TPQty
+    ParcelCount = Column(Integer, default=0)           # Take-home Anna Prasada parcel count
     PaymentMode = Column(String, default="Cash")       # Cash/UPI/Cheque/DD/Netbanking
     PaymentReference = Column(String, nullable=True)
     PaymentDetails = Column(JSON, nullable=True)  # Store captured metadata (Transaction ID, Check Date, etc.)

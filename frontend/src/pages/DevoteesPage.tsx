@@ -585,6 +585,8 @@ export default function DevoteesPage() {
                         sevas: sevas,
                         amount: totalAmount,
                         hastodakaAmount: hastodakaAmount > 0 ? hastodakaAmount : undefined,
+                        familyMembers: firstInvoice.PrasadaCount || undefined,
+                        parcelCount: firstInvoice.ParcelCount || undefined,
                         paymentMode: firstInvoice.PaymentMode || firstInvoice.Payment_Mode || 'Cash',
                         phone: data.customer.Phone || '',
                         whatsappPhone: data.customer.WhatsApp_Phone || '',

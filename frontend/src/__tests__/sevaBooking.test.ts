@@ -134,4 +134,52 @@ describe('SevaBookingCart Domain Aggregate', () => {
         expect(result.valid).toBe(false);
         expect(result.error).toContain('ಸಮಯ ಮುಕ್ತಾಯವಾಗಿದೆ');
     });
+
+    it('calculates parcel hastodaka pricing for pure parcels and combined meals + parcels', () => {
+        // Pure parcels: 0 dine-in + 3 parcels @ 200
+        const cartPureParcel = new SevaBookingCart();
+        cartPureParcel.addSeva(catalog[0]); // 500
+        cartPureParcel.setHastodaka(true, 0, 200, 3);
+        const pricing1 = cartPureParcel.calculatePricing();
+        expect(pricing1.baseAmount).toBe(500);
+        expect(pricing1.hastodakaAmount).toBe(600); // 3 * 200
+        expect(pricing1.totalAmount).toBe(1100);
+
+        // Combined: 2 dine-in + 2 parcels @ 200
+        const cartCombined = new SevaBookingCart();
+        cartCombined.addSeva(catalog[0]); // 500
+        cartCombined.setHastodaka(true, 2, 200, 2);
+        const pricing2 = cartCombined.calculatePricing();
+        expect(pricing2.baseAmount).toBe(500);
+        expect(pricing2.hastodakaAmount).toBe(800); // (2 + 2) * 200
+        expect(pricing2.totalAmount).toBe(1300);
+    });
+
+    it('attaches ParcelCount strictly to primary seva in multi-seva payloads', () => {
+        const cart = new SevaBookingCart();
+        cart.addSeva(catalog[0]); // 500
+        cart.addSeva(catalog[1]); // 350
+        cart.setSevaDate('2026-10-20');
+        // 2 dine-in + 3 parcels @ 200 = 5 * 200 = 1000 addon
+        cart.setHastodaka(true, 2, 200, 3);
+
+        const payloads = cart.buildRegistrationPayloads(202, 'VCH-PARCEL-1', { paymentMode: 'UPI' });
+        expect(payloads.length).toBe(2);
+
+        // Primary seva: absorbs full hastodaka + parcel addon
+        expect(payloads[0].SevaCode).toBe('SEVA001');
+        expect(payloads[0].Amount).toBe(500);
+        expect(payloads[0].GrandTotal).toBe(1500); // 500 + 1000
+        expect(payloads[0].OptTheerthaPrasada).toBe(true);
+        expect(payloads[0].PrasadaCount).toBe(2);
+        expect(payloads[0].ParcelCount).toBe(3);
+
+        // Secondary seva: unaffected
+        expect(payloads[1].SevaCode).toBe('SEVA002');
+        expect(payloads[1].Amount).toBe(350);
+        expect(payloads[1].GrandTotal).toBe(350);
+        expect(payloads[1].OptTheerthaPrasada).toBe(false);
+        expect(payloads[1].PrasadaCount).toBe(0);
+        expect(payloads[1].ParcelCount).toBe(0);
+    });
 });

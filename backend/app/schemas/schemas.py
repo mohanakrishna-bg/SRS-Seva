@@ -209,6 +209,7 @@ class SevaRegistrationBase(BaseModel):
     Amount: Optional[float] = 0.0
     OptTheerthaPrasada: Optional[bool] = False
     PrasadaCount: Optional[int] = 0
+    ParcelCount: Optional[int] = 0
     PaymentMode: Optional[str] = "Cash"
     PaymentReference: Optional[str] = None
     PaymentDetails: Optional[Dict[str, Any]] = None
@@ -249,6 +250,7 @@ class SevaRegistrationModify(BaseModel):
     Remarks: Optional[str] = None
     # ── Hastodaka increase fields ──
     PrasadaCount: Optional[int] = None
+    ParcelCount: Optional[int] = None
     OptTheerthaPrasada: Optional[bool] = None
     AdditionalAmount: Optional[float] = None
     AdditionalPaymentMode: Optional[str] = None

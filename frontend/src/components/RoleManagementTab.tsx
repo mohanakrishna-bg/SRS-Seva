@@ -32,44 +32,26 @@ const FALLBACK_ROLES: RoleData[] = [
     {
         id: -1,
         name: 'admin',
-        label: 'Manager',
-        description: 'Complete access to all modules',
+        label: 'Office Admin',
+        description: 'Complete administrative access to all modules, fiscal date locks, and receipt cancellation',
         permissions: { seva: 'full', customers: 'full', accounting: 'full', assets: 'full', consumables: 'full', donations: 'full', settings: 'full', users: 'full' },
         is_builtin: true,
         user_count: 0
     },
     {
         id: -2,
-        name: 'accountant',
-        label: 'Accountant',
-        description: 'Access to financial modules',
-        permissions: { accounting: 'full', donations: 'full' },
+        name: 'cashier',
+        label: 'Counter Cashier',
+        description: 'High-speed seva booking, devotee management, receipt printing, and daily cash drawer',
+        permissions: { seva: 'full', customers: 'full', donations: 'full' },
         is_builtin: true,
         user_count: 0
     },
     {
         id: -3,
-        name: 'clerk',
-        label: 'Assistant',
-        description: 'Manage sevas, customers and donations',
-        permissions: { seva: 'write', customers: 'write', donations: 'write' },
-        is_builtin: true,
-        user_count: 0
-    },
-    {
-        id: -4,
-        name: 'storekeeper',
-        label: 'Storekeeper',
-        description: 'Manage inventory and assets',
-        permissions: { assets: 'write', consumables: 'write', donations: 'read' },
-        is_builtin: true,
-        user_count: 0
-    },
-    {
-        id: -5,
-        name: 'viewer',
-        label: 'Viewer',
-        description: 'Read-only access to all modules',
+        name: 'trustee',
+        label: 'Trustee',
+        description: 'Read-only governance visibility across all modules and financial exports',
         permissions: { seva: 'read', customers: 'read', accounting: 'read', assets: 'read', consumables: 'read', donations: 'read', settings: 'read', users: 'read' },
         is_builtin: true,
         user_count: 0

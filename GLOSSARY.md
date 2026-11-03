@@ -64,5 +64,14 @@ _Avoid_: Auto-Complete, Batch Close, Auto-Fulfillment
 An operational and financial audit report itemizing scheduled sevas that could not be ritually performed on a date due to unforeseen emergencies, detailing the recorded staff reason, enrolled devotees, and rescheduling or refund status.
 _Avoid_: Error Report, Failed Seva List, Incident Log
 
+**KitchenSupervisor**:
+The temple kitchen manager (*Mahanasa Adhikari*) responsible for sacred food preparation, receiving daily Hastodaka forecasts without interactive system login.
+_Avoid_: Cook, Chef, Caterer
+
+**ParcelHastodaka**:
+Take-home sanctified Anna Prasada meals booked in advance by devotees during seva registration, charged at standard Hastodaka rates and packaged separately from dining hall meals.
+_Avoid_: Takeout, Parcel Food, Packed Lunch, Doggy Bag
+
+
 
 

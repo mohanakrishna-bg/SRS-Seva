@@ -57,67 +57,81 @@ export default function DevoteeSelectionStep({
     }, [isNewCustomer, customer?.DevoteeId, customer?.ID1]);
 
     return (
-        <div className="flex flex-col space-y-2 bg-slate-50/50 dark:bg-slate-900/30 p-3 rounded-lg border border-[var(--glass-border)] h-full">
-            <h3 className="text-xs font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2 border-b border-[var(--glass-border)] pb-1.5">
-                <Search className="text-[var(--primary)]" size={14} /> ಭಕ್ತರ ಹುಡುಕಿ
-            </h3>
+        <div className="flex flex-col space-y-3.5 bg-slate-50/60 dark:bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-[var(--glass-border)] h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[var(--glass-border)] pb-2.5">
+                <span className="flex items-center gap-2 text-sm sm:text-base font-bold text-[var(--text-primary)]">
+                    <Search className="text-[var(--primary)]" size={18} />
+                    <span>ಭಕ್ತರ ಹುಡುಕಿ / ವಿವರ (Devotee Info)</span>
+                </span>
+            </div>
 
             {isNewCustomer ? (
-                <div className="flex gap-2 mb-1">
-                    <div className="flex-1 relative">
+                <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
+                        ಹೆಸರು ಅಥವಾ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಮೂಲಕ ಹುಡುಕಿ
+                    </label>
+                    <div className="relative">
                         <TransliteratedInput
                             value={searchQuery}
                             onChange={(v) => setSearchQuery(v)}
-                            placeholder="ಹೆಸರು ಅಥವಾ ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"
+                            placeholder="ಹೆಸರು ಅಥವಾ 10-ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆ..."
                         />
                         {isSearching && (
-                            <Loader2 size={14} className="absolute right-3 top-2 text-[var(--text-secondary)] animate-spin" />
+                            <Loader2 size={16} className="absolute right-3 top-3 text-[var(--text-secondary)] animate-spin" />
                         )}
                     </div>
                 </div>
             ) : (
-                <div className="space-y-2 mb-1">
-                    <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/20 rounded-lg p-2 flex items-center justify-between">
+                <div className="space-y-2.5">
+                    {/* Selected Devotee Summary Card */}
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3 sm:p-3.5 flex items-center justify-between shadow-2xs">
                         <div>
-                            <p className="text-[9px] font-bold text-green-700 dark:text-green-400 mb-0.5 uppercase tracking-wider">ಆಯ್ಕೆಯಾದ ಭಕ್ತರು</p>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">{customer.Name}</p>
-                            <p className="text-xs text-[var(--text-secondary)]">{customer.Phone}</p>
+                            <p className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
+                                ಆಯ್ಕೆಯಾದ ಭಕ್ತರು (Selected Devotee)
+                            </p>
+                            <p className="text-sm sm:text-base font-bold text-[var(--text-primary)]">{customer.Name}</p>
+                            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-mono">{customer.Phone}</p>
                         </div>
                         <button 
                             type="button"
-                            onClick={() => { setIsNewCustomer(true); setCustomer({ Name: '', Phone: '', Sgotra: '', SNakshatra: '', Address: '', City: '' }); setSearchQuery(''); }} 
-                            className="text-xs flex py-1.5 px-2.5 items-center gap-1 font-bold text-green-700 dark:text-green-400 hover:bg-green-200/50 dark:hover:bg-green-800/30 rounded-lg transition-colors cursor-pointer"
+                            onClick={() => { 
+                                setIsNewCustomer(true); 
+                                setCustomer({ Name: '', Phone: '', Sgotra: '', SNakshatra: '', Address: '', City: '' }); 
+                                setSearchQuery(''); 
+                            }} 
+                            className="text-xs sm:text-sm flex py-2 px-3 items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-900/40 hover:bg-emerald-200/70 rounded-xl transition-colors cursor-pointer"
                         >
-                            <X size={14} /> ಬದಲಾಯಿಸಿ
+                            <X size={16} /> ಬದಲಾಯಿಸಿ (Change)
                         </button>
                     </div>
 
                     {/* Quick Rebook for returning devotees */}
-                    <div className="bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-2.5">
-                        <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
-                                <RotateCcw size={12} className="text-amber-600" /> ಹಿಂದಿನ ಸೇವೆಗಳ ಮರು ನೋಂದಣಿ (Quick Rebook)
+                    <div className="bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3 sm:p-3.5 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
+                                <RotateCcw size={14} className="text-amber-600" /> ಹಿಂದಿನ ಸೇವೆಗಳ ಮರು ನೋಂದಣಿ (Quick Rebook)
                             </span>
-                            {loadingPastSevas && <Loader2 size={12} className="animate-spin text-amber-600" />}
+                            {loadingPastSevas && <Loader2 size={14} className="animate-spin text-amber-600" />}
                         </div>
                         {pastSevas.length > 0 ? (
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-2">
                                 {pastSevas.map((ps) => (
                                     <button
                                         key={ps.RegistrationId || ps.SevaCode}
                                         type="button"
                                         onClick={() => onRebookSeva && onRebookSeva(ps.SevaCode)}
-                                        className="text-xs bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-900 dark:text-amber-200 px-2 py-1 rounded-md flex items-center gap-1.5 shadow-xs transition-all font-medium cursor-pointer"
+                                        className="text-xs bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-200 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-2xs transition-all font-medium cursor-pointer"
                                         title={`${ps.SevaName || ps.SevaCode} - ₹${ps.Amount}`}
                                     >
-                                        <span>{ps.SevaNameKn || ps.SevaName || ps.SevaCode}</span>
-                                        <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold">₹{ps.Amount}</span>
-                                        <Plus size={12} className="text-amber-700 dark:text-amber-300" />
+                                        <span className="font-semibold">{ps.SevaNameKn || ps.SevaName || ps.SevaCode}</span>
+                                        <span className="text-xs font-mono text-amber-700 dark:text-amber-400 font-bold">₹{ps.Amount}</span>
+                                        <Plus size={14} className="text-amber-700 dark:text-amber-300" />
                                     </button>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-[10px] text-[var(--text-secondary)] italic">
+                            <p className="text-xs text-[var(--text-secondary)] italic">
                                 {loadingPastSevas ? 'ಹಿಂದಿನ ಸೇವೆಗಳನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...' : 'ಹಿಂದಿನ ಸೇವೆಗಳ ದಾಖಲೆ ಇಲ್ಲ'}
                             </p>
                         )}
@@ -125,64 +139,110 @@ export default function DevoteeSelectionStep({
                 </div>
             )}
 
+            {/* Instant Search Results Dropdown/Card */}
             {isNewCustomer && searchResults.length > 0 && (
-                <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl p-3 mb-2">
-                    <p className="text-[10px] font-bold text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-wider">{searchResults.length} ಫಲಿತಾಂಶಗಳು</p>
-                    <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                <div className="bg-orange-50/90 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3 shadow-sm">
+                    <p className="text-xs font-bold text-orange-700 dark:text-orange-400 mb-2 uppercase tracking-wider">
+                        {searchResults.length} ಭಕ್ತರು ಲಭ್ಯವಿದೆ (Select from existing):
+                    </p>
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
                         {searchResults.map(res => (
                             <button
                                 key={res.ID1}
                                 type="button"
                                 onClick={() => selectCustomer(res)}
-                                className="w-full text-left bg-white dark:bg-black/30 p-2 rounded-lg hover:border-[var(--primary)] border border-transparent transition-all flex items-center justify-between group"
+                                className="w-full text-left bg-white dark:bg-slate-800 p-2.5 rounded-lg hover:border-[var(--primary)] border border-transparent transition-all flex items-center justify-between group shadow-2xs cursor-pointer"
                             >
                                 <div>
-                                    <div className="font-bold text-[var(--text-primary)] text-xs">{res.Name}</div>
-                                    <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{res.Phone} • {res.City || 'No City'}</div>
+                                    <div className="font-bold text-[var(--text-primary)] text-sm">{res.Name}</div>
+                                    <div className="text-xs text-[var(--text-secondary)] mt-0.5 font-mono">{res.Phone} {res.City ? `• ${res.City}` : ''}</div>
                                 </div>
-                                <Check size={14} className="text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Check size={16} className="text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
                         ))}
                     </div>
                 </div>
             )}
 
-            <div className="h-px w-full bg-[var(--glass-border)] my-1.5 relative">
-                <span className="absolute left-1/2 -top-2 -translate-x-1/2 bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] px-2 text-[9px] font-bold text-[var(--text-secondary)]">
-                    {isNewCustomer ? 'ಅಥವಾ ಹೊಸ ವಿವರ ಸೇರಿಸಿ' : 'ವಿವರಗಳನ್ನು ನವೀಕರಿಸಿ'}
+            {/* Form Section Separator */}
+            <div className="h-px w-full bg-[var(--glass-border)] my-1 relative">
+                <span className="absolute left-1/2 -top-2.5 -translate-x-1/2 bg-[var(--bg-light)] dark:bg-[var(--bg-dark)] px-3 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                    {isNewCustomer ? 'ಅಥವಾ ಹೊಸ ವಿವರ ನಮೂದಿಸಿ' : 'ವಿವರಗಳನ್ನು ನವೀಕರಿಸಿ'}
                 </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 overflow-y-auto pr-1">
-                <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಪೂರ್ಣ ಹೆಸರು <span className="text-red-500">*</span></label>
-                    <TransliteratedInput value={customer.Name} onChange={(v) => setCustomer({ ...customer, Name: v })} placeholder="ಹೆಸರು" />
+            {/* Devotee Input Fields Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1">
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ಪೂರ್ಣ ಹೆಸರು (Full Name) <span className="text-red-500">*</span>
+                    </label>
+                    <TransliteratedInput 
+                        value={customer.Name} 
+                        onChange={(v) => setCustomer({ ...customer, Name: v })} 
+                        placeholder="ಭಕ್ತರ ಹೆಸರು" 
+                    />
                 </div>
-                <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಫೋನ್ ನಂಬರ್ <span className="text-red-500">*</span></label>
-                    <input type="tel" value={customer.Phone} onChange={(e) => setCustomer({ ...customer, Phone: convertKnNumeralsToEn(e.target.value) })} placeholder="9999999999" className="w-full px-2 py-1 text-xs rounded-lg bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]" />
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ಫೋನ್ ನಂಬರ್ (Phone) <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="tel" 
+                        value={customer.Phone} 
+                        onChange={(e) => setCustomer({ ...customer, Phone: convertKnNumeralsToEn(e.target.value) })} 
+                        placeholder="9999999999" 
+                        className="w-full px-3 py-2 text-sm rounded-xl bg-white dark:bg-black/20 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] shadow-2xs font-mono" 
+                    />
                 </div>
-                <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ಗೋತ್ರ</label>
-                    <TransliteratedInput value={customer.Sgotra} onChange={(v) => setCustomer({ ...customer, Sgotra: v })} placeholder="ಗೋತ್ರ" list="gotra-list" />
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ಗೋತ್ರ (Gotra)
+                    </label>
+                    <TransliteratedInput 
+                        value={customer.Sgotra} 
+                        onChange={(v) => setCustomer({ ...customer, Sgotra: v })} 
+                        placeholder="ಗೋತ್ರ" 
+                        list="gotra-list" 
+                    />
                     <datalist id="gotra-list">
                         {getUnifiedSuggestions(GOTRAS).map((g) => <option key={g} value={g} />)}
                     </datalist>
                 </div>
-                <div className="space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ನಕ್ಷತ್ರ</label>
-                    <TransliteratedInput value={customer.SNakshatra} onChange={(v) => setCustomer({ ...customer, SNakshatra: v })} placeholder="ನಕ್ಷತ್ರ" list="nakshatra-list" />
+                <div className="space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ನಕ್ಷತ್ರ (Nakshatra)
+                    </label>
+                    <TransliteratedInput 
+                        value={customer.SNakshatra} 
+                        onChange={(v) => setCustomer({ ...customer, SNakshatra: v })} 
+                        placeholder="ನಕ್ಷತ್ರ" 
+                        list="nakshatra-list" 
+                    />
                     <datalist id="nakshatra-list">
                         {getUnifiedSuggestions(NAKSHATRAS).map((n) => <option key={n} value={n} />)}
                     </datalist>
                 </div>
-                <div className="sm:col-span-2 space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ವಿಳಾಸ</label>
-                    <TransliteratedInput value={customer.Address} onChange={(v) => setCustomer({ ...customer, Address: v })} placeholder="ವಿಳಾಸ" multiline />
+                <div className="sm:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ವಿಳಾಸ (Address)
+                    </label>
+                    <TransliteratedInput 
+                        value={customer.Address} 
+                        onChange={(v) => setCustomer({ ...customer, Address: v })} 
+                        placeholder="ವಿಳಾಸ" 
+                        multiline 
+                    />
                 </div>
-                <div className="sm:col-span-2 space-y-0.5">
-                    <label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ</label>
-                    <TransliteratedInput value={customer.City} onChange={(v) => setCustomer({ ...customer, City: v })} placeholder="ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ" />
+                <div className="sm:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                        ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ (City & Pin)
+                    </label>
+                    <TransliteratedInput 
+                        value={customer.City} 
+                        onChange={(v) => setCustomer({ ...customer, City: v })} 
+                        placeholder="ಉದಾ: ಮೈಸೂರು 570009" 
+                    />
                 </div>
             </div>
         </div>

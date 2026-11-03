@@ -1,37 +1,63 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-18T12:32:15.000Z",
-  "phase": "default",
-  "phase_name": "",
+  "timestamp": "2026-10-26T19:20:00+05:30",
+  "phase": "role_taxonomy_and_parcel_hastodaka",
+  "phase_name": "Role Taxonomy Refinement & Parcel Hastodaka",
   "phase_dir": "",
-  "plan": 0,
-  "task": 0,
-  "total_tasks": 0,
-  "status": "paused",
+  "plan": 1,
+  "task": 4,
+  "total_tasks": 4,
+  "status": "completed",
   "completed_tasks": [
-    {"id": 1, "name": "Fix Dark Mode Cohesion", "status": "done", "commit": "N/A"},
-    {"id": 2, "name": "Fix Receipt Aesthetics", "status": "done", "commit": "N/A"},
-    {"id": 3, "name": "Fix TypeScript Build Errors", "status": "done", "commit": "N/A"}
+    {
+      "id": 1,
+      "name": "Update GLOSSARY.md & ADR 0006",
+      "status": "done",
+      "details": "Added KitchenSupervisor and ParcelHastodaka; ratified 3 system roles (admin, cashier, trustee) vs 3 physical stakeholders (Archaka, Kitchen Supervisor, Auditor)"
+    },
+    {
+      "id": 2,
+      "name": "Backend DB Schema (ParcelCount) & Core Auth (admin, cashier, trustee)",
+      "status": "done",
+      "details": "Added ParcelCount to SevaRegistration model and schemas, added automated schema migrations for SQLite and Postgres, updated auth role normalization and report breakdown"
+    },
+    {
+      "id": 3,
+      "name": "Frontend Cart, Booking Steps, Receipt Generator & Reports UI",
+      "status": "done",
+      "details": "Added parcelCount to SevaBookingCart, dual meal inputs in SevaDetailsStep and PaymentStep, thermal/A4 receipt display, BookedSevasTab modify modal, and SevaReportsTab kitchen forecast view"
+    },
+    {
+      "id": 4,
+      "name": "Unit & Integration Verification",
+      "status": "done",
+      "details": "12/12 backend unit tests passed; 135/135 frontend tests passed; GitNexus change detection validated 21 execution flows"
+    }
   ],
-  "remaining_tasks": [
-    {"id": 4, "name": "Plan Phase 4", "status": "not_started"}
-  ],
+  "remaining_tasks": [],
   "blockers": [],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "Use text-lg break-words for receipt org name", "rationale": "Ensures responsiveness on small viewports", "phase": "1"},
-    {"decision": "Use glass-card for CalendarWidget and EeDinaCard popup", "rationale": "Consistent warm dark mode aesthetic", "phase": "1"}
+    {
+      "decision": "3 Interactive System Roles: admin, cashier, trustee",
+      "rationale": "Archaka and Auditor have no direct system interaction; Archakas receive dispatches and sevas are deemed fulfilled, Auditors receive exported audit packs",
+      "phase": "role_taxonomy"
+    },
+    {
+      "decision": "Kitchen Supervisor as physical domain stakeholder",
+      "rationale": "Receives meal preparation forecast with Dine-in + Parcel breakdown via WhatsApp or printout without system login",
+      "phase": "parcel_hastodaka"
+    },
+    {
+      "decision": "Parcel Hastodaka charged at standard foodServiceRate",
+      "rationale": "Devotees pre-book take-home sanctified meals at standard per-head rate, itemized on receipt and kitchen forecast",
+      "phase": "parcel_hastodaka"
+    }
   ],
   "uncommitted_files": [
-    "frontend/src/components/EventModal.tsx",
-    "frontend/src/components/ReceiptGenerator.tsx",
-    "frontend/src/components/DonationReceiptGenerator.tsx",
-    "frontend/src/components/UserAdminTab.tsx",
-    "frontend/src/components/seva/BookedSevasTab.tsx",
-    "frontend/src/pages/SevaPage.tsx",
-    "frontend/src/components/EeDinaCard.tsx",
-    "frontend/src/components/CalendarWidget.tsx"
+    ".planning/.continue-here.md",
+    ".planning/HANDOFF.json"
   ],
-  "next_action": "Proceed to Phase 4 (Reporting & Insights)",
-  "context_notes": "Phase 1 enhancements completed successfully, TS build passes. Ready to start next major phase."
+  "next_action": "Phase completed. Ready for user acceptance testing or staging deployment.",
+  "context_notes": "All role taxonomy realignment and advance parcel hastodaka features fully integrated and verified."
 }
