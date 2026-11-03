@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
  * User cannot proceed until they set a new password.
  */
 export default function ChangePasswordDialog() {
-    const { changePassword, user } = useAuth();
+    const { changePassword, user, logout } = useAuth();
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -90,6 +90,9 @@ export default function ChangePasswordDialog() {
                                     {user.display_name} ({user.username})
                                 </p>
                             )}
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-2 rounded-xl border border-amber-200 dark:border-amber-500/20 mt-2 text-left">
+                                ಖಾತೆಯ ಭದ್ರತೆಗಾಗಿ ಮೊದಲ ಲಾಗಿನ್‌ನಲ್ಲಿ ಗುಪ್ತಪದ ಬದಲಾವಣೆ ಕಡ್ಡಾಯ. ನಿಮ್ಮ ಆರಂಭಿಕ ಗುಪ್ತಪದವು ನಿಮ್ಮ ಬಳಕೆದಾರಹೆಸರಾಗಿದೆ ({user?.username}).
+                            </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -187,6 +190,16 @@ export default function ChangePasswordDialog() {
                                     </>
                                 )}
                             </button>
+
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={logout}
+                                    className="text-xs text-[var(--text-secondary)] hover:text-red-500 transition-colors"
+                                >
+                                    ಲಾಗ್‌ಔಟ್ ಮಾಡಿ (Sign Out)
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>

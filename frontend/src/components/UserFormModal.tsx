@@ -96,16 +96,12 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                 }
                 await usersApi.update(user.id, data);
             } else {
-                if (!password) {
-                    setError('ಗುಪ್ತಪದ ಕಡ್ಡಾಯವಾಗಿದೆ');
-                    setIsSubmitting(false);
-                    return;
-                }
+                const cleanUsername = username.trim();
                 const data = {
-                    username,
-                    password,
+                    username: cleanUsername,
+                    password: password.trim() ? password.trim() : cleanUsername,
                     role,
-                    display_name: displayName,
+                    display_name: displayName.trim() || undefined,
                     modules: modules,
                 };
                 await usersApi.create(data);
@@ -219,15 +215,20 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                        ಗುಪ್ತಪದ {isEditing ? '(ಹೊಸದಿದ್ದರೆ ಮಾತ್ರ)' : '*'}
+                                        ಗುಪ್ತಪದ {isEditing ? '(ಹೊಸದಿದ್ದರೆ ಮಾತ್ರ)' : '(ಐಚ್ಛಿಕ - ಪೂರ್ವನಿಯೋಜಿತ: ಬಳಕೆದಾರಹೆಸರು)'}
                                     </label>
                                     <input
                                         type="text"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        placeholder={isEditing ? 'ಬದಲಾಯಿಸದಿದ್ದರೆ ಖಾಲಿ ಬಿಡಿ' : username || 'ಬಳಕೆದಾರಹೆಸರು'}
                                         className="w-full px-3 py-2 rounded-xl bg-[var(--bg-light)] dark:bg-slate-800 border border-[var(--glass-border)] text-sm focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                                        required={!isEditing}
                                     />
+                                    {!isEditing && (
+                                        <p className="text-[10px] text-[var(--text-secondary)] mt-1">
+                                            ಖಾಲಿ ಬಿಟ್ಟರೆ ಬಳಕೆದಾರಹೆಸರೇ ಗುಪ್ತಪದವಾಗುತ್ತದೆ. ಮೊದಲ ಲಾಗಿನ್‌ನಲ್ಲಿ ಗುಪ್ತಪದ ಬದಲಾವಣೆ ಕಡ್ಡಾಯ.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

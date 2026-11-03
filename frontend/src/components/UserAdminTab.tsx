@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Pencil, KeyRound, Trash2, Shield, Circle, AlertCircle, History, X } from 'lucide-react';
+import { UserPlus, Pencil, KeyRound, Trash2, Shield, Circle, AlertCircle, History, X, RefreshCw } from 'lucide-react';
 import { usersApi } from '../api';
 import UserFormModal from './UserFormModal';
 import ResetPasswordModal from './ResetPasswordModal';
@@ -140,6 +140,19 @@ export default function UserAdminTab() {
         fetchAuditLog();
     };
 
+    const handleInitializeAllPasswords = async () => {
+        if (window.confirm('ಎಲ್ಲಾ ಬಳಕೆದಾರರ ಗುಪ್ತಪದಗಳನ್ನು ಅವರ ಬಳಕೆದಾರಹೆಸರಿಗೆ ಮರುಹೊಂದಿಸಲು ಮತ್ತು ಮೊದಲ ಲಾಗಿನ್‌ನಲ್ಲಿ ಗುಪ್ತಪದ ಬದಲಾವಣೆಯನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?\n\nReset all user passwords to match their usernames and enforce change on next login?')) {
+            try {
+                const res = await usersApi.initializeAllPasswords();
+                alert(res.data?.message || 'ಎಲ್ಲಾ ಬಳಕೆದಾರರ ಗುಪ್ತಪದಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಮರುಹೊಂದಿಸಲಾಗಿದೆ.');
+                fetchUsers();
+                if (showAuditLog) fetchAuditLog();
+            } catch (err: any) {
+                alert(err.response?.data?.detail || 'ಮರುಹೊಂದಿಸಲು ವಿಫಲವಾಗಿದೆ');
+            }
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -148,6 +161,14 @@ export default function UserAdminTab() {
                     <p className="text-xs text-[var(--text-secondary)] mt-1">ಬಳಕೆದಾರರ ಖಾತೆಗಳು ಮತ್ತು ಪಾತ್ರಗಳನ್ನು ನಿರ್ವಹಿಸಿ.</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleInitializeAllPasswords}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
+                        title="Initialize all user passwords to match usernames"
+                    >
+                        <RefreshCw size={13} />
+                        ಗುಪ್ತಪದ ಮರುಹೊಂದಿಕೆ (Reset All)
+                    </button>
                     <button
                         onClick={handleShowAuditLog}
                         className="flex items-center gap-2 px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-xl text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-all"

@@ -118,12 +118,13 @@ export const authApi = {
 export const usersApi = {
     list: (role?: string) => api.get('/users', { params: role ? { role } : {} }),
     get: (id: number) => api.get(`/users/${id}`),
-    create: (data: { username: string; password: string; role: string; display_name?: string; modules?: Record<string, string> | null }) =>
+    create: (data: { username: string; password?: string; role: string; display_name?: string; modules?: Record<string, string> | null }) =>
         api.post('/users', data),
     update: (id: number, data: any) => api.put(`/users/${id}`, data),
     delete: (id: number) => api.delete(`/users/${id}`),
-    resetPassword: (id: number, newPassword: string) =>
-        api.post(`/users/${id}/reset-password?new_password=${encodeURIComponent(newPassword)}`),
+    resetPassword: (id: number, newPassword?: string) =>
+        api.post(`/users/${id}/reset-password${newPassword ? `?new_password=${encodeURIComponent(newPassword)}` : ''}`),
+    initializeAllPasswords: () => api.post('/users/initialize-all-passwords'),
     getRoles: () => api.get('/users/roles/available'),
     getPermissionMatrix: () => api.get('/users/permissions/matrix'),
     getAuditLog: (targetUserId?: number, limit?: number) =>

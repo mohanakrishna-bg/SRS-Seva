@@ -22,14 +22,15 @@ export default function ResetPasswordModal({ isOpen, userId, username, onClose, 
         e.preventDefault();
         setError('');
 
-        if (newPassword.length < 6) {
-            setError('ಗುಪ್ತಪದ ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳಾಗಿರಬೇಕು');
+        const targetPassword = newPassword.trim() ? newPassword.trim() : username;
+        if (targetPassword !== username && targetPassword.length < 6) {
+            setError('ಕಸ್ಟಮ್ ಗುಪ್ತಪದ ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳಾಗಿರಬೇಕು (ಅಥವಾ ಬಳಕೆದಾರಹೆಸರನ್ನೇ ಬಳಸಲು ಖಾಲಿ ಬಿಡಿ)');
             return;
         }
 
         setIsSubmitting(true);
         try {
-            await usersApi.resetPassword(userId, newPassword);
+            await usersApi.resetPassword(userId, targetPassword);
             onSuccess();
         } catch (err: any) {
             setError(err.response?.data?.detail || 'ಗುಪ್ತಪದ ಮರುಹೊಂದಿಸುವಿಕೆ ವಿಫಲವಾಗಿದೆ');
@@ -67,21 +68,32 @@ export default function ResetPasswordModal({ isOpen, userId, username, onClose, 
 
                     <form onSubmit={handleSubmit} className="p-5">
                         <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed">
-                            ನೀವು <span className="font-bold text-[var(--text-primary)]">{username}</span> ಗಾಗಿ ಗುಪ್ತಪದವನ್ನು ಮರುಹೊಂದಿಸುತ್ತಿದ್ದೀರಿ. ಮುಂದಿನ ಬಾರಿ ಲಾಗಿನ್ ಮಾಡಿದಾಗ ಅವರು ಗುಪ್ತಪದವನ್ನು ಬದಲಾಯಿಸಬೇಕಾಗುತ್ತದೆ.
+                            ನೀವು <span className="font-bold text-[var(--text-primary)]">{username}</span> ಗಾಗಿ ಗುಪ್ತಪದವನ್ನು ಮರುಹೊಂದಿಸುತ್ತಿದ್ದೀರಿ. ಮೊದಲ ಲಾಗಿನ್‌ನಲ್ಲಿ ಅವರು ಹೊಸ ಗುಪ್ತಪದವನ್ನು ಬದಲಾಯಿಸುವುದು ಕಡ್ಡಾಯವಾಗಿರುತ್ತದೆ.
                         </p>
 
                         <div className="mb-4">
-                            <label className="block text-[10px] font-semibold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">
-                                ಹೊಸ ಗುಪ್ತಪದ
-                            </label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                                    ಹೊಸ ಗುಪ್ತಪದ
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setNewPassword(username)}
+                                    className="text-[10px] text-[var(--primary)] hover:underline font-semibold"
+                                >
+                                    ಬಳಕೆದಾರಹೆಸರಿಗೆ ಹೊಂದಿಸಿ
+                                </button>
+                            </div>
                             <input
                                 type="text"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 className="w-full px-3 py-2 rounded-xl bg-[var(--bg-light)] dark:bg-slate-800 border border-[var(--glass-border)] text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-                                placeholder="ಹೊಸ ಗುಪ್ತಪದ"
-                                required
+                                placeholder={`ಪೂರ್ವನಿಯೋಜಿತ: ${username} (ಖಾಲಿ ಬಿಡಿ)`}
                             />
+                            <p className="text-[10px] text-[var(--text-secondary)] mt-1">
+                                ಖಾಲಿ ಬಿಟ್ಟರೆ ಬಳಕೆದಾರಹೆಸರನ್ನೇ ({username}) ಗುಪ್ತಪದವಾಗಿ ಮರುಹೊಂದಿಸಲಾಗುತ್ತದೆ.
+                            </p>
                         </div>
 
                         {error && (

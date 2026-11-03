@@ -50,5 +50,19 @@ class TestRoleTaxonomyAndCapabilities(unittest.TestCase):
         self.assertTrue(auth.can_view_devotee_pii(legacy_clerk))
         self.assertFalse(auth.can_view_devotee_pii(trustee_user))
 
+    def test_user_password_matches_username_hash(self):
+        username = "new_cashier"
+        hashed = auth.get_password_hash(username)
+        self.assertTrue(auth.verify_password(username, hashed))
+        self.assertFalse(auth.verify_password("wrong_password", hashed))
+
+    def test_user_create_schema_defaults_password_optional(self):
+        from app.schemas import schemas
+        user_in = schemas.UserCreate(username="testuser", role="cashier")
+        self.assertIsNone(user_in.password)
+        # Verify fallback logic
+        initial_pwd = user_in.password.strip() if user_in.password and user_in.password.strip() else user_in.username.strip()
+        self.assertEqual(initial_pwd, "testuser")
+
 if __name__ == "__main__":
     unittest.main()

@@ -169,10 +169,13 @@ async def create_user(
     if existing:
         raise HTTPException(status_code=409, detail=f"Username '{username_clean}' already exists")
 
+    # Password defaults to username if omitted or empty
+    initial_password = user_data.password.strip() if user_data.password and user_data.password.strip() else username_clean
+
     try:
         user = models.User(
             username=username_clean,
-            hashed_password=get_password_hash(user_data.password),
+            hashed_password=get_password_hash(initial_password),
             role=user_data.role,
             display_name=user_data.display_name.strip() if user_data.display_name else None,
             modules=user_data.modules,
@@ -227,8 +230,10 @@ async def update_user(
         user.username = username_clean
 
     if user_data.password is not None:
-        user.hashed_password = get_password_hash(user_data.password)
-        changes["password"] = {"changed": True}
+        new_pwd = user_data.password.strip() if user_data.password.strip() else user.username
+        user.hashed_password = get_password_hash(new_pwd)
+        user.must_change_password = True
+        changes["password"] = {"changed": True, "reset_to_username": new_pwd == user.username}
 
     if user_data.role is not None:
         valid_roles = get_all_db_roles(db)
@@ -311,22 +316,54 @@ async def delete_user(
     db.commit()
 
 
-@router.post("/{user_id}/reset-password", response_model=schemas.User)
-async def reset_password(
-    user_id: int,
-    new_password: str,
+@router.post("/initialize-all-passwords")
+async def initialize_all_passwords(
     db: Session = Depends(database.get_db),
     admin: models.User = Depends(require_role(ROLE_ADMIN)),
 ):
-    """Reset a user's password (admin-only)."""
+    """Admin-only: Initialize passwords of all active users to match their usernames and force password change on next login."""
+    users = db.query(models.User).filter(
+        (models.User.is_deleted == False) | (models.User.is_deleted == None)
+    ).all()
+    count = 0
+    for u in users:
+        u.hashed_password = get_password_hash(u.username)
+        u.must_change_password = True
+        count += 1
+
+    # Record in settings table
+    setting = db.query(models.Settings).filter(models.Settings.key == "user_passwords_initialized_v1").first()
+    now = datetime.datetime.utcnow().isoformat()
+    if not setting:
+        db.add(models.Settings(key="user_passwords_initialized_v1", value={"initialized_at": now, "count": count, "triggered_by": admin.username}))
+    else:
+        setting.value = {"initialized_at": now, "count": count, "triggered_by": admin.username}
+
+    _log_audit(db, admin, "ALL_USERS", 0, "initialize_all_passwords", {"users_updated": count})
+
+    db.commit()
+    return {"status": "success", "message": f"Successfully initialized passwords for {count} users to match their usernames.", "count": count}
+
+
+@router.post("/{user_id}/reset-password", response_model=schemas.User)
+async def reset_password(
+    user_id: int,
+    new_password: str = None,
+    db: Session = Depends(database.get_db),
+    admin: models.User = Depends(require_role(ROLE_ADMIN)),
+):
+    """Reset a user's password (admin-only). Defaults to username if new_password is not specified."""
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.hashed_password = get_password_hash(new_password)
+    pwd_to_set = new_password.strip() if new_password and new_password.strip() else user.username
+    user.hashed_password = get_password_hash(pwd_to_set)
     user.must_change_password = True
 
-    _log_audit(db, admin, user.username, user.id, "reset_password", None)
+    _log_audit(db, admin, user.username, user.id, "reset_password", {
+        "reset_to_username": pwd_to_set == user.username
+    })
 
     db.commit()
     db.refresh(user)

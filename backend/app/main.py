@@ -454,15 +454,36 @@ def startup_event():
     scheduler_instance = backup_manager.init_scheduler()
     
     db = next(database.get_db())
-    if not db.query(models.User).filter(models.User.username == "admin").first():
-        admin_user = models.User(
-            username="admin",
-            hashed_password=auth.get_password_hash("admin123"),
-            role="admin",
-            must_change_password=True,
-        )
-        db.add(admin_user)
-        db.commit()
+    try:
+        if not db.query(models.User).filter(models.User.username == "admin").first():
+            admin_user = models.User(
+                username="admin",
+                hashed_password=auth.get_password_hash("admin"),
+                role="admin",
+                must_change_password=True,
+            )
+            db.add(admin_user)
+            db.commit()
+
+        # One-time initialization: Set all existing users' passwords to match usernames and force password change
+        setting = db.query(models.Settings).filter(models.Settings.key == "user_passwords_initialized_v1").first()
+        if not setting:
+            users = db.query(models.User).filter(
+                (models.User.is_deleted == False) | (models.User.is_deleted == None)
+            ).all()
+            for u in users:
+                u.hashed_password = auth.get_password_hash(u.username)
+                u.must_change_password = True
+            
+            import datetime
+            db.add(models.Settings(
+                key="user_passwords_initialized_v1",
+                value={"initialized_at": datetime.datetime.utcnow().isoformat(), "count": len(users)}
+            ))
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Startup user password initialization warning: {e}")
 
 @app.on_event("shutdown")
 def shutdown_event():

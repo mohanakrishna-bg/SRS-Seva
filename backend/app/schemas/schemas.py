@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     display_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
+    password: Optional[str] = None
     modules: Optional[Dict[str, str]] = None
 
 class UserUpdate(BaseModel):
