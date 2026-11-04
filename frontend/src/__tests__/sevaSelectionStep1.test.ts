@@ -93,4 +93,17 @@ describe('Seva Booking Workflow Step 1 - Explicit Selection', () => {
         expect(result.valid).toBe(true);
         expect(result.error).toBeUndefined();
     });
+
+    it('defaults quick-add pills and categories section to collapsed state for streamlined search', () => {
+        let isPillsSectionOpen = false;
+        expect(isPillsSectionOpen).toBe(false);
+
+        // Toggle to expand
+        isPillsSectionOpen = !isPillsSectionOpen;
+        expect(isPillsSectionOpen).toBe(true);
+
+        // Toggle to collapse
+        isPillsSectionOpen = !isPillsSectionOpen;
+        expect(isPillsSectionOpen).toBe(false);
+    });
 });

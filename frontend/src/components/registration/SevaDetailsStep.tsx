@@ -42,6 +42,7 @@ export default function SevaDetailsStep({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
+    const [isPillsSectionOpen, setIsPillsSectionOpen] = useState<boolean>(false);
 
     const comboboxRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -237,94 +238,161 @@ export default function SevaDetailsStep({
                     />
                 </div>
 
-                {/* ── 2. Tier 1: Dynamic Daily Quick-Pick High Turnover Chips ── */}
-                <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
-                            <Zap size={14} className="text-amber-500 fill-amber-500" /> ತ್ವರಿತ ಸೇವೆಗಳು (Quick Add):
-                        </span>
-                        {dailyQuickPicks.reasonKn && (
-                            <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-300/40">
-                                {dailyQuickPicks.reasonKn}
+                {/* ── 2. Collapsible Quick Add & Category Filter Section ── */}
+                <div className="rounded-xl border border-[var(--glass-border)] bg-white/70 dark:bg-black/25 overflow-hidden transition-all shadow-2xs">
+                    {/* Collapsible Header Toggle */}
+                    <button
+                        type="button"
+                        aria-expanded={isPillsSectionOpen}
+                        aria-controls="quick-pills-categories-section"
+                        onClick={() => setIsPillsSectionOpen(prev => !prev)}
+                        className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                        <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-5 h-5 rounded-md bg-amber-500/10 dark:bg-amber-400/15 flex items-center justify-center shrink-0">
+                                <Zap size={13} className="text-amber-600 dark:text-amber-400 fill-amber-500/40" />
+                            </div>
+                            <span className="text-xs font-bold text-[var(--text-primary)] truncate">
+                                ತ್ವರಿತ ಸೇವೆಗಳು ಮತ್ತು ವರ್ಗಗಳು (Quick Add & Categories)
                             </span>
-                        )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                        {dailyQuickPicks.codes.map(code => {
-                            const item = items.find(i => String(i.ItemCode ?? i.SevaCode) === code);
-                            if (!item) return null;
-                            const isSelected = selectedSevas.some(s => s.sevaCode === code);
-                            const amount = item.Basic ?? item.Amount ?? 0;
-                            const shortName = (item.Description || '').split('-')[0].split('(')[0].trim();
-                            const isAtMax = selectedSevas.length >= 4;
-
-                            return (
-                                <button
-                                    key={code}
-                                    type="button"
-                                    disabled={isSelected || isAtMax}
-                                    onClick={() => handleAddSeva(code)}
-                                    className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
-                                        isSelected
-                                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-50'
-                                            : isAtMax
-                                            ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800 text-slate-400'
-                                            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:border-amber-400'
-                                    }`}
-                                    title={item.Description}
+                            {selectedCategory !== 'all' && (
+                                <span
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSelectCategory('all');
+                                    }}
+                                    className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/30 hover:bg-[var(--primary)]/20 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                                    title="ಫಿಲ್ಟರ್ ರದ್ದುಗೊಳಿಸಿ (Clear category filter)"
                                 >
-                                    <span>+ {shortName}</span>
-                                    <span className="text-amber-700 dark:text-amber-400 font-bold font-mono">₹{amount}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
+                                    <span>{SEVA_CATEGORIES.find(c => c.id === selectedCategory)?.labelKn || selectedCategory}</span>
+                                    <X size={11} className="hover:text-red-500" />
+                                </span>
+                            )}
+                        </div>
 
-                {/* ── 3. Tier 2: Category Filter Strip with Instant Dropdown Reveal ── */}
-                <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                            ವರ್ಗವಾರು ಆಯ್ಕೆ (Categories)
-                        </span>
-                        {selectedCategory !== 'all' && (
-                            <button
-                                type="button"
-                                onClick={() => handleSelectCategory('all')}
-                                className="text-xs font-semibold text-[var(--primary)] hover:underline cursor-pointer"
-                            >
-                                ರದ್ದು (Clear filter)
-                            </button>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none no-scrollbar">
-                        <button
-                            type="button"
-                            onClick={() => handleSelectCategory('all')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-2xs ${
-                                selectedCategory === 'all'
-                                    ? 'bg-[var(--primary)] text-white shadow-xs'
-                                    : 'bg-white dark:bg-slate-800 border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            ಎಲ್ಲವೂ (All)
-                        </button>
-                        {SEVA_CATEGORIES.map(cat => (
-                            <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => handleSelectCategory(cat.id)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-2xs ${
-                                    selectedCategory === cat.id
-                                        ? 'bg-[var(--primary)] text-white font-bold shadow-xs'
-                                        : 'bg-white dark:bg-slate-800 border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700'
+                        <div className="flex items-center gap-2 shrink-0">
+                            {dailyQuickPicks.reasonKn && !isPillsSectionOpen && (
+                                <span className="hidden sm:inline-block text-[10px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-300/40">
+                                    {dailyQuickPicks.reasonKn}
+                                </span>
+                            )}
+                            <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
+                                {isPillsSectionOpen ? 'ಮರೆಮಾಡಿ (Hide)' : 'ತೋರಿಸಿ (Show)'}
+                            </span>
+                            <ChevronDown
+                                size={16}
+                                className={`text-[var(--text-secondary)] transition-transform duration-200 ${
+                                    isPillsSectionOpen ? 'rotate-180' : ''
                                 }`}
+                            />
+                        </div>
+                    </button>
+
+                    {/* Collapsible Body */}
+                    <AnimatePresence initial={false}>
+                        {isPillsSectionOpen && (
+                            <motion.div
+                                id="quick-pills-categories-section"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                className="overflow-hidden border-t border-[var(--glass-border)]/60"
                             >
-                                <span>{cat.icon}</span>
-                                <span>{cat.labelKn}</span>
-                            </button>
-                        ))}
-                    </div>
+                                <div className="p-3 space-y-3 bg-slate-50/50 dark:bg-slate-900/30">
+                                    {/* Tier 1: Dynamic Daily Quick-Pick High Turnover Chips */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
+                                                <Zap size={13} className="text-amber-500 fill-amber-500" /> ತ್ವರಿತ ಸೇವೆಗಳು (Quick Add):
+                                            </span>
+                                            {dailyQuickPicks.reasonKn && (
+                                                <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-300/40">
+                                                    {dailyQuickPicks.reasonKn}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {dailyQuickPicks.codes.map(code => {
+                                                const item = items.find(i => String(i.ItemCode ?? i.SevaCode) === code);
+                                                if (!item) return null;
+                                                const isSelected = selectedSevas.some(s => s.sevaCode === code);
+                                                const amount = item.Basic ?? item.Amount ?? 0;
+                                                const shortName = (item.Description || '').split('-')[0].split('(')[0].trim();
+                                                const isAtMax = selectedSevas.length >= 4;
+
+                                                return (
+                                                    <button
+                                                        key={code}
+                                                        type="button"
+                                                        disabled={isSelected || isAtMax}
+                                                        onClick={() => handleAddSeva(code)}
+                                                        className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                                                            isSelected
+                                                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-50'
+                                                                : isAtMax
+                                                                ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800 text-slate-400'
+                                                                : 'bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 hover:border-amber-400'
+                                                        }`}
+                                                        title={item.Description}
+                                                    >
+                                                        <span>+ {shortName}</span>
+                                                        <span className="text-amber-700 dark:text-amber-400 font-bold font-mono">₹{amount}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Tier 2: Category Filter Strip with Instant Dropdown Reveal */}
+                                    <div className="space-y-1.5 pt-2 border-t border-[var(--glass-border)]/40">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                                                ವರ್ಗವಾರು ಆಯ್ಕೆ (Categories)
+                                            </span>
+                                            {selectedCategory !== 'all' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSelectCategory('all')}
+                                                    className="text-xs font-semibold text-[var(--primary)] hover:underline cursor-pointer"
+                                                >
+                                                    ರದ್ದು (Clear filter)
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none no-scrollbar">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSelectCategory('all')}
+                                                className={`px-3 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-2xs ${
+                                                    selectedCategory === 'all'
+                                                        ? 'bg-[var(--primary)] text-white shadow-xs'
+                                                        : 'bg-white dark:bg-slate-800 border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                }`}
+                                            >
+                                                ಎಲ್ಲವೂ (All)
+                                            </button>
+                                            {SEVA_CATEGORIES.map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    type="button"
+                                                    onClick={() => handleSelectCategory(cat.id)}
+                                                    className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-2xs ${
+                                                        selectedCategory === cat.id
+                                                            ? 'bg-[var(--primary)] text-white font-bold shadow-xs'
+                                                            : 'bg-white dark:bg-slate-800 border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                    }`}
+                                                >
+                                                    <span>{cat.icon}</span>
+                                                    <span>{cat.labelKn}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* ── 4. Tier 3: Bilingual Searchable Grouped Combobox ── */}
