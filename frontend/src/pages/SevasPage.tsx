@@ -181,7 +181,7 @@ export default function SevasPage() {
                         type="button"
                         onClick={toggleSortOrder}
                         className="p-2.5 rounded-xl border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] bg-white dark:bg-black/20 transition-all flex items-center gap-2 text-xs font-bold"
-                        title={sortOrder === 'asc' ? 'Sort Descending' : 'Sort Ascending'}
+                        title={sortOrder === 'asc' ? 'ಇಳಿಕೆ ಕ್ರಮ' : 'ಏರಿಕೆ ಕ್ರಮ'}
                     >
                         {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                         ₹
@@ -191,7 +191,7 @@ export default function SevasPage() {
                         type="button"
                         onClick={openPrintModal}
                         className="p-3 rounded-xl bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 text-[var(--text-secondary)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all shadow-sm shrink-0"
-                        title="Print List"
+                        title="ಮುದ್ರಿಸಿ"
                     >
                         <Printer size={18} />
                     </button>
@@ -201,7 +201,7 @@ export default function SevasPage() {
                         onClick={openCreate}
                         className="px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--primary)] to-amber-500 text-white font-bold shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2 shrink-0"
                     >
-                        <Plus size={18} /> <span className="hidden sm:inline">Add New Seva</span>
+                        <Plus size={18} /> <span className="hidden sm:inline">ಹೊಸ ಸೇವೆ ಸೇರಿಸಿ</span>
                     </button>
                 </div>
             </div>
@@ -219,7 +219,7 @@ export default function SevasPage() {
                                     <ArrowUpDown size={12} />
                                 </div>
                             </th>
-                            <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell"># of Hastodaka included</th>
+                            <th className="pb-3 pt-4 text-right pr-4 hidden md:table-cell">ಒಳಗೊಂಡ ಹಸ್ತೋದಕ ಸಂಖ್ಯೆ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -312,7 +312,7 @@ export default function SevasPage() {
                 defaultPageSize={pageSize}
                 onPrint={(chosenSize) => {
                     printTabularReport<SevaItem>({
-                        title: 'Sevas List',
+                        title: 'ಸೇವೆಗಳ ಪಟ್ಟಿ',
                         items: filteredItems,
                         itemsPerPage: chosenSize,
                         columns: [
@@ -323,27 +323,27 @@ export default function SevasPage() {
                                 render: (_, idx) => idx
                             },
                             {
-                                header: 'ಸೇವಾ ಕೋಡ್ (Code)',
+                                header: 'ಸೇವಾ ಕೋಡ್',
                                 className: 'font-mono font-bold',
                                 render: (s) => s.SevaCode || '—'
                             },
                             {
-                                header: 'ವಿವರಣೆ (Kannada)',
+                                header: 'ವಿವರಣೆ',
                                 className: 'font-bold',
                                 render: (s) => s.Description || '—'
                             },
                             {
-                                header: 'Description (English)',
+                                header: 'ಇಂಗ್ಲಿಷ್ ವಿವರಣೆ',
                                 render: (s) => s.DescriptionEn || '—'
                             },
                             {
-                                header: 'ಮೊತ್ತ (Amount)',
+                                header: 'ಮೊತ್ತ',
                                 className: 'text-right font-mono font-bold',
                                 headerClassName: 'text-right',
-                                render: (s) => (s.Amount ?? 0) > 0 ? `₹${s.Amount}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು (To be specified at booking)'
+                                render: (s) => (s.Amount ?? 0) > 0 ? `₹${s.Amount}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು'
                             },
                             {
-                                header: '# of Hastodaka included',
+                                header: 'ಒಳಗೊಂಡ ಹಸ್ತೋದಕ ಸಂಖ್ಯೆ',
                                 className: 'text-center font-mono',
                                 headerClassName: 'text-center',
                                 render: (s) => s.TPQty ?? 0

@@ -406,12 +406,12 @@ export default function RegistrationModal({
                         {/* Unified Modal Header */}
                         <div className="bg-gradient-to-r from-[var(--primary)] to-amber-600 text-white px-6 py-4 flex justify-between items-center shrink-0 border-b border-[var(--glass-border)] z-20">
                             <div>
-                                <h2 className="text-base sm:text-lg font-bold">ಸೇವಾ ನೋಂದಣಿ (Seva Booking)</h2>
+                                <h2 className="text-base sm:text-lg font-bold">ಸೇವಾ ನೋಂದಣಿ</h2>
                                 <p className="text-xs text-white/90 mt-0.5">
-                                    {step === Step.Details ? 'ಹಂತ 1/2: ಭಕ್ತರ & ಸೇವಾ ವಿವರ (Step 1/2: Devotee & Seva Details)' : 'ಹಂತ 2/2: ಪಾವತಿ ಮಾಹಿತಿ (Step 2/2: Payment Info)'}
+                                    {step === Step.Details ? 'ಹಂತ 1/2: ಭಕ್ತರ & ಸೇವಾ ವಿವರ' : 'ಹಂತ 2/2: ಪಾವತಿ ಮಾಹಿತಿ'}
                                 </p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white cursor-pointer" title="ಮುಚ್ಚಿ (Close)">
+                            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white cursor-pointer" title="ಮುಚ್ಚಿ">
                                 <X size={22} />
                             </button>
                         </div>
@@ -496,7 +496,7 @@ export default function RegistrationModal({
                                         }}
                                         className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                     >
-                                        {step > Step.Details ? '← ಹಿಂದಕ್ಕೆ (Back)' : 'ರದ್ದುಮಾಡಿ (Cancel)'}
+                                        {step > Step.Details ? '← ಹಿಂದಕ್ಕೆ' : 'ರದ್ದುಮಾಡಿ'}
                                     </button>
 
                                     <div className="flex items-center gap-3">
@@ -513,7 +513,7 @@ export default function RegistrationModal({
                                             className="px-6 py-2 rounded-xl bg-gradient-to-r from-[var(--primary)] to-[var(--accent-saffron)] text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-orange-500/30 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                                         >
                                             {loading && <Loader2 size={16} className="animate-spin" />}
-                                            {step === Step.Payment ? 'ಮುಕ್ತಾಯ & ರಸೀದಿ (Finish & Print)' : 'ಮುಂದುವರಿಯಿರಿ (Next: Payment) →'}
+                                            {step === Step.Payment ? 'ಮುಕ್ತಾಯ & ರಸೀದಿ' : 'ಮುಂದುವರಿಯಿರಿ →'}
                                         </button>
                                     </div>
                                 </div>

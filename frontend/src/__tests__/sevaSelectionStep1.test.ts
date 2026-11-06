@@ -20,10 +20,10 @@ function validateSevaDetails(
     selectedSevas: SelectedSeva[]
 ): { valid: boolean; error?: string } {
     if (!selectedDate) {
-        return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva date)' };
+        return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ' };
     }
     if (selectedSevas.length === 0) {
-        return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva)' };
+        return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ' };
     }
 
     const today = new Date();

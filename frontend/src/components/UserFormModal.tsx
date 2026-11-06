@@ -111,7 +111,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
             console.error('User save error:', err);
             let detail = err.response?.data?.detail;
             if (err.response?.status === 401) {
-                detail = 'ಅಧಿವೇಶನದ ಅವಧಿ ಮುಗಿದಿದೆ - ದಯವಿಟ್ಟು ಪುನಃ ಲಾಗಿನ್ ಮಾಡಿ / Session expired (401). Please re-login.';
+                detail = 'ಅಧಿವೇಶನದ ಅವಧಿ ಮುಗಿದಿದೆ - ದಯವಿಟ್ಟು ಪುನಃ ಲಾಗಿನ್ ಮಾಡಿ';
             } else if (Array.isArray(detail)) {
                 detail = detail.map((d: any) => `${d.loc?.slice(1)?.join('.') || 'field'}: ${d.msg}`).join('; ');
             } else if (typeof detail === 'object' && detail !== null) {
@@ -126,7 +126,7 @@ export default function UserFormModal({ isOpen, user, onClose, onSuccess }: User
     // Get role label from matrix metadata
     const getRoleLabel = (r: string) => {
         if (!permMatrix?.roles?.[r]) return r;
-        return `${permMatrix.roles[r].label} (${r})`;
+        return permMatrix.roles[r].label;
     };
 
     return (

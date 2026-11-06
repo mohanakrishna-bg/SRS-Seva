@@ -186,7 +186,7 @@ export default function PublicAboutPage() {
                                 className="text-lg md:text-xl font-bold"
                                 style={{ color: 'var(--pub-ink)', fontFamily: 'var(--pub-font-heading)' }}
                             >
-                                {t('ಕಾರ್ಯಕಾರಿ ಮಂಡಳಿ (Executive Committee)', 'Executive Committee')}
+                                {t('ಕಾರ್ಯಕಾರಿ ಮಂಡಳಿ', 'Executive Committee')}
                             </h3>
                         </div>
 
@@ -246,7 +246,7 @@ export default function PublicAboutPage() {
                                 className="text-lg md:text-xl font-bold"
                                 style={{ color: 'var(--pub-ink)', fontFamily: 'var(--pub-font-heading)' }}
                             >
-                                {t('ಧರ್ಮದರ್ಶಿಗಳು (Board of Trustees)', 'Board of Trustees')}
+                                {t('ಧರ್ಮದರ್ಶಿಗಳು', 'Board of Trustees')}
                             </h3>
                         </div>
 

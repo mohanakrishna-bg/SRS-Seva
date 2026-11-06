@@ -11,6 +11,80 @@ import {
     getCategoryForSeva,
 } from '../../constants/sevaCategories';
 
+// Common Kannada words mapped to English phonetic search synonyms for robust bilingual matching
+const KN_TO_EN_SEARCH_MAP: Record<string, string> = {
+    'ಆರಾಧನೆ': 'aradhana aradhane aaraadhane aaraadhana',
+    'ಹೂವಿನ': 'hoovina hoovu flower',
+    'ಅಲಂಕಾರ': 'alankara alankar decoration',
+    'ಸಂಪೂರ್ಣ': 'sampoorna sampurna complete',
+    'ಸೇವೆ': 'seva seve',
+    'ಸೇವ': 'seva seve',
+    'ಬ್ರಾಹ್ಮಣರ': 'brahmana brahmanara',
+    'ಕನಕಾಭಿಷೇಕ': 'kanakabhisheka kanaka abhisheka',
+    'ಕನಕ': 'kanaka',
+    'ಪಾದಪೂಜೆ': 'padapooje pada pooja paada pooje puja puje',
+    'ಪಾದ': 'pada paada padha',
+    'ಪೂಜೆ': 'pooja pooje puja puje',
+    'ಪಂಚಾಮೃತ': 'panchamruta panchamrutha',
+    'ಅನ್ನದಾನ': 'annadana annadanam',
+    'ಸತ್ಯನಾರಾಯಣ': 'satyanarayana sathyanarayana satya',
+    'ಹಸ್ತೋದಕ': 'hastodaka hasthodaka hastodak',
+    'ಧನುರ್ಮಾಸ': 'dhanurmasa dhanurmaasa',
+    'ಪೊಂಗಲ್': 'pongal pongala',
+    'ರಥೋತ್ಸವ': 'rathotsava rathotsav',
+    'ಡೋಲೋತ್ಸವ': 'dolotsava dolotsav',
+    'ಫಲ್ಲಕ್ಕಿ': 'pallakki fallakki',
+    'ಉತ್ಸವ': 'utsava utsav uthsava',
+    'ವಾಹನ': 'vahana vahan',
+    'ಕಾರ್ತಿಕ': 'karthika kartika',
+    'ದೀಪಾರಾಧನೆ': 'deeparadhane deepaaradhane',
+    'ಮಧು': 'madhu',
+    'ಅಭಿಷೇಕ': 'abhisheka abhishek',
+    'ಶ್ರಾದ್ಧ': 'shraddha shradha',
+    'ಚಟಕ': 'chataka chatak',
+    'ಸಂಕಲ್ಪ': 'sankalpa sankalp',
+    'ತೈಲ': 'taila thaila oil',
+    'ಆರತಿ': 'aarati arati arathi',
+    'ಗುರುವಾರ': 'guruvara thursday',
+};
+
+const normalizeWhitespace = (str: string) => str.replace(/\s+/g, ' ').trim().toLowerCase();
+
+const applyPhoneticNormalization = (text: string): string => {
+    return text
+        .replace(/\b(puja|puje|pooje)\b/gi, 'pooja')
+        .replace(/\b(paada|padha)\b/gi, 'pada')
+        .replace(/\bseve\b/gi, 'seva')
+        .replace(/\bpanchamrutha\b/gi, 'panchamruta')
+        .replace(/\b(sathyanarayana|satya)\b/gi, 'satyanarayana')
+        .replace(/\b(aaraadhane|aaraadhana|aradhane)\b/gi, 'aradhana')
+        .replace(/\babhisheka\b/gi, 'abhishek')
+        .replace(/\bkanika\b/gi, 'kanike')
+        .replace(/\balankara\b/gi, 'alankar')
+        .replace(/\b(hasthodaka|hastodak)\b/gi, 'hastodaka')
+        .replace(/\b(rathotsav|rathotsava)\b/gi, 'rathotsava')
+        .replace(/\butsav\b/gi, 'utsava');
+};
+
+const buildSearchableItemText = (item: SevaItem): string => {
+    const code = String(item.ItemCode ?? item.SevaCode ?? '').toLowerCase();
+    const rawKn = normalizeWhitespace(item.Description || '');
+    const rawEn = normalizeWhitespace(item.DescriptionEn || '');
+    const translitEn = normalizeWhitespace(transliterateKnToEn(item.Description || ''));
+    const amount = String(item.Basic ?? item.Amount ?? '');
+
+    const extraTokens: string[] = [];
+    for (const [kn, en] of Object.entries(KN_TO_EN_SEARCH_MAP)) {
+        if (item.Description?.includes(kn)) {
+            extraTokens.push(en);
+        }
+    }
+
+    const baseText = `${code} ${rawKn} ${rawEn} ${translitEn} ${amount} ${extraTokens.join(' ')}`;
+    const phoneticVariant = applyPhoneticNormalization(baseText);
+    return `${baseText} ${phoneticVariant}`;
+};
+
 interface SevaDetailsStepProps {
     selectedDate: Date | null;
     setSelectedDate: (d: Date | null) => void;
@@ -113,38 +187,28 @@ export default function SevaDetailsStep({
 
     // Filter items based on selected category & bilingual search query
     const filteredItems = useMemo(() => {
-        let result = items;
+        const query = normalizeWhitespace(searchQuery);
 
-        // 1. Filter by category pill if not 'all'
+        if (query) {
+            // When user types a search query, search globally across all sevas (unconstrained by category)
+            const queryPhonetic = applyPhoneticNormalization(query);
+            const tokens = queryPhonetic.split(' ').filter(Boolean);
+
+            return items.filter(item => {
+                const searchable = buildSearchableItemText(item);
+                return tokens.every(tok => searchable.includes(tok));
+            });
+        }
+
+        // When no search query, filter by selected category if not 'all'
         if (selectedCategory !== 'all') {
-            result = result.filter(item => {
+            return items.filter(item => {
                 const cat = getCategoryForSeva(item);
                 return cat.id === selectedCategory;
             });
         }
 
-        // 2. Filter by search query (bilingual + phonetic English + code + amount)
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase().trim();
-
-            result = result.filter(item => {
-                const descKn = (item.Description || '').toLowerCase();
-                const descEn = (item.DescriptionEn || '').toLowerCase();
-                const phoneticEn = transliterateKnToEn(item.Description || '').toLowerCase();
-                const code = String(item.ItemCode ?? item.SevaCode ?? '').toLowerCase();
-                const amount = String(item.Basic ?? item.Amount ?? '');
-
-                return (
-                    descKn.includes(q) ||
-                    descEn.includes(q) ||
-                    phoneticEn.includes(q) ||
-                    code.includes(q) ||
-                    amount.includes(q)
-                );
-            });
-        }
-
-        return result;
+        return items;
     }, [items, selectedCategory, searchQuery]);
 
     // Group filtered items for structured presentation
@@ -154,23 +218,20 @@ export default function SevaDetailsStep({
 
     // Flat list of selectable items for keyboard navigation
     const flatSelectableItems = useMemo(() => {
+        if (searchQuery.trim()) {
+            return filteredItems;
+        }
         return groupedFilteredItems.flatMap(g => g.items);
-    }, [groupedFilteredItems]);
+    }, [searchQuery, filteredItems, groupedFilteredItems]);
 
     // Reset highlighted index when flat list changes
     useEffect(() => {
         setHighlightedIndex(0);
     }, [flatSelectableItems.length]);
 
-    // Keyboard navigation within combobox
+    // Keyboard navigation within combobox & live search results
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (!isDropdownOpen) {
-            if (e.key === 'ArrowDown' || e.key === 'Enter') {
-                setIsDropdownOpen(true);
-                e.preventDefault();
-            }
-            return;
-        }
+        if (flatSelectableItems.length === 0) return;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
@@ -191,6 +252,7 @@ export default function SevaDetailsStep({
             }
         } else if (e.key === 'Escape') {
             setIsDropdownOpen(false);
+            setSearchQuery('');
         }
     };
 
@@ -203,7 +265,7 @@ export default function SevaDetailsStep({
             <div className="flex items-center justify-between border-b border-[var(--glass-border)] pb-2.5">
                 <span className="flex items-center gap-2 text-sm sm:text-base font-bold text-[var(--text-primary)]">
                     <Receipt className="text-[var(--primary)]" size={18} /> 
-                    <span>ಸೇವಾ ವಿವರಗಳು (Seva Details)</span>
+                    <span>ಸೇವಾ ವಿವರಗಳು</span>
                 </span>
                 <span className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)]">
                     ಆಯ್ಕೆಯಾದ ಸೇವೆ: <strong className="text-[var(--primary)] text-sm">{selectedSevas.length}/4</strong>
@@ -214,10 +276,10 @@ export default function SevaDetailsStep({
                 {/* ── 1. Seva Date Picker ── */}
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider flex items-center justify-between">
-                        <span>ಸೇವಾ ದಿನಾಂಕ (Seva Date) <span className="text-red-500">*</span></span>
+                        <span>ಸೇವಾ ದಿನಾಂಕ <span className="text-red-500">*</span></span>
                         {isThursday && (
                             <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 flex items-center gap-1">
-                                🛞 ಗುರುವಾರ ವಿಶೇಷ (Thursday)
+                                🛞 ಗುರುವಾರ ವಿಶೇಷ
                             </span>
                         )}
                     </label>
@@ -253,7 +315,7 @@ export default function SevaDetailsStep({
                                 <Zap size={13} className="text-amber-600 dark:text-amber-400 fill-amber-500/40" />
                             </div>
                             <span className="text-xs font-bold text-[var(--text-primary)] truncate">
-                                ತ್ವರಿತ ಸೇವೆಗಳು ಮತ್ತು ವರ್ಗಗಳು (Quick Add & Categories)
+                                ತ್ವರಿತ ಸೇವೆಗಳು ಮತ್ತು ವರ್ಗಗಳು
                             </span>
                             {selectedCategory !== 'all' && (
                                 <span
@@ -262,7 +324,7 @@ export default function SevaDetailsStep({
                                         handleSelectCategory('all');
                                     }}
                                     className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/30 hover:bg-[var(--primary)]/20 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-                                    title="ಫಿಲ್ಟರ್ ರದ್ದುಗೊಳಿಸಿ (Clear category filter)"
+                                    title="ಫಿಲ್ಟರ್ ರದ್ದುಗೊಳಿಸಿ"
                                 >
                                     <span>{SEVA_CATEGORIES.find(c => c.id === selectedCategory)?.labelKn || selectedCategory}</span>
                                     <X size={11} className="hover:text-red-500" />
@@ -277,7 +339,7 @@ export default function SevaDetailsStep({
                                 </span>
                             )}
                             <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
-                                {isPillsSectionOpen ? 'ಮರೆಮಾಡಿ (Hide)' : 'ತೋರಿಸಿ (Show)'}
+                                {isPillsSectionOpen ? 'ಮರೆಮಾಡಿ' : 'ತೋರಿಸಿ'}
                             </span>
                             <ChevronDown
                                 size={16}
@@ -304,7 +366,7 @@ export default function SevaDetailsStep({
                                     <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
                                             <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
-                                                <Zap size={13} className="text-amber-500 fill-amber-500" /> ತ್ವರಿತ ಸೇವೆಗಳು (Quick Add):
+                                                <Zap size={13} className="text-amber-500 fill-amber-500" /> ತ್ವರಿತ ಸೇವೆಗಳು:
                                             </span>
                                             {dailyQuickPicks.reasonKn && (
                                                 <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-300/40">
@@ -348,7 +410,7 @@ export default function SevaDetailsStep({
                                     <div className="space-y-1.5 pt-2 border-t border-[var(--glass-border)]/40">
                                         <div className="flex items-center justify-between">
                                             <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                                                ವರ್ಗವಾರು ಆಯ್ಕೆ (Categories)
+                                                ವರ್ಗವಾರು ಆಯ್ಕೆ
                                             </span>
                                             {selectedCategory !== 'all' && (
                                                 <button
@@ -356,7 +418,7 @@ export default function SevaDetailsStep({
                                                     onClick={() => handleSelectCategory('all')}
                                                     className="text-xs font-semibold text-[var(--primary)] hover:underline cursor-pointer"
                                                 >
-                                                    ರದ್ದು (Clear filter)
+                                                    ರದ್ದು
                                                 </button>
                                             )}
                                         </div>
@@ -370,7 +432,7 @@ export default function SevaDetailsStep({
                                                         : 'bg-white dark:bg-slate-800 border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700'
                                                 }`}
                                             >
-                                                ಎಲ್ಲವೂ (All)
+                                                ಎಲ್ಲವೂ
                                             </button>
                                             {SEVA_CATEGORIES.map(cat => (
                                                 <button
@@ -398,7 +460,7 @@ export default function SevaDetailsStep({
                 {/* ── 4. Tier 3: Bilingual Searchable Grouped Combobox ── */}
                 <div className="space-y-1 relative" ref={comboboxRef}>
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
-                        ಸೇವೆ ಸೇರಿಸಿ (Search & Select Seva) <span className="text-red-500">*</span>
+                        ಸೇವೆ ಸೇರಿಸಿ <span className="text-red-500">*</span>
                     </label>
 
                     <div className="relative">
@@ -408,7 +470,7 @@ export default function SevaDetailsStep({
                                 ref={searchInputRef}
                                 type="text"
                                 disabled={selectedSevas.length >= 4}
-                                placeholder={selectedSevas.length >= 4 ? 'ಗರಿಷ್ಠ 4 ಸೇವೆಗಳು ತಲುಪಿದೆ (Max 4 reached)' : 'ಹೆಸರು, ಕೋಡ್ ಅಥವಾ ₹ ನಮೂದಿಸಿ (Search)...'}
+                                placeholder={selectedSevas.length >= 4 ? 'ಗರಿಷ್ಠ 4 ಸೇವೆಗಳು ತಲುಪಿದೆ' : 'ಹೆಸರು, ಕೋಡ್ ಅಥವಾ ₹ ನಮೂದಿಸಿ...'}
                                 value={searchQuery}
                                 onChange={(e) => {
                                     setSearchQuery(e.target.value);
@@ -442,9 +504,9 @@ export default function SevaDetailsStep({
                             </button>
                         </div>
 
-                        {/* Dropdown Menu with Category Headers */}
+                        {/* Dropdown Menu with Category Headers (Active when browsing without search query) */}
                         <AnimatePresence>
-                            {isDropdownOpen && selectedSevas.length < 4 && (
+                            {isDropdownOpen && !searchQuery.trim() && selectedSevas.length < 4 && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -4 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -454,7 +516,7 @@ export default function SevaDetailsStep({
                                 >
                                     {groupedFilteredItems.length === 0 ? (
                                         <div className="p-4 text-center text-sm text-[var(--text-secondary)]">
-                                            ಯಾವುದೇ ಸೇವೆ ಲಭ್ಯವಿಲ್ಲ (No matching sevas found)
+                                            ಯಾವುದೇ ಸೇವೆ ಲಭ್ಯವಿಲ್ಲ
                                         </div>
                                     ) : (
                                         groupedFilteredItems.map((group) => (
@@ -466,7 +528,7 @@ export default function SevaDetailsStep({
                                                         <span>{group.category.labelKn}</span>
                                                     </span>
                                                     <span className="text-[11px] opacity-75 font-normal">
-                                                        {group.category.labelEn} ({group.items.length})
+                                                        {group.items.length} ಸೇವೆಗಳು
                                                     </span>
                                                 </div>
 
@@ -506,7 +568,7 @@ export default function SevaDetailsStep({
                                                                 </div>
                                                                 <div className="shrink-0 text-right">
                                                                     <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                                                                        {amount > 0 ? `₹${amount}` : 'ಇಚ್ಛೆಯಂತೆ (Open)'}
+                                                                        {amount > 0 ? `₹${amount}` : 'ಇಚ್ಛೆಯಂತೆ'}
                                                                     </span>
                                                                     {isSelected && (
                                                                         <span className="block text-[10px] text-slate-400 font-normal">
@@ -525,13 +587,97 @@ export default function SevaDetailsStep({
                             )}
                         </AnimatePresence>
                     </div>
+
+                    {/* ── Live Filtered Search Results (Appears as seva name is entered) ── */}
+                    {searchQuery.trim() !== '' && (
+                        <div className="mt-2 space-y-1.5" data-testid="live-filtered-sevas">
+                            <div className="flex items-center justify-between text-xs font-bold text-[var(--primary)] px-1">
+                                <span>
+                                    {filteredItems.length} ಸೇವೆಗಳು ಕಂಡುಬಂದಿವೆ:
+                                </span>
+                                <span className="text-[11px] font-normal text-[var(--text-secondary)]">
+                                    ಆಯ್ಕೆ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ / Enter ಒತ್ತಿರಿ
+                                </span>
+                            </div>
+                            <div className="max-h-52 overflow-y-auto space-y-1 rounded-xl border border-amber-300/70 dark:border-amber-700/50 bg-amber-50/40 dark:bg-amber-950/20 p-1.5 shadow-2xs">
+                                {filteredItems.length === 0 ? (
+                                    <div className="p-4 text-center text-xs text-[var(--text-secondary)] font-medium">
+                                        ಯಾವುದೇ ಹೊಂದಾಣಿಕೆಯ ಸೇವೆ ಕಂಡುಬಂದಿಲ್ಲ
+                                    </div>
+                                ) : (
+                                    filteredItems.map((item, idx) => {
+                                        const itemCode = String(item.ItemCode ?? item.SevaCode);
+                                        const isSelected = selectedSevas.some(s => s.sevaCode === itemCode);
+                                        const isHighlighted = idx === highlightedIndex;
+                                        const amount = item.Basic ?? item.Amount ?? 0;
+                                        const cat = getCategoryForSeva(item);
+
+                                        return (
+                                            <div
+                                                key={itemCode}
+                                                onMouseEnter={() => setHighlightedIndex(idx)}
+                                                onClick={() => {
+                                                    if (!isSelected && selectedSevas.length < 4) {
+                                                        handleAddSeva(itemCode);
+                                                    }
+                                                }}
+                                                className={`p-2.5 rounded-lg border transition-all flex items-center justify-between gap-3 text-xs shadow-2xs ${
+                                                    isSelected
+                                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60'
+                                                        : isHighlighted
+                                                        ? 'bg-amber-100 dark:bg-amber-900/50 border-[var(--primary)] text-[var(--text-primary)] cursor-pointer'
+                                                        : 'bg-white dark:bg-slate-800 border-amber-200/60 dark:border-slate-700 hover:border-[var(--primary)] hover:bg-amber-50/60 dark:hover:bg-slate-700/60 cursor-pointer text-[var(--text-primary)]'
+                                                }`}
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-mono">
+                                                            {itemCode}
+                                                        </span>
+                                                        <span className="font-bold text-sm text-[var(--text-primary)]">
+                                                            {item.Description}
+                                                        </span>
+                                                        <span className="text-[10px] text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 px-1.5 py-0.5 rounded font-medium">
+                                                            {cat.labelKn}
+                                                        </span>
+                                                    </div>
+                                                    {item.DescriptionEn && (
+                                                        <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
+                                                            {item.DescriptionEn}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="shrink-0 flex items-center gap-2">
+                                                    <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
+                                                        {amount > 0 ? `₹${amount}` : 'ಇಚ್ಛೆಯಂತೆ'}
+                                                    </span>
+                                                    {isSelected ? (
+                                                        <span className="text-[10px] text-slate-400 font-semibold px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">
+                                                            ✓ ಆಯ್ಕೆಯಾಗಿದೆ
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            className="text-xs text-white font-bold px-2.5 py-1 bg-[var(--primary)] hover:bg-[var(--primary-hover)] rounded-md shadow-2xs transition-colors cursor-pointer"
+                                                        >
+                                                            + ಆಯ್ಕೆ ಮಾಡಿ
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── 5. Selected Sevas List (The Cart) ── */}
                 {selectedSevas.length > 0 && (
                     <div className="space-y-2 mt-1">
                         <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider block">
-                            ಆಯ್ಕೆಯಾದ ಸೇವೆಗಳು (Selected Sevas in Cart):
+                            ಆಯ್ಕೆಯಾದ ಸೇವೆಗಳು:
                         </label>
                         {selectedSevas.map(seva => (
                             <div key={seva.sevaCode} className="flex items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-xl border border-[var(--glass-border)] shadow-2xs">
@@ -569,7 +715,7 @@ export default function SevaDetailsStep({
             <div className="bg-blue-50/80 dark:bg-blue-900/15 border border-blue-100 dark:border-blue-900/30 rounded-xl p-3 sm:p-3.5 space-y-2">
                 <div className="flex items-center justify-between pb-1.5 border-b border-blue-100 dark:border-blue-900/40">
                     <div className="space-y-0.5 cursor-pointer" onClick={() => setOptPrasada(!optPrasada)}>
-                        <label className="text-sm font-bold text-orange-600 dark:text-orange-400 cursor-pointer">ಹಸ್ತೋದಕ (Anna Prasada)</label>
+                        <label className="text-sm font-bold text-orange-600 dark:text-orange-400 cursor-pointer">ಹಸ್ತೋದಕ</label>
                     </div>
 
                     <button
@@ -594,7 +740,7 @@ export default function SevaDetailsStep({
                         >
                             <div className="grid grid-cols-3 gap-2.5">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ಊಟ (Dine-in)</label>
+                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ಊಟ</label>
                                     <input
                                         type="number" min="0" max="20"
                                         value={familyMembers}
@@ -603,7 +749,7 @@ export default function SevaDetailsStep({
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ಪಾರ್ಸಲ್ (Parcel)</label>
+                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ಪಾರ್ಸಲ್</label>
                                     <input
                                         type="number" min="0" max="20"
                                         value={parcelCount}
@@ -612,7 +758,7 @@ export default function SevaDetailsStep({
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ದರ (Rate)</label>
+                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase">ದರ</label>
                                     <select
                                         value={foodServiceRateStr}
                                         onChange={(e) => setFoodServiceRateStr(convertKnNumeralsToEn(e.target.value))}
@@ -640,7 +786,7 @@ export default function SevaDetailsStep({
             {/* ── 7. Total Summary Block ── */}
             {selectedSevas.length > 0 && (
                 <div className="bg-slate-50 dark:bg-slate-800 border border-[var(--primary)]/40 rounded-xl p-3 sm:p-4 flex justify-between items-center bg-gradient-to-r from-[var(--glass-bg)] to-orange-50 dark:to-orange-900/20 shrink-0 shadow-2xs">
-                    <span className="font-bold text-[var(--text-secondary)] uppercase text-xs sm:text-sm tracking-wider">ಒಟ್ಟು ಮೊತ್ತ (Total Payable)</span>
+                    <span className="font-bold text-[var(--text-secondary)] uppercase text-xs sm:text-sm tracking-wider">ಒಟ್ಟು ಮೊತ್ತ</span>
                     <span className="text-base sm:text-xl font-black text-[var(--primary)] font-mono">₹{calculateTotal()}</span>
                 </div>
             )}

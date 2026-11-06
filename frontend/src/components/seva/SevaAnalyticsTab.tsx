@@ -278,7 +278,7 @@ export default function SevaAnalyticsTab() {
                 {/* Fulfilled % */}
                 <div className="p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl shadow-sm space-y-1">
                     <div className="flex items-center justify-between text-xs text-purple-600 dark:text-purple-400">
-                        <span className="font-bold">ಪೂರೈಕೆ ಪ್ರಮಾಣ (Fulfillment)</span>
+                        <span className="font-bold">ಪೂರೈಕೆ ಪ್ರಮಾಣ</span>
                         <CheckCircle2 size={16} />
                     </div>
                     <div className="text-2xl font-bold text-[var(--text-primary)]">
@@ -376,7 +376,7 @@ export default function SevaAnalyticsTab() {
                 <div className="p-5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-2xl shadow-sm space-y-4">
                     <div className="flex items-center gap-2">
                         <CreditCard className="text-blue-500" size={18} />
-                        <h2 className="text-base font-bold text-[var(--text-primary)]">ಪಾವತಿ ವಿಧಾನಗಳ ವಿತರಣೆ (Payment Modes)</h2>
+                        <h2 className="text-base font-bold text-[var(--text-primary)]">ಪಾವತಿ ವಿಧಾನಗಳ ವಿತರಣೆ</h2>
                     </div>
 
                     <div className="space-y-3">

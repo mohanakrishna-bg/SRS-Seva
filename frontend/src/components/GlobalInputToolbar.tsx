@@ -26,7 +26,7 @@ export default function GlobalInputToolbar({ className = '' }: GlobalInputToolba
                     type="button"
                     onClick={toggleLanguage}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-[var(--text-primary)] border border-transparent hover:border-[var(--glass-border)] shadow-sm cursor-pointer"
-                    title={globalLang === 'kn' ? "ಇಂಗ್ಲಿಷ್‌ಗೆ ಬದಲಿಸಿ (Click to switch to English)" : "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ (Click to switch to Kannada)"}
+                    title={globalLang === 'kn' ? "ಇಂಗ್ಲಿಷ್‌ಗೆ ಬದಲಿಸಿ" : "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ"}
                 >
                     <Globe size={13} className="text-[var(--primary)]" />
                     {globalLang === 'kn' ? (

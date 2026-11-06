@@ -37,9 +37,9 @@ export default function Layout() {
     const bgImage = settings.bgImage;
     const location = useLocation();
 
-    // ── Theme ────────────────────────────────────────────────────────────────
+    // ── Theme (default to light mode, activate dark only when explicitly selected) ──
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        return (localStorage.getItem('seva_theme') as 'light' | 'dark') || 'light';
+        return localStorage.getItem('seva_theme') === 'dark' ? 'dark' : 'light';
     });
 
     useEffect(() => {

@@ -32,10 +32,10 @@ export const defaultFacilities: FacilityItem[] = [
         descriptionEn: 'Well-equipped sanctified function hall dedicated for private religious and cultural programs, Upanayana ceremonies, weddings, spiritual discourses, and sacred family gatherings.',
         features: [
             'ಸುಮಾರು 250+ ಆಸನ ಸಾಮರ್ಥ್ಯದ ವಿಶಾಲ ಮುಖ್ಯ ಸಭಾಂಗಣ',
-            'ಪ್ರತ್ಯೇಕ ಊಟದ ಹಾಲ್ (Dining Hall) ಮತ್ತು ಕೈತೊಳೆಯುವ ಜಾಗ',
+            'ಪ್ರತ್ಯೇಕ ಊಟದ ಹಾಲ್ ಮತ್ತು ಕೈತೊಳೆಯುವ ಜಾಗ',
             'ಶುದ್ಧ ಕುಡಿಯುವ ನೀರು ಹಾಗೂ ನೈರ್ಮಲ್ಯಯುತ ಕೊಠಡಿಗಳು',
-            'ಸುಸಜ್ಜಿತ ಧ್ವನಿವರ್ಧಕ (Sound System) ಮತ್ತು ವೇದಿಕೆ/ಮಂಟಪ',
-            'ವಾಹನ ನಿಲುಗಡೆ (Parking) ಅನುಕೂಲ'
+            'ಸುಸಜ್ಜಿತ ಧ್ವನಿವರ್ಧಕ ಮತ್ತು ವೇದಿಕೆ/ಮಂಟಪ',
+            'ವಾಹನ ನಿಲುಗಡೆ ಅನುಕೂಲ'
         ],
         featuresEn: [
             'Spacious main auditorium with 250+ seating capacity',
@@ -246,7 +246,7 @@ export default function PublicFacilitiesPage() {
                                                     style={{ borderColor: 'var(--pub-border)', color: 'var(--pub-text)' }}
                                                 >
                                                     <Download size={14} className="text-[color:var(--pub-saffron)]" />
-                                                    {t('ಬ್ರೋಷರ್ ಡೌನ್‌ಲೋಡ್ (PDF)', 'Download Brochure (PDF)')}
+                                                    {t('ಬ್ರೋಷರ್ ಡೌನ್‌ಲೋಡ್', 'Download Brochure (PDF)')}
                                                 </a>
                                             )}
                                         </div>

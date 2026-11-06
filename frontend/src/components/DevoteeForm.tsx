@@ -15,15 +15,15 @@ const pinCodeRegex = /^$|^\d{6}$/;
 
 export const devoteeFormSchema = z.object({
     DevoteeId: z.number().optional(),
-    Name: z.string().min(1, 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ (Name is required)'),
-    Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು (Must be 10 digits)').optional(),
+    Name: z.string().min(1, 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ'),
+    Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು').optional(),
     Gotra: z.string().optional(),
     Nakshatra: z.string().optional(),
     Address: z.string().optional(),
     City: z.string().optional(),
-    PinCode: z.string().regex(pinCodeRegex, 'ಪಿನ್ ಕೋಡ್ 6 ಅಂಕಿಗಳಿರಬೇಕು (Must be 6 digits)').optional(),
-    WhatsApp_Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು (Must be 10 digits)').optional(),
-    Email: z.union([z.literal(''), z.string().email('ಇಮೇಲ್ ಸರಿಯಾಗಿಲ್ಲ (Invalid email)')]).optional(),
+    PinCode: z.string().regex(pinCodeRegex, 'ಪಿನ್ ಕೋಡ್ 6 ಅಂಕಿಗಳಿರಬೇಕು').optional(),
+    WhatsApp_Phone: z.string().regex(phoneRegex, 'ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಳಿರಬೇಕು').optional(),
+    Email: z.union([z.literal(''), z.string().email('ಇಮೇಲ್ ಸರಿಯಾಗಿಲ್ಲ')]).optional(),
     PhotoPath: z.string().optional(),
 });
 

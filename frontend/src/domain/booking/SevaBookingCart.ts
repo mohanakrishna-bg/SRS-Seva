@@ -379,20 +379,20 @@ export class SevaBookingCart {
     // ─── Validations ───
     validateDevotee(): ValidationResult {
         if (!this.devotee || !this.devotee.Name.trim()) {
-            return { valid: false, error: 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ (Devotee name is required)' };
+            return { valid: false, error: 'ಹೆಸರು ಕಡ್ಡಾಯವಾಗಿದೆ' };
         }
         if (!this.devotee.Phone.trim()) {
-            return { valid: false, error: 'ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ (Phone number is required)' };
+            return { valid: false, error: 'ಫೋನ್ ಸಂಖ್ಯೆ ಕಡ್ಡಾಯವಾಗಿದೆ' };
         }
         return { valid: true };
     }
 
     validateSeva(catalogItems: SevaCatalogItem[] = [], now: Date = new Date()): ValidationResult {
         if (!this.selectedDate) {
-            return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva date)' };
+            return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವಾ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ' };
         }
         if (this.selectedSevas.length === 0) {
-            return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ (Please select seva)' };
+            return { valid: false, error: 'ದಯವಿಟ್ಟು ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ' };
         }
 
         // Prevent booking dates in the past
@@ -402,7 +402,7 @@ export class SevaBookingCart {
         selDate.setHours(0, 0, 0, 0);
 
         if (selDate < today) {
-            return { valid: false, error: 'ಹಿಂದಿನ ದಿನಾಂಕಗಳಿಗೆ ಸೇವೆ ಬುಕ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ (Cannot book for past dates)' };
+            return { valid: false, error: 'ಹಿಂದಿನ ದಿನಾಂಕಗಳಿಗೆ ಸೇವೆ ಬುಕ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ' };
         }
 
         // Check if event start time has already passed for today

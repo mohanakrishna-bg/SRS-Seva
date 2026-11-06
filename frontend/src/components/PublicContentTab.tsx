@@ -499,7 +499,7 @@ export default function PublicContentTab() {
                         }`}
                     >
                         <Building2 size={16} />
-                        ಸೌಲಭ್ಯಗಳು (Facilities)
+                        ಸೌಲಭ್ಯಗಳು
                     </button>
                     <button
                         onClick={() => { setSubTab('events'); setSearchQuery(''); }}
@@ -510,7 +510,7 @@ export default function PublicContentTab() {
                         }`}
                     >
                         <Calendar size={16} />
-                        ಮುಂಬರುವ ಕಾರ್ಯಕ್ರಮಗಳು (Upcoming Events)
+                        ಮುಂಬರುವ ಕಾರ್ಯಕ್ರಮಗಳು
                     </button>
                 </div>
 
@@ -527,10 +527,10 @@ export default function PublicContentTab() {
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs font-bold text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/5 transition-all shadow-sm"
-                        title="ಫೈಲ್ ಆಮದು (JSON, CSV, PDF, HTML, JPEG/PNG)"
+                        title="ಫೈಲ್ ಆಮದು"
                     >
                         <Upload size={14} className="text-[var(--primary)]" />
-                        ಫೈಲ್ ಆಮದು (Import)
+                        ಫೈಲ್ ಆಮದು
                     </button>
                     <input
                         ref={fileInputRef}
@@ -546,13 +546,13 @@ export default function PublicContentTab() {
                         title="JSON ಡೇಟಾ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
                     >
                         <Download size={14} className="text-[var(--primary)]" />
-                        ರಫ್ತು (Export)
+                        ರಫ್ತು
                     </button>
 
                     <button
                         onClick={() => window.print()}
                         className="p-2 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm"
-                        title="ಮುದ್ರಿಸಿ (Print)"
+                        title="ಮುದ್ರಿಸಿ"
                     >
                         <Printer size={16} />
                     </button>
@@ -683,12 +683,12 @@ export default function PublicContentTab() {
                                                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 shadow-sm"
                                             >
                                                 <Edit size={13} />
-                                                ಸಂಪಾದಿಸಿ (Edit)
+                                                ಸಂಪಾದಿಸಿ
                                             </button>
                                             <button
                                                 onClick={() => selectedFacility ? handleDeleteFacility(selectedFacility.id) : handleDeleteEvent(selectedEvent!.id)}
                                                 className="p-1.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                                                title="ಅಳಿಸಿ (Delete)"
+                                                title="ಅಳಿಸಿ"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -719,7 +719,7 @@ export default function PublicContentTab() {
                                             </div>
 
                                             <div>
-                                                <label className="block font-bold mb-1">ಹೆಸರು (English)</label>
+                                                <label className="block font-bold mb-1">ಇಂಗ್ಲಿಷ್ ಹೆಸರು</label>
                                                 <input
                                                     type="text"
                                                     value={facForm.nameEn || ''}
@@ -777,7 +777,7 @@ export default function PublicContentTab() {
                                             {/* File & Image attachments */}
                                             <div className="p-4 rounded-2xl border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 space-y-3">
                                                 <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--primary)]">
-                                                    ಫೈಲ್ ಮತ್ತು ಚಿತ್ರ ಲಗತ್ತುಗಳು (JPEG, PDF, HTML)
+                                                    ಫೈಲ್ ಮತ್ತು ಚಿತ್ರ ಲಗತ್ತುಗಳು
                                                 </h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     <div>
@@ -900,7 +900,7 @@ export default function PublicContentTab() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block font-bold mb-1">ಸಮಯ (Time)</label>
+                                                    <label className="block font-bold mb-1">ಸಮಯ</label>
                                                     <input
                                                         type="text"
                                                         value={evtForm.time || ''}
@@ -913,7 +913,7 @@ export default function PublicContentTab() {
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block font-bold mb-1">ಸ್ಥಳ (Venue)</label>
+                                                    <label className="block font-bold mb-1">ಸ್ಥಳ</label>
                                                     <input
                                                         type="text"
                                                         value={evtForm.venue || ''}
@@ -923,7 +923,7 @@ export default function PublicContentTab() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block font-bold mb-1">ಬ್ಯಾಡ್ಜ್ / ವಿಭಾಗ (Badge)</label>
+                                                    <label className="block font-bold mb-1">ಬ್ಯಾಡ್ಜ್ / ವಿಭಾಗ</label>
                                                     <input
                                                         type="text"
                                                         value={evtForm.badge || ''}
@@ -959,7 +959,7 @@ export default function PublicContentTab() {
                                             {/* File & Image attachments */}
                                             <div className="p-4 rounded-2xl border border-[var(--glass-border)] bg-black/5 dark:bg-white/5 space-y-3">
                                                 <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--primary)]">
-                                                    ಫ್ಲೈಯರ್ ಮತ್ತು ಫೈಲ್ ಲಗತ್ತುಗಳು (JPEG, PDF, HTML)
+                                                    ಫ್ಲೈಯರ್ ಮತ್ತು ಫೈಲ್ ಲಗತ್ತುಗಳು
                                                 </h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     <div>
@@ -973,7 +973,7 @@ export default function PublicContentTab() {
                                                         {evtForm.image && <p className="text-[11px] text-emerald-600 mt-1">✓ ಚಿತ್ರ ಲಗತ್ತಿಸಲಾಗಿದೆ</p>}
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-semibold mb-1">PDF ಕರಪತ್ರ (Flyer)</label>
+                                                        <label className="block text-xs font-semibold mb-1">PDF ಕರಪತ್ರ</label>
                                                         <input
                                                             type="file"
                                                             accept="application/pdf"
@@ -1074,14 +1074,14 @@ export default function PublicContentTab() {
                                             }}
                                             className="px-4 py-2 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-all"
                                         >
-                                            ರದ್ದು (Cancel)
+                                            ರದ್ದು
                                         </button>
                                         <button
                                             onClick={selectedFacility ? handleSaveFacility : handleSaveEvent}
                                             className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 shadow-md transition-all"
                                         >
                                             <Check size={14} />
-                                            ಉಳಿಸಿ (Save)
+                                            ಉಳಿಸಿ
                                         </button>
                                     </div>
                                 ) : (
@@ -1090,7 +1090,7 @@ export default function PublicContentTab() {
                                             onClick={() => { setSelectedFacility(null); setSelectedEvent(null); }}
                                             className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 shadow-md transition-all"
                                         >
-                                            ಹಿಂದೆ (Back)
+                                            ಹಿಂದೆ
                                         </button>
                                     </div>
                                 )}

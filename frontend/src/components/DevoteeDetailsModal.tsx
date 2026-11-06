@@ -52,7 +52,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={isEditing ? 'ಭಕ್ತರ ವಿವರ ಬದಲಿಸಿ (Edit Devotee)' : (devotee.Name || 'ಭಕ್ತರ ವಿವರ (Devotee Details)')}
+            title={isEditing ? 'ಭಕ್ತರ ವಿವರ ಬದಲಿಸಿ' : (devotee.Name || 'ಭಕ್ತರ ವಿವರ')}
             maxWidth="max-w-2xl"
             contentBounded={true}
             isLocked={true}
@@ -110,7 +110,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                             onClick={handleClose}
                             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] border border-black/10 dark:border-white/10 transition-colors"
                         >
-                            <ArrowLeft size={16} /> ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ (Back to List)
+                            <ArrowLeft size={16} /> ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ
                         </button>
 
                         <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                 onClick={() => setIsEditing(true)}
                                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-sm font-bold transition-all border border-blue-500/20"
                             >
-                                <Edit3 size={15} /> ಬದಲಿಸಿ (Edit)
+                                <Edit3 size={15} /> ಬದಲಿಸಿ
                             </button>
                             <button
                                 type="button"
@@ -129,7 +129,7 @@ export default function DevoteeDetailsModal({ isOpen, onClose, devotee, onSave, 
                                 }}
                                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-sm font-bold transition-all border border-red-500/20"
                             >
-                                <Trash2 size={15} /> ಅಳಿಸಿ (Delete)
+                                <Trash2 size={15} /> ಅಳಿಸಿ
                             </button>
                             <button
                                 type="button"

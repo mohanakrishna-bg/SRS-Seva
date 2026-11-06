@@ -62,7 +62,7 @@ export default function DevoteeSelectionStep({
             <div className="flex items-center justify-between border-b border-[var(--glass-border)] pb-2.5">
                 <span className="flex items-center gap-2 text-sm sm:text-base font-bold text-[var(--text-primary)]">
                     <Search className="text-[var(--primary)]" size={18} />
-                    <span>ಭಕ್ತರ ಹುಡುಕಿ / ವಿವರ (Devotee Info)</span>
+                    <span>ಭಕ್ತರ ಹುಡುಕಿ / ವಿವರ</span>
                 </span>
             </div>
 
@@ -88,7 +88,7 @@ export default function DevoteeSelectionStep({
                     <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-3 sm:p-3.5 flex items-center justify-between shadow-2xs">
                         <div>
                             <p className="text-xs font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
-                                ಆಯ್ಕೆಯಾದ ಭಕ್ತರು (Selected Devotee)
+                                ಆಯ್ಕೆಯಾದ ಭಕ್ತರು
                             </p>
                             <p className="text-sm sm:text-base font-bold text-[var(--text-primary)]">{customer.Name}</p>
                             <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-mono">{customer.Phone}</p>
@@ -102,7 +102,7 @@ export default function DevoteeSelectionStep({
                             }} 
                             className="text-xs sm:text-sm flex py-2 px-3 items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-900/40 hover:bg-emerald-200/70 rounded-xl transition-colors cursor-pointer"
                         >
-                            <X size={16} /> ಬದಲಾಯಿಸಿ (Change)
+                            <X size={16} /> ಬದಲಾಯಿಸಿ
                         </button>
                     </div>
 
@@ -110,7 +110,7 @@ export default function DevoteeSelectionStep({
                     <div className="bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3 sm:p-3.5 space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
-                                <RotateCcw size={14} className="text-amber-600" /> ಹಿಂದಿನ ಸೇವೆಗಳ ಮರು ನೋಂದಣಿ (Quick Rebook)
+                                <RotateCcw size={14} className="text-amber-600" /> ಹಿಂದಿನ ಸೇವೆಗಳ ಮರು ನೋಂದಣಿ
                             </span>
                             {loadingPastSevas && <Loader2 size={14} className="animate-spin text-amber-600" />}
                         </div>
@@ -143,7 +143,7 @@ export default function DevoteeSelectionStep({
             {isNewCustomer && searchResults.length > 0 && (
                 <div className="bg-orange-50/90 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-xl p-3 shadow-sm">
                     <p className="text-xs font-bold text-orange-700 dark:text-orange-400 mb-2 uppercase tracking-wider">
-                        {searchResults.length} ಭಕ್ತರು ಲಭ್ಯವಿದೆ (Select from existing):
+                        {searchResults.length} ಭಕ್ತರು ಲಭ್ಯವಿದೆ:
                     </p>
                     <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
                         {searchResults.map(res => (
@@ -175,7 +175,7 @@ export default function DevoteeSelectionStep({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1">
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ಪೂರ್ಣ ಹೆಸರು (Full Name) <span className="text-red-500">*</span>
+                        ಪೂರ್ಣ ಹೆಸರು <span className="text-red-500">*</span>
                     </label>
                     <TransliteratedInput 
                         value={customer.Name} 
@@ -185,7 +185,7 @@ export default function DevoteeSelectionStep({
                 </div>
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ಫೋನ್ ನಂಬರ್ (Phone) <span className="text-red-500">*</span>
+                        ಫೋನ್ ನಂಬರ್ <span className="text-red-500">*</span>
                     </label>
                     <input 
                         type="tel" 
@@ -197,7 +197,7 @@ export default function DevoteeSelectionStep({
                 </div>
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ಗೋತ್ರ (Gotra)
+                        ಗೋತ್ರ
                     </label>
                     <TransliteratedInput 
                         value={customer.Sgotra} 
@@ -211,7 +211,7 @@ export default function DevoteeSelectionStep({
                 </div>
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ನಕ್ಷತ್ರ (Nakshatra)
+                        ನಕ್ಷತ್ರ
                     </label>
                     <TransliteratedInput 
                         value={customer.SNakshatra} 
@@ -225,7 +225,7 @@ export default function DevoteeSelectionStep({
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ವಿಳಾಸ (Address)
+                        ವಿಳಾಸ
                     </label>
                     <TransliteratedInput 
                         value={customer.Address} 
@@ -236,7 +236,7 @@ export default function DevoteeSelectionStep({
                 </div>
                 <div className="sm:col-span-2 space-y-1">
                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                        ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ (City & Pin)
+                        ನಗರ ಮತ್ತು ಪಿನ್ ಸಂಖ್ಯೆ
                     </label>
                     <TransliteratedInput 
                         value={customer.City} 

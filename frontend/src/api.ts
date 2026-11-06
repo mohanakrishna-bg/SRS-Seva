@@ -5,6 +5,7 @@ const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
 
 const api = axios.create({
     baseURL: API_BASE,
+    timeout: 20000, // 20s timeout ensures requests never hang indefinitely
     headers: { 'Content-Type': 'application/json' },
 });
 
@@ -95,8 +96,12 @@ export const lookupApi = {
 
 // ─── Stats API ───
 export const statsApi = {
-    daily: (date: string) => api.get(`/stats/daily?date=${date}`),
-    dailySummary: (date: string) => api.get(`/stats/daily-summary?date=${date}`),
+    daily: (date: string, config?: any) =>
+        config ? api.get(`/stats/daily?date=${date}`, config) : api.get(`/stats/daily?date=${date}`),
+    dailySummary: (date: string, endDate?: string, config?: any) => {
+        const params = endDate ? `?date=${date}&end_date=${endDate}` : `?date=${date}`;
+        return config ? api.get(`/stats/daily-summary${params}`, config) : api.get(`/stats/daily-summary${params}`);
+    },
 };
 
 // ─── Auth API ───
@@ -201,12 +206,12 @@ export const reportsApi = {
 };
 
 export const sevaReportsApi = {
-    getSevaBookings: (params: { start_date: string; end_date?: string; report_type?: 'on_demand_full' | 'daily_priest'; date_type?: 'SevaDate' | 'RegistrationDate' }) =>
-        api.get('/reports/seva-bookings', { params }),
-    getHastodaka: (params: { start_date: string; end_date?: string }) =>
-        api.get('/reports/hastodaka', { params }),
-    getExigencyExceptions: (params?: { start_date?: string; end_date?: string }) =>
-        api.get('/reports/exigency-exceptions', { params }),
+    getSevaBookings: (params: { start_date: string; end_date?: string; report_type?: 'on_demand_full' | 'daily_priest'; date_type?: 'SevaDate' | 'RegistrationDate' }, config?: any) =>
+        api.get('/reports/seva-bookings', { params, ...config }),
+    getHastodaka: (params: { start_date: string; end_date?: string }, config?: any) =>
+        api.get('/reports/hastodaka', { params, ...config }),
+    getExigencyExceptions: (params?: { start_date?: string; end_date?: string }, config?: any) =>
+        api.get('/reports/exigency-exceptions', { params, ...config }),
 };
 
 export const testApi = {

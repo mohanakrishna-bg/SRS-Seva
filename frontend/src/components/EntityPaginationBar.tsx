@@ -65,7 +65,7 @@ export default function EntityPaginationBar({
                         onClick={onPrev}
                         disabled={!canPrev}
                         className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
-                        title="ಹಿಂದಿನ ಪುಟ (Previous Page)"
+                        title="ಹಿಂದಿನ ಪುಟ"
                     >
                         <ChevronLeft size={18} />
                     </button>
@@ -97,7 +97,7 @@ export default function EntityPaginationBar({
                         onClick={onNext}
                         disabled={!canNext}
                         className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-[var(--text-primary)]"
-                        title="ಮುಂದಿನ ಪುಟ (Next Page)"
+                        title="ಮುಂದಿನ ಪುಟ"
                     >
                         <ChevronRight size={18} />
                     </button>

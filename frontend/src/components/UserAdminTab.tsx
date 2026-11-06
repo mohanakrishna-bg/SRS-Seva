@@ -121,7 +121,7 @@ export default function UserAdminTab() {
 
     const handleDelete = async (id: number, username: string) => {
         if (currentUser?.id === id || id === 0) {
-            alert('ನಿರ್ವಾಹಕ (Admin) ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ');
+            alert('ನಿರ್ವಾಹಕ ಅಥವಾ ನಿಮ್ಮ ಸ್ವಂತ ಖಾತೆಯನ್ನು ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ');
             return;
         }
         if (window.confirm(`'${username}' ಬಳಕೆದಾರರನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?`)) {
@@ -167,7 +167,7 @@ export default function UserAdminTab() {
                         title="Initialize all user passwords to match usernames"
                     >
                         <RefreshCw size={13} />
-                        ಗುಪ್ತಪದ ಮರುಹೊಂದಿಕೆ (Reset All)
+                        ಗುಪ್ತಪದ ಮರುಹೊಂದಿಕೆ
                     </button>
                     <button
                         onClick={handleShowAuditLog}

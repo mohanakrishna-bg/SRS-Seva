@@ -13,7 +13,7 @@ Contains all endpoints for:
 - UPI payment verification
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -734,19 +734,41 @@ def get_daily_stats(
 
 @router.get("/stats/daily-summary")
 def get_daily_summary(
-    date: str, 
+    date: str = Query(..., description="Date or start date in DDMMYY or YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="Optional end date in DDMMYY or YYYY-MM-DD"),
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """Get financial summary for a given date (DDMMYY format)."""
+    """Get financial summary for a given date or date range."""
     try:
+        import datetime as dt
+
+        def to_dt(d_str: str) -> dt.date:
+            d_str = (d_str or "").strip()
+            if len(d_str) == 6 and d_str.isdigit():
+                return dt.datetime.strptime(d_str, "%d%m%y").date()
+            return dt.date.fromisoformat(d_str)
+
+        start_dt = to_dt(date)
+        end_dt = to_dt(end_date) if end_date else start_dt
+
+        if start_dt > end_dt:
+            start_dt, end_dt = end_dt, start_dt
+
+        date_keys = []
+        curr = start_dt
+        while curr <= end_dt:
+            date_keys.append(curr.strftime("%d%m%y"))
+            curr += dt.timedelta(days=1)
+
         results = (
             db.query(
                 models.SevaRegistration.PaymentMode,
                 func.sum(models.SevaRegistration.GrandTotal).label("total_amount"),
                 func.count(models.SevaRegistration.RegistrationId).label("count"),
             )
-            .filter(models.SevaRegistration.RegistrationDate == date)
+            .filter(models.SevaRegistration.RegistrationDate.in_(date_keys))
+            .filter(models.SevaRegistration.IsCancelled == False)
             .group_by(models.SevaRegistration.PaymentMode)
             .all()
         )
@@ -763,17 +785,13 @@ def get_daily_summary(
             total_income += amt
             total_registrations += cnt
 
-        # Get expenses for this date (cross-module call to Accounting)
-        import datetime as dt
-        try:
-            date_dt = dt.datetime.strptime(date, "%d%m%y")
-            formatted_date = date_dt.strftime("%Y-%m-%d")
-        except Exception:
-            formatted_date = date
+        # Get expenses for this date range (cross-module call to Accounting)
+        start_iso = start_dt.strftime("%Y-%m-%d")
+        end_iso = end_dt.strftime("%Y-%m-%d")
 
         from app.models import accounting
         expenses = db.query(func.sum(accounting.JournalLine.Debit)).join(accounting.JournalEntry).filter(
-            accounting.JournalEntry.EntryDate == formatted_date,
+            accounting.JournalEntry.EntryDate.between(start_iso, end_iso),
             accounting.JournalLine.Debit > 0.0,
             accounting.JournalLine.AccountId.in_(
                 db.query(accounting.AccountHead.Id).filter(accounting.AccountHead.Type == "Expense")
@@ -782,6 +800,9 @@ def get_daily_summary(
 
         return {
             "date": date,
+            "start_date": start_iso,
+            "end_date": end_iso,
+            "is_single_day": start_dt == end_dt,
             "total_registrations": total_registrations,
             "total_income": total_income,
             "total_expense": expenses,

@@ -19,7 +19,7 @@ export default function PublicLayout() {
     const { settings } = useSettings();
 
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        return (localStorage.getItem('seva_theme') as 'light' | 'dark') || 'light';
+        return localStorage.getItem('seva_theme') === 'dark' ? 'dark' : 'light';
     });
     const [lang, setLang] = useState<'kn' | 'en'>(() => {
         return (localStorage.getItem('seva_site_lang') as 'kn' | 'en') || 'kn';
@@ -225,7 +225,7 @@ export default function PublicLayout() {
                                 color: 'var(--pub-text)',
                                 background: 'var(--pub-bg-card)',
                             }}
-                            title={lang === 'kn' ? "ಇಂಗ್ಲಿಷ್‌ಗೆ ಬದಲಿಸಿ (Switch to English)" : "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ (Switch to Kannada)"}
+                            title={lang === 'kn' ? "ಇಂಗ್ಲಿಷ್‌ಗೆ ಬದಲಿಸಿ" : "ಕನ್ನಡಕ್ಕೆ ಬದಲಿಸಿ"}
                         >
                             <Globe size={13} style={{ color: 'var(--pub-saffron)' }} />
                             {lang === 'kn' ? (

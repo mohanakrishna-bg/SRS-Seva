@@ -113,7 +113,7 @@ export default function PanchangaModal({
                     <button
                         onClick={onClose}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-xs font-black transition-all shadow-md hover:shadow-lg cursor-pointer"
-                        title="ಪಂಚಾಂಗ ವೀಕ್ಷಕ ಮುಚ್ಚಿ (Close Viewer)"
+                        title="ಪಂಚಾಂಗ ವೀಕ್ಷಕ ಮುಚ್ಚಿ"
                         aria-label="Close Panchanga PDF viewer"
                     >
                         <X size={15} />

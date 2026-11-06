@@ -124,7 +124,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                     <button
                         onClick={() => setIsMaximized(true)}
                         className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors cursor-pointer"
-                        title="ದೊಡ್ಡ ಪರದೆಯಲ್ಲಿ ವೀಕ್ಷಿಸಿ (Maximize)"
+                        title="ದೊಡ್ಡ ಪರದೆಯಲ್ಲಿ ವೀಕ್ಷಿಸಿ"
                     >
                         <Maximize2 size={16} />
                     </button>
@@ -363,7 +363,7 @@ export default function DaysHighlightsCard({ date, onRegisterSpecialEvent }: Day
                                     onClick={() => setIsMaximized(false)}
                                     className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold hover:brightness-110 transition-all shadow-md"
                                 >
-                                    ಹಿಂದೆ (Back)
+                                    ಹಿಂದೆ
                                 </button>
                             </div>
                         </motion.div>

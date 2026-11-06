@@ -19,7 +19,7 @@ import {
     AlertCircle,
     Share2
 } from 'lucide-react';
-import api, { sevaReportsApi } from '../../api';
+import { statsApi, sevaReportsApi } from '../../api';
 import { useToast } from '../Toast';
 
 // ─── Scalable Report Registry Types ───
@@ -121,18 +121,18 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
     {
         id: 'financial_summary',
         category: 'financial',
-        titleKn: 'ದೈನಂದಿನ ಹಣಕಾಸು ಮತ್ತು ಪಾವತಿ ವಿವರ',
-        titleEn: 'Daily Financial & Payment Summary',
-        printTitleKn: 'ದೈನಂದಿನ ಹಣಕಾಸು ಸಾರಾಂಶ',
-        subtitleKn: 'ದಿನದ ಒಟ್ಟು ನಗದು/ಬ್ಯಾಂಕ್/ಯುಪಿಐ ಸಂಗ್ರಹ, ಆದಾಯ ಹಾಗೂ ವೆಚ್ಚದ ಸಾರಾಂಶ',
-        subtitleEn: 'Cash/UPI/Bank breakdown, total income and day expenses',
+        titleKn: 'ದೈನಂದಿನ / ಅವಧಿಯ ಹಣಕಾಸು ಮತ್ತು ಪಾವತಿ ವಿವರ',
+        titleEn: 'Financial & Payment Summary',
+        printTitleKn: 'ಹಣಕಾಸು ಸಾರಾಂಶ',
+        subtitleKn: 'ಆಯ್ದ ದಿನ ಅಥವಾ ಅವಧಿಯ ಒಟ್ಟು ನಗದು/ಬ್ಯಾಂಕ್/ಯುಪಿಐ ಸಂಗ್ರಹ, ಆದಾಯ ಹಾಗೂ ವೆಚ್ಚದ ಸಾರಾಂಶ',
+        subtitleEn: 'Cash/UPI/Bank breakdown, total income and expenses for day or range',
         audience: 'accounts',
         audienceLabelKn: 'ಲೆಕ್ಕಪತ್ರ',
         audienceLabelEn: 'Accounts',
         badgeColor: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30',
         icon: PieChart,
         defaultDateMode: 'today',
-        supportsDateRange: false,
+        supportsDateRange: true,
         supportsDateType: false
     },
     {
@@ -155,18 +155,37 @@ export const REPORTS_REGISTRY: ReportDefinition[] = [
 ];
 
 // ─── Helpers ───
+const formatLocalDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 const getTomorrowIso = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return formatLocalDate(d);
 };
 
-const getTodayIso = () => new Date().toISOString().split('T')[0];
+const getTodayIso = () => formatLocalDate(new Date());
 
 const getYesterdayIso = () => {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    return d.toISOString().split('T')[0];
+    return formatLocalDate(d);
+};
+
+const getNextNDaysIso = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return formatLocalDate(d);
+};
+
+const getLastNDaysIso = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return formatLocalDate(d);
 };
 
 const getThisWeekStartIso = () => {
@@ -174,12 +193,12 @@ const getThisWeekStartIso = () => {
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
     d.setDate(diff);
-    return d.toISOString().split('T')[0];
+    return formatLocalDate(d);
 };
 
 const getThisMonthStartIso = () => {
     const d = new Date();
-    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+    return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), 1));
 };
 
 const formatIsoToDisplay = (iso: string) => {
@@ -191,18 +210,26 @@ const formatIsoToDisplay = (iso: string) => {
 
 function generatePriestWhatsAppText(data: any): string {
     if (!data) return '';
+    const isSingle = data.is_single_day || (data.start_date === data.end_date);
     let msg = `🚩 *ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ, ಟಿ.ಕೆ. ಬಡಾವಣೆ, ಮೈಸೂರು*\n`;
-    msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    if (isSingle) {
+        msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    } else {
+        msg += `📅 *ದಿನಾಂಕ ಅವಧಿ:* ${data.start_date_formatted || ''} ರಿಂದ ${data.end_date_formatted || ''}\n`;
+    }
     msg += `📜 *ಅರ್ಚಕರ ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ*\n`;
     msg += `ಒಟ್ಟು ಸೇವೆಗಳು: ${data.total_bookings || 0} | ಸೇವಾರ್ಥಿಗಳು: ${data.total_devotees || 0}\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
 
     data.days?.forEach((day: any) => {
+        if (!isSingle) {
+            msg += `\n📅 *ದಿನಾಂಕ: ${day.formatted_date || day.iso_date} (${day.day_kannada || ''})* [${day.day_total_bookings || 0} ಸಂಕಲ್ಪಗಳು]\n`;
+        }
         day.sevas?.forEach((seva: any) => {
-            msg += `\n✨ *${seva.description}* (${seva.total_bookings} ಭಕ್ತರು):\n`;
+            msg += `\n✨ *${seva.seva_name || seva.description}* (${seva.total_bookings} ಭಕ್ತರು):\n`;
             seva.bookings?.forEach((b: any, idx: number) => {
-                msg += `${idx + 1}. *${b.devotee_name}* | ಗೋತ್ರ: ${b.gotra || '-'} | ನಕ್ಷತ್ರ: ${b.nakshatra || '-'}`;
-                if (b.phone) msg += ` | 📞 ${b.phone}`;
+                msg += `${idx + 1}. *${b.devotee_name}* | ಗೋತ್ರ: ${b.gothra || b.gotra || '-'} | ನಕ್ಷತ್ರ: ${b.nakshatra || '-'}`;
+                if (b.phone && b.phone !== '—') msg += ` | 📞 ${b.phone}`;
                 msg += `\n`;
             });
         });
@@ -215,17 +242,25 @@ function generatePriestWhatsAppText(data: any): string {
 
 function generateKitchenWhatsAppText(data: any): string {
     if (!data) return '';
+    const isSingle = data.is_single_day || (data.start_date === data.end_date);
     let msg = `🍲 *ಶ್ರೀ ಗುರು ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿ ಮಠ, ಟಿ.ಕೆ. ಬಡಾವಣೆ, ಮೈಸೂರು*\n`;
-    msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    if (isSingle) {
+        msg += `📅 *ದಿನಾಂಕ:* ${data.start_date_formatted || ''} (${data.days?.[0]?.day_kannada || ''})\n`;
+    } else {
+        msg += `📅 *ದಿನಾಂಕ ಅವಧಿ:* ${data.start_date_formatted || ''} ರಿಂದ ${data.end_date_formatted || ''}\n`;
+    }
     msg += `🍚 *ಪಾಕಶಾಲೆ ಹಸ್ತೋದಕ ತಯಾರಿಕಾ ಲೆಕ್ಕ*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
     const dineInTotal = data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0));
-    msg += `• ಊಟದ ಹಸ್ತೋದಕ (Dine-in): ${dineInTotal} (ಉಚಿತ: ${data.grand_total_free_hastodaka || 0}, ಹೆಚ್ಚುವರಿ: ${data.grand_total_additional_hastodaka || 0})\n`;
-    msg += `• ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels): ${data.grand_total_parcel_hastodaka || 0} ಪ್ಯಾಕೆಟ್\n`;
+    msg += `• ಊಟದ ಹಸ್ತೋದಕ: ${dineInTotal} (ಉಚಿತ: ${data.grand_total_free_hastodaka || 0}, ಹೆಚ್ಚುವರಿ: ${data.grand_total_additional_hastodaka || 0})\n`;
+    msg += `• ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ: ${data.grand_total_parcel_hastodaka || 0} ಪ್ಯಾಕೆಟ್\n`;
     msg += `👉 *ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು:* *${data.grand_total_hastodaka || 0}*\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
 
     data.days?.forEach((day: any) => {
+        if (!isSingle) {
+            msg += `\n📅 *ದಿನಾಂಕ: ${day.formatted_date || day.iso_date} (${day.day_kannada || ''})* [ಒಟ್ಟು: ${day.day_total || 0}]\n`;
+        }
         day.sevas?.forEach((s: any, idx: number) => {
             if (s.total_hastodaka > 0) {
                 const pText = s.parcel_hastodaka ? ` | ಪಾರ್ಸಲ್: ${s.parcel_hastodaka}` : '';
@@ -242,7 +277,7 @@ function generateKitchenWhatsAppText(data: any): string {
 function exportReportToCsv(reportId: string, data: any, startDate: string, endDate: string) {
     if (!data) return;
     let csvContent = '\uFEFF'; // UTF-8 BOM for Excel
-    const filename = `${reportId}_${startDate}.csv`;
+    const filename = startDate === endDate ? `${reportId}_${startDate}.csv` : `${reportId}_${startDate}_to_${endDate}.csv`;
 
     if (reportId === 'daily_priest') {
         csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವಾ ಹೆಸರು,ಭಕ್ತರ ಹೆಸರು,ಗೋತ್ರ,ನಕ್ಷತ್ರ,ಮೊಬೈಲ್,ರಸೀದಿ ಸಂಖ್ಯೆ,ಸೇವಾ ದಿನಾಂಕ\n';
@@ -252,25 +287,26 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
                 seva.bookings?.forEach((b: any) => {
                     const row = [
                         count++,
-                        `"${(seva.description || '').replace(/"/g, '""')}"`,
+                        `"${(seva.seva_name || seva.description || '').replace(/"/g, '""')}"`,
                         `"${(b.devotee_name || '').replace(/"/g, '""')}"`,
-                        `"${(b.gotra || '').replace(/"/g, '""')}"`,
+                        `"${(b.gothra || b.gotra || '').replace(/"/g, '""')}"`,
                         `"${(b.nakshatra || '').replace(/"/g, '""')}"`,
                         `"${(b.phone || '').replace(/"/g, '""')}"`,
                         `"${(b.voucher_no || '').replace(/"/g, '""')}"`,
-                        `"${b.date_formatted || startDate}"`
+                        `"${b.date_formatted || day.formatted_date || startDate}"`
                     ];
                     csvContent += row.join(',') + '\n';
                 });
             });
         });
     } else if (reportId === 'daily_kitchen') {
-        csvContent += 'ಕ್ರಮ ಸಂ.,ಸೇವೆಯ ಹೆಸರು,ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ,ಒಳಗೊಂಡ ಹಸ್ತೋದಕ,ಉಚಿತ ಹಸ್ತೋದಕ,ಹೆಚ್ಚುವರಿ ಊಟ,ಪಾರ್ಸಲ್,ಒಟ್ಟು ಊಟಗಳು\n';
+        csvContent += 'ಕ್ರಮ ಸಂ.,ದಿನಾಂಕ,ಸೇವೆಯ ಹೆಸರು,ಬುಕಿಂಗ್ ಸಂಖ್ಯೆ,ಒಳಗೊಂಡ ಹಸ್ತೋದಕ,ಉಚಿತ ಹಸ್ತೋದಕ,ಹೆಚ್ಚುವರಿ ಊಟ,ಪಾರ್ಸಲ್,ಒಟ್ಟು ಊಟಗಳು\n';
         let count = 1;
         data.days?.forEach((day: any) => {
             day.sevas?.forEach((s: any) => {
                 const row = [
                     count++,
+                    `"${day.formatted_date || day.iso_date || startDate}"`,
                     `"${(s.seva_name || '').replace(/"/g, '""')}"`,
                     s.booking_count || 0,
                     s.tp_qty_per_booking || s.free_qty_per_seva || 0,
@@ -291,11 +327,11 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
                 seva.bookings?.forEach((b: any) => {
                     const row = [
                         count++,
-                        `"${day.date_formatted || ''}"`,
-                        `"${(seva.description || '').replace(/"/g, '""')}"`,
+                        `"${day.date_formatted || day.formatted_date || ''}"`,
+                        `"${(seva.seva_name || seva.description || '').replace(/"/g, '""')}"`,
                         `"${(b.devotee_name || '').replace(/"/g, '""')}"`,
                         `"${(b.phone || '').replace(/"/g, '""')}"`,
-                        `"${(b.gotra || '').replace(/"/g, '""')}"`,
+                        `"${(b.gothra || b.gotra || '').replace(/"/g, '""')}"`,
                         `"${(b.nakshatra || '').replace(/"/g, '""')}"`,
                         `"${(b.voucher_no || '').replace(/"/g, '""')}"`,
                         b.grand_total || 0,
@@ -305,6 +341,14 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
                 });
             });
         });
+    } else if (reportId === 'financial_summary') {
+        csvContent += 'ಪಾವತಿ ವಿಧಾನ,ಎಣಿಕೆ,ಮೊತ್ತ\n';
+        Object.entries(data.payment_breakdown || {}).forEach(([mode, d]: [string, any]) => {
+            csvContent += `"${mode}",${d.count || 0},${d.total || 0}\n`;
+        });
+        csvContent += `\nಒಟ್ಟು ಸೇವೆಗಳು,${data.total_registrations || 0}\n`;
+        csvContent += `ಒಟ್ಟು ಆದಾಯ,${data.total_income || 0}\n`;
+        csvContent += `ಒಟ್ಟು ವೆಚ್ಚ,${data.total_expense || 0}\n`;
     } else {
         csvContent += 'ಮಾಹಿತಿ,ಮೌಲ್ಯ\n';
         csvContent += `ವರದಿ,"${reportId}"\n`;
@@ -341,6 +385,10 @@ export default function SevaReportsTab() {
     // Data and state
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [reportData, setReportData] = useState<any>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
+    const abortControllerRef = React.useRef<AbortController | null>(null);
+    const safetyTimerRef = React.useRef<any>(null);
 
     const activeReport = useMemo(() => {
         return REPORTS_REGISTRY.find(r => r.id === activeReportId) || REPORTS_REGISTRY[0];
@@ -368,61 +416,108 @@ export default function SevaReportsTab() {
         }
     };
 
-    // Fetch report data
+    // Fetch report data with resilient timeout and cancellation
     const fetchReport = async () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
+        if (safetyTimerRef.current) {
+            clearTimeout(safetyTimerRef.current);
+        }
+
         setIsLoading(true);
+        setFetchError(null);
+
+        // Safety fallback: if request takes longer than 18s, stop spinner and present retry
+        safetyTimerRef.current = setTimeout(() => {
+            if (abortControllerRef.current === controller) {
+                controller.abort();
+                setIsLoading(false);
+                setFetchError('ವರದಿ ಪಡೆಯುವ ಸಮಯ ಮೀರಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.');
+            }
+        }, 18000);
+
         try {
+            const effEndDate = activeReport.supportsDateRange ? (endDate || startDate) : startDate;
+            const config = { signal: controller.signal };
+
+            let resData: any = null;
             if (activeReport.id === 'daily_priest') {
                 const res = await sevaReportsApi.getSevaBookings({
                     start_date: startDate,
                     end_date: startDate,
                     report_type: 'daily_priest',
                     date_type: 'SevaDate'
-                });
-                setReportData(res.data);
+                }, config);
+                resData = res.data;
             } else if (activeReport.id === 'daily_kitchen') {
                 const res = await sevaReportsApi.getHastodaka({
                     start_date: startDate,
                     end_date: startDate
-                });
-                setReportData(res.data);
+                }, config);
+                resData = res.data;
             } else if (activeReport.id === 'on_demand_full') {
                 const res = await sevaReportsApi.getSevaBookings({
                     start_date: startDate,
-                    end_date: endDate || startDate,
+                    end_date: effEndDate,
                     report_type: 'on_demand_full',
                     date_type: dateType
-                });
-                setReportData(res.data);
+                }, config);
+                resData = res.data;
             } else if (activeReport.id === 'hastodaka_distribution') {
                 const res = await sevaReportsApi.getHastodaka({
                     start_date: startDate,
-                    end_date: endDate || startDate
-                });
-                setReportData(res.data);
+                    end_date: effEndDate
+                }, config);
+                resData = res.data;
             } else if (activeReport.id === 'financial_summary') {
-                const parts = startDate.split('-');
-                const ddmmyy = parts.length === 3 ? `${parts[2]}${parts[1]}${parts[0].slice(-2)}` : '';
-                const res = await api.get(`/stats/daily-summary?date=${ddmmyy}`);
-                setReportData(res.data);
+                const res = await statsApi.dailySummary(startDate, effEndDate, config);
+                resData = res.data;
             } else if (activeReport.id === 'exigency_exceptions') {
                 const res = await sevaReportsApi.getExigencyExceptions({
                     start_date: startDate,
-                    end_date: endDate || startDate
-                });
-                setReportData(res.data);
+                    end_date: effEndDate
+                }, config);
+                resData = res.data;
+            }
+
+            if (abortControllerRef.current === controller) {
+                setReportData(resData);
+                setFetchError(null);
             }
         } catch (err: any) {
+            if (err?.name === 'CanceledError' || err?.name === 'AbortError' || err?.code === 'ERR_CANCELED') {
+                return;
+            }
             console.error('Error fetching report:', err);
-            showToast('error', 'ವರದಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ (Failed to fetch report)');
-            setReportData(null);
+            if (abortControllerRef.current === controller) {
+                setFetchError('ವರದಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.');
+                showToast('error', 'ವರದಿಯನ್ನು ಪಡೆಯಲು ವಿಫಲವಾಗಿದೆ');
+                setReportData(null);
+            }
         } finally {
-            setIsLoading(false);
+            if (safetyTimerRef.current) {
+                clearTimeout(safetyTimerRef.current);
+            }
+            if (abortControllerRef.current === controller) {
+                setIsLoading(false);
+            }
         }
     };
 
     useEffect(() => {
         fetchReport();
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            if (safetyTimerRef.current) {
+                clearTimeout(safetyTimerRef.current);
+            }
+        };
     }, [activeReportId, startDate, endDate, dateType]);
 
     // Accordion expand/collapse
@@ -501,13 +596,13 @@ export default function SevaReportsTab() {
                     {!sidebarCollapsed && (
                         <div className="flex items-center gap-2 font-bold text-[var(--text-primary)]">
                             <FileSpreadsheet size={18} className="text-[var(--primary)]" />
-                            <span className="text-base tracking-tight">ವರದಿಗಳ ಪಟ್ಟಿ (Reports)</span>
+                            <span className="text-base tracking-tight">ವರದಿಗಳ ಪಟ್ಟಿ</span>
                         </div>
                     )}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                         className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                        title={sidebarCollapsed ? 'ಪಟ್ಟಿಯನ್ನು ವಿಸ್ತರಿಸಿ (Expand Reports)' : 'ಪಟ್ಟಿಯನ್ನು ಮರೆಮಾಡಿ (Collapse)'}
+                        title={sidebarCollapsed ? 'ಪಟ್ಟಿಯನ್ನು ವಿಸ್ತರಿಸಿ' : 'ಪಟ್ಟಿಯನ್ನು ಮರೆಮಾಡಿ'}
                     >
                         {sidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
                     </button>
@@ -521,7 +616,7 @@ export default function SevaReportsTab() {
                             type="text"
                             value={reportSearchQuery}
                             onChange={(e) => setReportSearchQuery(e.target.value)}
-                            placeholder="ವರದಿ ಹುಡುಕಿ / Search reports..."
+                            placeholder="ವರದಿ ಹುಡುಕಿ..."
                             className="w-full pl-9 pr-3 py-2 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
                         />
                     </div>
@@ -538,7 +633,6 @@ export default function SevaReportsTab() {
                                 {!sidebarCollapsed && (
                                     <div className="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-secondary)]/80 flex items-center justify-between">
                                         <span>{CATEGORY_LABELS[category].kn}</span>
-                                        <span className="text-[10px] font-normal">{CATEGORY_LABELS[category].en}</span>
                                     </div>
                                 )}
                                 <div className="space-y-1">
@@ -550,7 +644,7 @@ export default function SevaReportsTab() {
                                             <button
                                                 key={report.id}
                                                 onClick={() => handleSelectReport(report)}
-                                                title={sidebarCollapsed ? `${report.titleKn} (${report.titleEn})` : undefined}
+                                                title={sidebarCollapsed ? report.titleKn : undefined}
                                                 className={`w-full text-left rounded-xl transition-all flex items-start gap-2.5 ${
                                                     sidebarCollapsed 
                                                         ? 'p-2.5 justify-center' 
@@ -576,9 +670,6 @@ export default function SevaReportsTab() {
                                                                 {report.titleKn}
                                                             </div>
                                                         </div>
-                                                        <div className={`text-[11px] truncate ${isSelected ? 'text-white/80' : 'text-[var(--text-secondary)]'}`}>
-                                                            {report.titleEn}
-                                                        </div>
                                                         <div className="mt-1 flex items-center gap-1.5">
                                                             <span className={`text-[9px] px-1.5 py-0.5 rounded-md border font-medium ${
                                                                 isSelected 
@@ -600,7 +691,7 @@ export default function SevaReportsTab() {
 
                     {filteredRegistry.length === 0 && !sidebarCollapsed && (
                         <div className="text-center py-6 text-xs text-[var(--text-secondary)]">
-                            ಯಾವುದೇ ವರದಿ ಕಂಡುಬಂದಿಲ್ಲ (No reports found)
+                            ಯಾವುದೇ ವರದಿ ಕಂಡುಬಂದಿಲ್ಲ
                         </div>
                     )}
                 </div>
@@ -626,11 +717,11 @@ export default function SevaReportsTab() {
                                         {activeReport.titleKn}
                                     </h2>
                                     <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${activeReport.badgeColor}`}>
-                                        {activeReport.audienceLabelKn} ({activeReport.audienceLabelEn})
+                                        {activeReport.audienceLabelKn}
                                     </span>
                                 </div>
                                 <p className="text-xs text-[var(--text-secondary)]">
-                                    {activeReport.titleEn} — {activeReport.subtitleKn}
+                                    {activeReport.subtitleKn}
                                 </p>
                             </div>
                         </div>
@@ -640,13 +731,13 @@ export default function SevaReportsTab() {
                                 onClick={fetchReport}
                                 disabled={isLoading}
                                 className="p-2 border border-[var(--glass-border)] rounded-xl text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                                title="ವರದಿ ಮರುಲೋಡ್ ಮಾಡಿ (Refresh)"
+                                title="ವರದಿ ಮರುಲೋಡ್ ಮಾಡಿ"
                             >
                                 <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
                             </button>
 
                             <button
-                                onClick={() => exportReportToCsv(activeReport.id, reportData, startDate, endDate)}
+                                onClick={() => exportReportToCsv(activeReport.id, reportData, startDate, activeReport.supportsDateRange ? endDate : startDate)}
                                 disabled={!reportData}
                                 className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
                                 title="CSV / Excel ಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
@@ -674,10 +765,10 @@ export default function SevaReportsTab() {
                                     }}
                                     disabled={!reportData}
                                     className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-green-600/20 cursor-pointer disabled:opacity-50"
-                                    title="ವಾಟ್ಸಾಪ್‌ಗೆ ಕಳುಹಿಸಿ (Share via WhatsApp)"
+                                    title="ವಾಟ್ಸಾಪ್‌ಗೆ ಕಳುಹಿಸಿ"
                                 >
                                     <Share2 size={16} />
-                                    <span>ವಾಟ್ಸಾಪ್ (WhatsApp)</span>
+                                    <span>ವಾಟ್ಸಾಪ್</span>
                                 </button>
                             )}
 
@@ -685,7 +776,7 @@ export default function SevaReportsTab() {
                                 onClick={handlePrint}
                                 className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[var(--primary)]/20 cursor-pointer"
                             >
-                                <Printer size={16} /> ಮುದ್ರಿಸಿ (Print)
+                                <Printer size={16} /> ಮುದ್ರಿಸಿ
                             </button>
                         </div>
                     </div>
@@ -694,24 +785,24 @@ export default function SevaReportsTab() {
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                         
                         {/* Date Controls */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            
+                        <div className="flex flex-wrap items-center gap-2.5">
+
                             {/* Quick Shortcuts */}
                             {activeReport.supportsDateRange ? (
-                                <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-[var(--glass-border)]">
+                                <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-[var(--glass-border)] overflow-x-auto">
                                     <button
                                         onClick={() => {
                                             const today = getTodayIso();
                                             setStartDate(today);
                                             setEndDate(today);
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
                                             startDate === getTodayIso() && endDate === getTodayIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ಇಂದು (Today)
+                                        ಇಂದು
                                     </button>
                                     <button
                                         onClick={() => {
@@ -719,39 +810,65 @@ export default function SevaReportsTab() {
                                             setStartDate(tomorrow);
                                             setEndDate(tomorrow);
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
                                             startDate === getTomorrowIso() && endDate === getTomorrowIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ನಾಳೆ (Tomorrow)
+                                        ನಾಳೆ
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setStartDate(getTodayIso());
+                                            setEndDate(getNextNDaysIso(3));
+                                        }}
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
+                                            startDate === getTodayIso() && endDate === getNextNDaysIso(3)
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
+                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                        }`}
+                                    >
+                                        ಮುಂದಿನ 3 ದಿನ
                                     </button>
                                     <button
                                         onClick={() => {
                                             setStartDate(getThisWeekStartIso());
                                             setEndDate(getTomorrowIso());
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
                                             startDate === getThisWeekStartIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ಈ ವಾರ (This Week)
+                                        ಈ ವಾರ
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setStartDate(getLastNDaysIso(7));
+                                            setEndDate(getTodayIso());
+                                        }}
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
+                                            startDate === getLastNDaysIso(7) && endDate === getTodayIso()
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
+                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                        }`}
+                                    >
+                                        ಕಳೆದ 7 ದಿನ
                                     </button>
                                     <button
                                         onClick={() => {
                                             setStartDate(getThisMonthStartIso());
                                             setEndDate(getTomorrowIso());
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2 py-1 text-xs rounded-lg transition-colors font-medium whitespace-nowrap cursor-pointer ${
                                             startDate === getThisMonthStartIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ಈ ತಿಂಗಳು (This Month)
+                                        ಈ ತಿಂಗಳು
                                     </button>
                                 </div>
                             ) : (
@@ -762,13 +879,13 @@ export default function SevaReportsTab() {
                                             setStartDate(tomorrow);
                                             setEndDate(tomorrow);
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium cursor-pointer ${
                                             startDate === getTomorrowIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ಮಾರನೆಯ ದಿನ (Tomorrow)
+                                        ಮಾರನೆಯ ದಿನ
                                     </button>
                                     <button
                                         onClick={() => {
@@ -776,13 +893,13 @@ export default function SevaReportsTab() {
                                             setStartDate(today);
                                             setEndDate(today);
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium cursor-pointer ${
                                             startDate === getTodayIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ಇಂದು (Today)
+                                        ಇಂದು
                                     </button>
                                     <button
                                         onClick={() => {
@@ -790,13 +907,13 @@ export default function SevaReportsTab() {
                                             setStartDate(yesterday);
                                             setEndDate(yesterday);
                                         }}
-                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium ${
+                                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors font-medium cursor-pointer ${
                                             startDate === getYesterdayIso()
-                                                ? 'bg-[var(--primary)] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-xs'
                                                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                                         }`}
                                     >
-                                        ನಿನ್ನೆ (Yesterday)
+                                        ನಿನ್ನೆ
                                     </button>
                                 </div>
                             )}
@@ -804,9 +921,9 @@ export default function SevaReportsTab() {
                             {/* Date Pickers */}
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl text-xs">
-                                    <Calendar size={14} className="text-[var(--primary)]" />
-                                    <span className="text-[11px] text-[var(--text-secondary)]">
-                                        {activeReport.supportsDateRange ? 'ಆರಂಭ (From):' : 'ದಿನಾಂಕ (Date):'}
+                                    <Calendar size={14} className="text-[var(--primary)] shrink-0" />
+                                    <span className="text-[11px] text-[var(--text-secondary)] font-medium">
+                                        {activeReport.supportsDateRange ? 'ಆರಂಭ ದಿನಾಂಕ:' : 'ದಿನಾಂಕ:'}
                                     </span>
                                     <input
                                         type="date"
@@ -823,7 +940,8 @@ export default function SevaReportsTab() {
 
                                 {activeReport.supportsDateRange && (
                                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl text-xs">
-                                        <span className="text-[11px] text-[var(--text-secondary)]">ಅಂತ್ಯ (To):</span>
+                                        <Calendar size={14} className="text-[var(--primary)] shrink-0" />
+                                        <span className="text-[11px] text-[var(--text-secondary)] font-medium">ಅಂತ್ಯ ದಿನಾಂಕ:</span>
                                         <input
                                             type="date"
                                             value={endDate}
@@ -836,17 +954,17 @@ export default function SevaReportsTab() {
                                 {/* Date Type Filter for Bookings */}
                                 {activeReport.supportsDateType && (
                                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl text-xs">
-                                        <span className="text-[11px] text-[var(--text-secondary)]">ಆಧಾರ:</span>
+                                        <span className="text-[11px] text-[var(--text-secondary)] font-medium">ಆಧಾರ:</span>
                                         <select
                                             value={dateType}
                                             onChange={(e) => setDateType(e.target.value as any)}
                                             className="bg-transparent text-xs font-semibold focus:outline-none text-[var(--text-primary)] cursor-pointer"
                                         >
                                             <option value="SevaDate" className="bg-[var(--bg-dark)] text-[var(--text-primary)]">
-                                                ಸೇವಾ ದಿನಾಂಕ (Seva Date)
+                                                ಸೇವಾ ದಿನಾಂಕ
                                             </option>
                                             <option value="RegistrationDate" className="bg-[var(--bg-dark)] text-[var(--text-primary)]">
-                                                ನೋಂದಣಿ ದಿನಾಂಕ (Registration Date)
+                                                ನೋಂದಣಿ ದಿನಾಂಕ
                                             </option>
                                         </select>
                                     </div>
@@ -864,7 +982,7 @@ export default function SevaReportsTab() {
                                             type="text"
                                             value={tableFilter}
                                             onChange={(e) => setTableFilter(e.target.value)}
-                                            placeholder="ವರದಿಯಲ್ಲಿ ಹುಡುಕಿ (Filter table)..."
+                                            placeholder="ವರದಿಯಲ್ಲಿ ಹುಡುಕಿ..."
                                             className="pl-7 pr-3 py-1 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] w-48"
                                         />
                                     </div>
@@ -899,7 +1017,7 @@ export default function SevaReportsTab() {
                             {activeReport.printTitleKn || activeReport.titleKn}
                         </h1>
                         <p className="text-sm font-bold text-black mt-1">
-                            {startDate === endDate 
+                            {!activeReport.supportsDateRange || startDate === endDate 
                                 ? `ದಿನಾಂಕ: ${formatIsoToDisplay(startDate)}`
                                 : `ದಿನಾಂಕ: ${formatIsoToDisplay(startDate)} ರಿಂದ ${formatIsoToDisplay(endDate)}`}
                         </p>
@@ -908,12 +1026,25 @@ export default function SevaReportsTab() {
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center h-64 text-[var(--text-secondary)] gap-2">
                             <RefreshCw size={24} className="animate-spin text-[var(--primary)]" />
-                            <span className="text-sm font-semibold">ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ... (Generating report...)</span>
+                            <span className="text-sm font-semibold">ವರದಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...</span>
+                        </div>
+                    ) : fetchError ? (
+                        <div className="flex flex-col items-center justify-center h-64 text-[var(--text-secondary)] gap-3">
+                            <AlertCircle size={36} className="text-rose-500" />
+                            <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                                {fetchError}
+                            </span>
+                            <button
+                                onClick={fetchReport}
+                                className="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[var(--primary)]/20 cursor-pointer flex items-center gap-2"
+                            >
+                                <RefreshCw size={14} /> ಪುನಃ ಪ್ರಯತ್ನಿಸಿ
+                            </button>
                         </div>
                     ) : !reportData ? (
                         <div className="flex flex-col items-center justify-center h-64 text-[var(--text-secondary)]">
                             <AlertCircle size={32} className="mb-2 text-amber-500" />
-                            <span>ಯಾವುದೇ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ (No data available)</span>
+                            <span>ಯಾವುದೇ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ</span>
                         </div>
                     ) : (
                         <div>
@@ -953,7 +1084,12 @@ export default function SevaReportsTab() {
                             )}
 
                             {activeReport.id === 'financial_summary' && (
-                                <FinancialSummaryReportView data={reportData} selectedDate={startDate} />
+                                <FinancialSummaryReportView 
+                                    data={reportData} 
+                                    selectedDate={startDate} 
+                                    endDate={endDate} 
+                                    isDateRange={startDate !== endDate} 
+                                />
                             )}
 
                             {activeReport.id === 'exigency_exceptions' && (
@@ -1043,7 +1179,7 @@ function PriestSankalpaReportView({
             {/* Top KPI Cards (SCREEN ONLY - hidden in print) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 print:hidden">
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ದಿನಾಂಕ (Pooja Date)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ದಿನಾಂಕ</div>
                     <div className="text-lg font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted}
                     </div>
@@ -1053,14 +1189,14 @@ function PriestSankalpaReportView({
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸಂಕಲ್ಪ ಸೇವೆಗಳು (Total Sevas)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸಂಕಲ್ಪ ಸೇವೆಗಳು</div>
                     <div className="text-2xl font-bold text-[var(--primary)]">
                         {data.total_bookings}
                     </div>
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸೇವಾರ್ಥಿಗಳು (Sevakartas)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸೇವಾರ್ಥಿಗಳು</div>
                     <div className="text-2xl font-bold text-emerald-600">
                         {data.total_devotees}
                     </div>
@@ -1159,7 +1295,7 @@ function PriestSankalpaReportView({
                                                                     <span>{b.devotee_name}</span>
                                                                     {b.is_late_addition && (
                                                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 print:border-black print:text-black print:bg-gray-100">
-                                                                            ತಾಜಾ ಸೇರ್ಪಡೆ (Late Addition)
+                                                                            ತಾಜಾ ಸೇರ್ಪಡೆ
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -1212,7 +1348,7 @@ function PriestSankalpaReportView({
                     <div className="text-[10px] text-gray-600">ಕಚೇರಿ ದಿನಾಂಕ & ಸಮಯ</div>
                 </div>
                 <div className="text-center space-y-8">
-                    <div>ಮಠದ ಮೊಹರು (Matha Seal)</div>
+                    <div>ಮಠದ ಮೊಹರು</div>
                     <div className="text-[10px] text-gray-600">ಶ್ರೀ ರಾಘವೇಂದ್ರ ಸ್ವಾಮಿಗಳ ಸೇವಾ ಟ್ರಸ್ಟ್</div>
                 </div>
                 <div className="text-right space-y-8">
@@ -1242,7 +1378,7 @@ function KitchenHastodakaReportView({
             {/* Top Kitchen KPI Cards (SCREEN ONLY - hidden in print) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸಿದ್ಧತೆಯ ದಿನಾಂಕ (Date)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಸಿದ್ಧತೆಯ ದಿನಾಂಕ</div>
                     <div className="text-lg font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted}
                     </div>
@@ -1252,7 +1388,7 @@ function KitchenHastodakaReportView({
                 </div>
 
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ (Dine-in Meals)</div>
+                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0))}
                     </div>
@@ -1260,7 +1396,7 @@ function KitchenHastodakaReportView({
                 </div>
 
                 <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels)</div>
+                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                         {data.grand_total_parcel_hastodaka || 0}
                     </div>
@@ -1269,7 +1405,7 @@ function KitchenHastodakaReportView({
 
                 <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl shadow-lg shadow-emerald-500/10">
                     <div className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-300">
-                        ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು (Total Meals)
+                        ಒಟ್ಟು ತಯಾರಿಸಬೇಕಾದ ಊಟಗಳು
                     </div>
                     <div className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
                         {data.grand_total_hastodaka}
@@ -1414,7 +1550,7 @@ function OnDemandBookingsReportView({
             {/* Summary Cards (SCREEN ONLY - hidden in print) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ (Period)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ</div>
                     <div className="text-sm font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted} ರಿಂದ {data.end_date_formatted}
                     </div>
@@ -1424,17 +1560,17 @@ function OnDemandBookingsReportView({
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸೇವೆಗಳು (Bookings)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಸೇವೆಗಳು</div>
                     <div className="text-2xl font-bold text-[var(--primary)]">{data.total_bookings}</div>
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಭಕ್ತರು (Devotees)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಒಟ್ಟು ಭಕ್ತರು</div>
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{data.total_devotees}</div>
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ (Extra)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಹೆಚ್ಚುವರಿ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{data.total_additional_hastodaka}</div>
                 </div>
             </div>
@@ -1660,7 +1796,7 @@ function HastodakaDistributionReportView({
             {/* Distribution Summary Cards (SCREEN ONLY - hidden in print) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:hidden">
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ವರದಿ ಅವಧಿ (Period)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ವರದಿ ಅವಧಿ</div>
                     <div className="text-sm font-bold text-[var(--text-primary)]">
                         {data.start_date_formatted} ರಿಂದ {data.end_date_formatted}
                     </div>
@@ -1670,7 +1806,7 @@ function HastodakaDistributionReportView({
                 </div>
 
                 <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ (Dine-in)</div>
+                    <div className="text-[11px] font-bold uppercase text-blue-700 dark:text-blue-400">ಊಟದ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                         {data.grand_total_dine_in ?? ((data.grand_total_free_hastodaka || 0) + (data.grand_total_additional_hastodaka || 0))}
                     </div>
@@ -1678,7 +1814,7 @@ function HastodakaDistributionReportView({
                 </div>
 
                 <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ (Parcels)</div>
+                    <div className="text-[11px] font-bold uppercase text-purple-700 dark:text-purple-400">ಪಾರ್ಸಲ್ ಹಸ್ತೋದಕ</div>
                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">
                         {data.grand_total_parcel_hastodaka || 0}
                     </div>
@@ -1687,7 +1823,7 @@ function HastodakaDistributionReportView({
 
                 <div className="p-4 bg-emerald-500/15 border-2 border-emerald-500/40 rounded-2xl">
                     <div className="text-[11px] font-bold uppercase text-emerald-800 dark:text-emerald-300">
-                        ಅವಧಿಯ ಒಟ್ಟು ಹಸ್ತೋದಕ (Grand Total)
+                        ಅವಧಿಯ ಒಟ್ಟು ಹಸ್ತೋದಕ
                     </div>
                     <div className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-400">
                         {data.grand_total_hastodaka}
@@ -1841,7 +1977,17 @@ function HastodakaDistributionReportView({
 // SUB-VIEW 5: DAILY FINANCIAL SUMMARY
 // Pure Kannada clean presentation
 // ═══════════════════════════════════════════════════════════
-function FinancialSummaryReportView({ data, selectedDate }: { data: any; selectedDate: string }) {
+function FinancialSummaryReportView({ 
+    data, 
+    selectedDate, 
+    endDate, 
+    isDateRange 
+}: { 
+    data: any; 
+    selectedDate: string; 
+    endDate?: string; 
+    isDateRange?: boolean; 
+}) {
     return (
         <div className="space-y-6 print:space-y-4">
             {/* Top KPI Cards (SCREEN ONLY - hidden in print) */}
@@ -1894,7 +2040,10 @@ function FinancialSummaryReportView({ data, selectedDate }: { data: any; selecte
                         ಪಾವತಿ ವಿಧಾನವಾರು ಸಂಗ್ರಹ
                     </h3>
                     <span className="text-xs font-mono text-[var(--text-secondary)]">
-                        ದಿನಾಂಕ: {formatIsoToDisplay(selectedDate)}
+                        {isDateRange && endDate && endDate !== selectedDate 
+                            ? `ದಿನಾಂಕ: ${formatIsoToDisplay(selectedDate)} ರಿಂದ ${formatIsoToDisplay(endDate)}`
+                            : `ದಿನಾಂಕ: ${formatIsoToDisplay(selectedDate)}`
+                        }
                     </span>
                 </div>
                 <div className="p-0">
@@ -1958,21 +2107,21 @@ function ExigencyExceptionsReportView({ data, filter }: { data: any; filter: str
             {/* Top KPI Cards (SCREEN ONLY) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 print:hidden">
                 <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-rose-500">ಒಟ್ಟು ಅಪವಾದಗಳು (Total Exceptions)</div>
+                    <div className="text-[11px] font-bold uppercase text-rose-500">ಒಟ್ಟು ಅಪವಾದಗಳು</div>
                     <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
                         {data?.total_exceptions || 0}
                     </div>
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ (Date Range)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಅವಧಿ</div>
                     <div className="text-base font-bold text-[var(--text-primary)]">
                         {data?.start_date} ರಿಂದ {data?.end_date}
                     </div>
                 </div>
 
                 <div className="p-4 bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl">
-                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಬಾಧಿತ ಸೇವಾ ಮೌಲ್ಯ (Amount Impacted)</div>
+                    <div className="text-[11px] font-bold uppercase text-[var(--text-secondary)]">ಬಾಧಿತ ಸೇವಾ ಮೌಲ್ಯ</div>
                     <div className="text-2xl font-bold text-[var(--primary)]">
                         ₹{(data?.items || []).reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0).toFixed(2)}
                     </div>
@@ -1986,7 +2135,7 @@ function ExigencyExceptionsReportView({ data, filter }: { data: any; filter: str
 
             {items.length === 0 ? (
                 <div className="text-center py-12 text-sm text-[var(--text-secondary)] border border-dashed border-[var(--glass-border)] rounded-2xl print:border-none print:text-black">
-                    ಈ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಸೇವಾ ಅಪವಾದಗಳು ದಾಖಲಾಗಿಲ್ಲ (No exceptions recorded)
+                    ಈ ಅವಧಿಯಲ್ಲಿ ಯಾವುದೇ ಸೇವಾ ಅಪವಾದಗಳು ದಾಖಲಾಗಿಲ್ಲ
                 </div>
             ) : (
                 <div className="overflow-x-auto bg-black/5 dark:bg-white/5 border border-[var(--glass-border)] rounded-2xl print:border-none">
@@ -2048,7 +2197,7 @@ function ExigencyExceptionsReportView({ data, filter }: { data: any; filter: str
             {/* Print Sign-off footer */}
             <div className="hidden print:grid grid-cols-2 gap-8 pt-8 mt-6 border-t border-black text-xs text-black break-inside-avoid">
                 <div className="text-left space-y-8">
-                    <div>ಕಚೇರಿ ಪರಿಶೀಲನೆ (Verified by): _______________</div>
+                    <div>ಕಚೇರಿ ಪರಿಶೀಲನೆ: _______________</div>
                 </div>
                 <div className="text-right space-y-8">
                     <div>ಕಾರ್ಯದರ್ಶಿ / ಟ್ರಸ್ಟಿಗಳ ಸಹಿ: _______________</div>

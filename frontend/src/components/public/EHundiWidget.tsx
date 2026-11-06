@@ -227,7 +227,7 @@ export default function EHundiWidget({ lang, t, upiId = 'pinelabs.stq3957386@pin
                                 className="text-xl md:text-2xl font-bold mt-1"
                                 style={{ color: 'var(--pub-ink)', fontFamily: 'var(--pub-font-heading)' }}
                             >
-                                {t('ಶ್ರೀ ರಾಯರ ಇ-ಹುಂಡಿ (e-Hundi)', 'Sri Rayaru e-Hundi')}
+                                {t('ಶ್ರೀ ರಾಯರ ಇ-ಹುಂಡಿ', 'Sri Rayaru e-Hundi')}
                             </h3>
                             <p className="text-xs md:text-sm text-[var(--pub-text-muted)] mt-0.5">
                                 {t(
@@ -404,7 +404,7 @@ export default function EHundiWidget({ lang, t, upiId = 'pinelabs.stq3957386@pin
                                 }}
                             >
                                 <Heart size={16} className="fill-white" />
-                                {t(`₹${payableAmount} ಕಾಣಿಕೆ ಸಲ್ಲಿಸಿ (UPI)`, `Offer ₹${payableAmount} via UPI`)}
+                                {t(`₹${payableAmount} ಕಾಣಿಕೆ ಸಲ್ಲಿಸಿ`, `Offer ₹${payableAmount} via UPI`)}
                                 <ExternalLink size={14} className="opacity-75 ml-1" />
                             </a>
 

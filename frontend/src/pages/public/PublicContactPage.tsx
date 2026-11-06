@@ -105,7 +105,7 @@ export default function PublicContactPage() {
                                         className="text-xl md:text-2xl font-bold"
                                         style={{ color: 'var(--pub-ink)', fontFamily: 'var(--pub-font-heading)' }}
                                     >
-                                        🗺️ {t('ಸ್ಥಳದ ನಕ್ಷೆ (Temple Location Map)', 'Temple Location Map')}
+                                        🗺️ {t('ಸ್ಥಳದ ನಕ್ಷೆ', 'Temple Location Map')}
                                     </h2>
                                     <p className="text-xs md:text-sm mt-0.5" style={{ color: 'var(--pub-text-muted)' }}>
                                         {t('ಮೈಸೂರಿನ ತೊಣಚಿಕೊಪ್ಪಲು (ಟಿ.ಕೆ. ಲೇಔಟ್) ನಲ್ಲಿರುವ ಶ್ರೀ ಮಠದ ನಕ್ಷೆ', 'Interactive map of Shri Matha at T.K. Layout, Mysuru')}
@@ -161,7 +161,7 @@ export default function PublicContactPage() {
                                     <MapPin size={16} className="text-[color:var(--pub-saffron)] shrink-0 mt-0.5" />
                                     <div>
                                         <span className="font-bold text-[var(--pub-ink)] block mb-0.5">
-                                            {t('ಪ್ರಮುಖ ಗುರುತು (Landmark):', 'Landmark & Neighborhood:')}
+                                            {t('ಪ್ರಮುಖ ಗುರುತು:', 'Landmark & Neighborhood:')}
                                         </span>
                                         <span>
                                             {t(
@@ -176,11 +176,11 @@ export default function PublicContactPage() {
                                     <Bus size={16} className="text-[color:var(--pub-saffron)] shrink-0 mt-0.5" />
                                     <div>
                                         <span className="font-bold text-[var(--pub-ink)] block mb-0.5">
-                                            {t('ಬಸ್ ಸಾರಿಗೆ (City Bus):', 'City Bus Transit:')}
+                                            {t('ಬಸ್ ಸಾರಿಗೆ:', 'City Bus Transit:')}
                                         </span>
                                         <span>
                                             {t(
-                                                'ಮೈಸೂರು ನಗರ ಬಸ್ ನಿಲ್ದಾಣದಿಂದ (CBS) ಟಿ.ಕೆ. ಲೇಔಟ್ / ತೊಣಚಿಕೊಪ್ಪಲು ಮಾರ್ಗದ ನೇರ ಬಸ್‌ಗಳು ಲಭ್ಯ (ಬಸ್ ನಿಲ್ದಾಣದಿಂದ ೫ ನಿಮಿಷ ನಡಿಗೆ).',
+                                                'ಮೈಸೂರು ನಗರ ಬಸ್ ನಿಲ್ದಾಣದಿಂದ ಟಿ.ಕೆ. ಲೇಔಟ್ / ತೊಣಚಿಕೊಪ್ಪಲು ಮಾರ್ಗದ ನೇರ ಬಸ್‌ಗಳು ಲಭ್ಯ (ಬಸ್ ನಿಲ್ದಾಣದಿಂದ ೫ ನಿಮಿಷ ನಡಿಗೆ).',
                                                 'Direct city buses available from Mysuru Central City Bus Stand towards T.K. Layout / Tonachikoppalu (approx. 5 min walk from bus stop).'
                                             )}
                                         </span>
@@ -191,7 +191,7 @@ export default function PublicContactPage() {
                                     <Train size={16} className="text-[color:var(--pub-saffron)] shrink-0 mt-0.5" />
                                     <div>
                                         <span className="font-bold text-[var(--pub-ink)] block mb-0.5">
-                                            {t('ರೈಲು ನಿಲ್ದಾಣ (Railway Station):', 'Railway Station Proximity:')}
+                                            {t('ರೈಲು ನಿಲ್ದಾಣ:', 'Railway Station Proximity:')}
                                         </span>
                                         <span>
                                             {t(

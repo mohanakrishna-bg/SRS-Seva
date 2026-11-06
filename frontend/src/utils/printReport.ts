@@ -30,7 +30,7 @@ export function printTabularReport<T>({
     columns,
 }: PrintReportOptions<T>) {
     if (!items || items.length === 0) {
-        alert('ಮುದ್ರಿಸಲು ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ (No records to print)');
+        alert('ಮುದ್ರಿಸಲು ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ');
         return;
     }
 
@@ -45,7 +45,7 @@ export function printTabularReport<T>({
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-        alert('ದಯವಿಟ್ಟು ಪಾಪ್-ಅಪ್ ಅನುಮತಿಸಿ (Please allow popups to print)');
+        alert('ದಯವಿಟ್ಟು ಪಾಪ್-ಅಪ್ ಅನುಮತಿಸಿ');
         return;
     }
 

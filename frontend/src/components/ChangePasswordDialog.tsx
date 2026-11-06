@@ -197,7 +197,7 @@ export default function ChangePasswordDialog() {
                                     onClick={logout}
                                     className="text-xs text-[var(--text-secondary)] hover:text-red-500 transition-colors"
                                 >
-                                    ಲಾಗ್‌ಔಟ್ ಮಾಡಿ (Sign Out)
+                                    ಲಾಗ್‌ಔಟ್ ಮಾಡಿ
                                 </button>
                             </div>
                         </form>

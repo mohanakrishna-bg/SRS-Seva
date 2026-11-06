@@ -55,6 +55,7 @@ export const NAV_CONFIG: ModuleConfig[] = [
         icon: Home,
         path: '/app',
         permission: '',
+        primaryAction: { label: '+ ಸೇವೆ ಬುಕ್ ಮಾಡಿ', contextKey: 'openRegModal' },
         tabs: [],
     },
     {

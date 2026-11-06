@@ -295,7 +295,7 @@ export default function DevoteesPage() {
                             <div className="flex items-center justify-between">
                                 <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
                                     <Filter size={16} className="text-[var(--primary)]" />
-                                    ಸುಧಾರಿತ ಹುಡುಕಾಟ (Advanced Search)
+                                    ಸುಧಾರಿತ ಹುಡುಕಾಟ
                                 </h4>
                                 <button
                                     type="button"
@@ -308,7 +308,7 @@ export default function DevoteesPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಗೋತ್ರ (Gotra)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಗೋತ್ರ</label>
                                     <select
                                         value={advGotra}
                                         onChange={(e) => setAdvGotra(e.target.value)}
@@ -320,7 +320,7 @@ export default function DevoteesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ನಕ್ಷತ್ರ (Nakshatra)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ನಕ್ಷತ್ರ</label>
                                     <select
                                         value={advNakshatra}
                                         onChange={(e) => setAdvNakshatra(e.target.value)}
@@ -332,7 +332,7 @@ export default function DevoteesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಪಿನ್ ಕೋಡ್ (Pin Code)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಪಿನ್ ಕೋಡ್</label>
                                     <input
                                         type="text"
                                         value={advPinCode}
@@ -343,7 +343,7 @@ export default function DevoteesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ದಿನಾಂಕದಿಂದ (From Date)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ದಿನಾಂಕದಿಂದ</label>
                                     <input
                                         type="date"
                                         value={advDateFrom}
@@ -353,7 +353,7 @@ export default function DevoteesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ದಿನಾಂಕದವರೆಗೆ (To Date)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ದಿನಾಂಕದವರೆಗೆ</label>
                                     <input
                                         type="date"
                                         value={advDateTo}
@@ -363,7 +363,7 @@ export default function DevoteesPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಸೇವೆ (Seva)</label>
+                                    <label className="block text-[11px] font-bold text-[var(--text-secondary)] uppercase mb-1">ಸೇವೆ</label>
                                     <select
                                         onChange={(e) => {
                                             if (e.target.value && !advSevaCodes.includes(e.target.value)) {
@@ -396,14 +396,14 @@ export default function DevoteesPage() {
                                     onClick={clearAdvancedSearch}
                                     className="px-3.5 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5"
                                 >
-                                    ಅಳಿಸಿ (Clear)
+                                    ಅಳಿಸಿ
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleAdvancedSearch}
                                     className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-white shadow-sm"
                                 >
-                                    ಹುಡುಕಿ (Search)
+                                    ಹುಡುಕಿ
                                 </button>
                             </div>
                         </div>
@@ -417,10 +417,10 @@ export default function DevoteesPage() {
                     <table className="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr className="border-b border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] text-[var(--text-secondary)]">
-                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ಭಕ್ತರ ವಿವರ (Devotee)</th>
+                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ಭಕ್ತರ ವಿವರ</th>
                                 <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ಗೋತ್ರ & ನಕ್ಷತ್ರ</th>
-                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ಸಂಪರ್ಕ (Contact)</th>
-                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ವಿಳಾಸ (Address)</th>
+                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ಸಂಪರ್ಕ</th>
+                                <th className="px-4 py-3 font-semibold uppercase tracking-wider text-[11px]">ವಿಳಾಸ</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-black/5 dark:divide-white/5">
@@ -537,7 +537,7 @@ export default function DevoteesPage() {
                     className="inline-flex items-center gap-1 text-[11px] text-[var(--text-secondary)] hover:text-red-500 transition-colors"
                 >
                     <DatabaseZap size={13} />
-                    ಅಳಿಸಲಾದ ಭಕ್ತರ ಡೇಟಾ ಸ್ವಚ್ಛಗೊಳಿಸಿ (Purge deleted)
+                    ಅಳಿಸಲಾದ ಭಕ್ತರ ಡೇಟಾ ಸ್ವಚ್ಛಗೊಳಿಸಿ
                 </button>
             </div>
 
@@ -642,25 +642,25 @@ export default function DevoteesPage() {
                                     render: (_, idx) => idx,
                                 },
                                 {
-                                    header: 'ಹೆಸರು (Name)',
+                                    header: 'ಹೆಸರು',
                                     className: 'font-bold',
                                     render: (d) => d.Name || '—',
                                 },
                                 {
-                                    header: 'ಗೋತ್ರ (Gotra)',
+                                    header: 'ಗೋತ್ರ',
                                     render: (d) => d.Gotra || '—',
                                 },
                                 {
-                                    header: 'ನಕ್ಷತ್ರ (Nakshatra)',
+                                    header: 'ನಕ್ಷತ್ರ',
                                     render: (d) => d.Nakshatra || '—',
                                 },
                                 {
-                                    header: 'ಫೋನ್ (Phone)',
+                                    header: 'ಫೋನ್',
                                     className: 'font-mono',
                                     render: (d) => d.Phone || d.WhatsApp_Phone || '—',
                                 },
                                 {
-                                    header: 'ನಗರ (City)',
+                                    header: 'ನಗರ',
                                     render: (d) => [d.City, d.PinCode].filter(Boolean).join(' - ') || '—',
                                 },
                             ],

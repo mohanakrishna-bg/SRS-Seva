@@ -291,7 +291,7 @@ export default function PublicEventsPage() {
                                                     className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--pub-saffron)] hover:underline"
                                                 >
                                                     <Download size={13} />
-                                                    {t('ಕರಪತ್ರ (PDF)', 'Flyer (PDF)')}
+                                                    {t('ಕರಪತ್ರ', 'Flyer (PDF)')}
                                                 </a>
                                             ) : <div />}
 

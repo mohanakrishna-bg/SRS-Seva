@@ -38,7 +38,7 @@ export default function PaymentStep({
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col space-y-4 h-full overflow-y-auto pr-1 pb-4">
             <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)] flex items-center gap-2 border-b border-[var(--glass-border)] pb-2.5 relative">
                 <CreditCard className="text-[var(--primary)]" size={18} /> 
-                <span>ಪಾವತಿ ವಿಧಾನ (Payment Method)</span>
+                <span>ಪಾವತಿ ವಿಧಾನ</span>
             </h3>
 
             {/* Payment Mode Selector */}
@@ -54,7 +54,7 @@ export default function PaymentStep({
                                 : 'bg-slate-50 dark:bg-slate-800 border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-700/60'
                         }`}
                     >
-                        <span className="text-base">{mode === 'Cash' ? '💵 ನಗದು (Cash)' : '📱 UPI'}</span>
+                        <span className="text-base">{mode === 'Cash' ? '💵 ನಗದು' : '📱 UPI'}</span>
                     </button>
                 ))}
             </div>
@@ -92,7 +92,7 @@ export default function PaymentStep({
                                 className="text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:underline flex items-center gap-1.5 cursor-pointer bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30"
                                 title="ಧ್ವನಿಪೆಟ್ಟಿಗೆಯಲ್ಲಿ ದೃಢೀಕರಣಗೊಂಡಿದೆ ಎಂದು ಗುರುತಿಸಿ"
                             >
-                                🔔 ಧ್ವನಿಪೆಟ್ಟಿಗೆ (Soundbox Verified)
+                                🔔 ಧ್ವನಿಪೆಟ್ಟಿಗೆ
                             </button>
                         </div>
                         <input
@@ -126,8 +126,8 @@ export default function PaymentStep({
                     <p className="text-xs text-[var(--text-secondary)]">ಭಕ್ತರು: <strong className="text-[var(--text-primary)]">{customer.Name || '-'}</strong> ({customer.Phone || '-'})</p>
                     {optPrasada && (familyMembers > 0 || parcelCount > 0) && (
                         <div className="text-xs text-orange-600 dark:text-orange-400 mt-1 font-semibold space-y-0.5">
-                            {familyMembers > 0 && <span>ಊಟ (Dine-in): {familyMembers} ಸದಸ್ಯರು </span>}
-                            {parcelCount > 0 && <span>• ಪಾರ್ಸಲ್ (Parcel): {parcelCount} ಪ್ಯಾಕೆಟ್</span>}
+                            {familyMembers > 0 && <span>ಊಟ: {familyMembers} ಸದಸ್ಯರು </span>}
+                            {parcelCount > 0 && <span>• ಪಾರ್ಸಲ್: {parcelCount} ಪ್ಯಾಕೆಟ್</span>}
                         </div>
                     )}
                 </div>

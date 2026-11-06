@@ -102,7 +102,7 @@ export default function Header({ compact = false, onBack, rightContent }: Header
                                 </span>
                             )}
                             {whatsapp && (
-                                <span className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]" title="ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್ (Mobile & WhatsApp)">
+                                <span className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]" title="ಮೊಬೈಲ್ ಮತ್ತು ವಾಟ್ಸ್ಆಪ್">
                                     <Smartphone size={13} className="text-[var(--primary)] shrink-0" />
                                     <MessageCircle size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                                     <span>ಮೊಬೈಲ್ & ವಾಟ್ಸ್ಆಪ್: {whatsapp}</span>

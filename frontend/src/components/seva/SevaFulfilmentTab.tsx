@@ -147,7 +147,7 @@ export default function SevaFulfilmentTab() {
     const handleConfirmExigency = async () => {
         if (!exigencyModalReg) return;
         if (!exigencyReason.trim()) {
-            showToast('error', 'ದಯವಿಟ್ಟು ಅನಿವಾರ್ಯ ಕಾರಣವನ್ನು ನಮೂದಿಸಿ (Reason is required)');
+            showToast('error', 'ದಯವಿಟ್ಟು ಅನಿವಾರ್ಯ ಕಾರಣವನ್ನು ನಮೂದಿಸಿ');
             return;
         }
 
@@ -170,7 +170,7 @@ export default function SevaFulfilmentTab() {
                 } : r)
             );
 
-            showToast('success', 'ಅಪವಾದ ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ (Exigency logged)');
+            showToast('success', 'ಅಪವಾದ ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ');
             setExigencyModalReg(null);
         } catch (error) {
             console.error('Failed to log exigency:', error);
@@ -353,7 +353,7 @@ export default function SevaFulfilmentTab() {
                         }`}
                     >
                         <Flame size={15} />
-                        <span>ಅರ್ಚಕರ ಸಂಕಲ್ಪ ಪಟ್ಟಿ (Priest Agenda)</span>
+                        <span>ಅರ್ಚಕರ ಸಂಕಲ್ಪ ಪಟ್ಟಿ</span>
                     </button>
                     <button
                         type="button"
@@ -365,7 +365,7 @@ export default function SevaFulfilmentTab() {
                         }`}
                     >
                         <UtensilsCrossed size={15} />
-                        <span>ಪ್ರಸಾದ & ಹಸ್ತೋದಕ ವಿತರಣೆ (Prasada Desk)</span>
+                        <span>ಪ್ರಸಾದ & ಹಸ್ತೋದಕ ವಿತರಣೆ</span>
                     </button>
                 </div>
 
@@ -522,7 +522,7 @@ export default function SevaFulfilmentTab() {
                                                             ? 'text-emerald-500 hover:scale-110'
                                                             : 'text-[var(--text-secondary)] hover:text-emerald-500 hover:scale-110'
                                                     }`}
-                                                    title={reg.IsFulfilled ? 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಂಡಿದೆ (Completed)' : 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಳಿಸಿ (Click to mark)'}
+                                                    title={reg.IsFulfilled ? 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಂಡಿದೆ' : 'ಸಂಕಲ್ಪ ಪೂರ್ಣಗೊಳಿಸಿ'}
                                                 >
                                                     {reg.IsFulfilled ? <CheckCircle2 size={22} /> : <Circle size={22} />}
                                                 </button>
@@ -671,7 +671,7 @@ export default function SevaFulfilmentTab() {
                         {/* Mandatory Reason */}
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-between">
-                                <span>ಅನಿವಾರ್ಯ ಕಾರಣ (Mandatory Reason for Non-Fulfillment) <span className="text-rose-500">*</span></span>
+                                <span>ಅನಿವಾರ್ಯ ಕಾರಣ <span className="text-rose-500">*</span></span>
                             </label>
                             <textarea
                                 value={exigencyReason}
@@ -686,21 +686,21 @@ export default function SevaFulfilmentTab() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-[var(--text-primary)]">
-                                    ಪರಿಹಾರ ಕ್ರಮ (Proposed Resolution)
+                                    ಪರಿಹಾರ ಕ್ರಮ
                                 </label>
                                 <select
                                     value={exigencyAction}
                                     onChange={(e) => setExigencyAction(e.target.value as any)}
                                     className="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-black/30 border border-[var(--glass-border)] text-[var(--text-primary)] focus:outline-none focus:border-rose-500"
                                 >
-                                    <option value="reschedule">ಮುಂದಿನ ದಿನಕ್ಕೆ ಮರುಹೊಂದಿಕೆ (Reschedule Seva)</option>
-                                    <option value="refund">ಹಣ ಮರುಪಾವತಿ (Initiate Refund)</option>
+                                    <option value="reschedule">ಮುಂದಿನ ದಿನಕ್ಕೆ ಮರುಹೊಂದಿಕೆ</option>
+                                    <option value="refund">ಹಣ ಮರುಪಾವತಿ</option>
                                 </select>
                             </div>
 
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-[var(--text-primary)]">
-                                    ದಾಖಲಿಸಿದ ಸಿಬ್ಬಂದಿ (Staff Name)
+                                    ದಾಖಲಿಸಿದ ಸಿಬ್ಬಂದಿ
                                 </label>
                                 <input
                                     type="text"
@@ -719,7 +719,7 @@ export default function SevaFulfilmentTab() {
                                 onClick={() => setExigencyModalReg(null)}
                                 className="px-4 py-2 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
                             >
-                                ರದ್ದುಮಾಡಿ (Cancel)
+                                ರದ್ದುಮಾಡಿ
                             </button>
                             <button
                                 type="button"
@@ -728,7 +728,7 @@ export default function SevaFulfilmentTab() {
                                 className="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                             >
                                 {isSubmittingExigency ? <RefreshCw size={14} className="animate-spin" /> : <AlertTriangle size={14} />}
-                                <span>ಅಪವಾದ ದೃಢೀಕರಿಸಿ (Confirm Exigency)</span>
+                                <span>ಅಪವಾದ ದೃಢೀಕರಿಸಿ</span>
                             </button>
                         </div>
                     </div>

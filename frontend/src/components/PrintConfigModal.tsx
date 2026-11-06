@@ -19,7 +19,7 @@ export default function PrintConfigModal({
     onPrint,
     totalItems,
     defaultPageSize = 10,
-    title = 'ಮುದ್ರಣ ಸಂರಚನೆ (Print Options)'
+    title = 'ಮುದ್ರಣ ಸಂರಚನೆ'
 }: PrintConfigModalProps) {
     const [selectedSize, setSelectedSize] = useState<number>(defaultPageSize);
 
@@ -33,7 +33,7 @@ export default function PrintConfigModal({
             <div className="space-y-5">
                 <div>
                     <p className="text-sm text-[var(--text-secondary)] mb-3">
-                        ಪ್ರತಿ ಪುಟಕ್ಕೆ ಮುದ್ರಿಸಬೇಕಾದ ದಾಖಲೆಗಳ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ (Select rows per page to print):
+                        ಪ್ರತಿ ಪುಟಕ್ಕೆ ಮುದ್ರಿಸಬೇಕಾದ ದಾಖಲೆಗಳ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:
                     </p>
                     <div className="grid grid-cols-4 gap-2">
                         {PRINT_PAGE_SIZE_OPTIONS.map((opt) => (
@@ -54,7 +54,7 @@ export default function PrintConfigModal({
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-black/5 dark:bg-white/5 text-xs text-[var(--text-secondary)] flex justify-between items-center">
-                    <span>ಒಟ್ಟು ದಾಖಲೆಗಳು (Total records):</span>
+                    <span>ಒಟ್ಟು ದಾಖಲೆಗಳು:</span>
                     <span className="font-bold text-[var(--text-primary)]">{totalItems}</span>
                 </div>
 
@@ -64,14 +64,14 @@ export default function PrintConfigModal({
                         onClick={onClose}
                         className="px-4 py-2 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors"
                     >
-                        ರದ್ದುಮಾಡಿ (Cancel)
+                        ರದ್ದುಮಾಡಿ
                     </button>
                     <button
                         type="button"
                         onClick={handleConfirm}
                         className="px-5 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-orange-500/20 flex items-center gap-2 transition-all"
                     >
-                        <Printer size={16} /> ಮುದ್ರಿಸಿ (Print)
+                        <Printer size={16} /> ಮುದ್ರಿಸಿ
                     </button>
                 </div>
             </div>

@@ -75,7 +75,7 @@ export default function BookedSevasTab() {
         const nextState = !regToToggle.IsFulfilled;
         try {
             await registrationApi.fulfil(regToToggle.RegistrationId, nextState);
-            showToast('success', nextState ? 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಲಾಗಿದೆ (Seva marked fulfilled)' : 'ಸೇವೆ ಬಾಕಿ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ (Seva marked pending)');
+            showToast('success', nextState ? 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಲಾಗಿದೆ' : 'ಸೇವೆ ಬಾಕಿ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ');
             setRegistrations(prev => prev.map(r => r.RegistrationId === regToToggle.RegistrationId ? { ...r, IsFulfilled: nextState } : r));
             if (selectedReg && selectedReg.RegistrationId === regToToggle.RegistrationId) {
                 setSelectedReg((prev: any) => ({ ...prev, IsFulfilled: nextState }));
@@ -365,7 +365,7 @@ export default function BookedSevasTab() {
                                             type="button"
                                             onClick={handleClearSearch}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full hover:bg-black/5 dark:hover:bg-white/10"
-                                            title="ತೆರವುಗೊಳಿಸಿ (Clear)"
+                                            title="ತೆರವುಗೊಳಿಸಿ"
                                         >
                                             <X size={14} />
                                         </button>
@@ -374,7 +374,7 @@ export default function BookedSevasTab() {
                                 <button
                                     type="submit"
                                     className="px-4 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer"
-                                    title="ಹುಡುಕಿ (Click to search)"
+                                    title="ಹುಡುಕಿ"
                                 >
                                     <Search size={15} />
                                     <span>ಹುಡುಕಿ</span>
@@ -400,7 +400,7 @@ export default function BookedSevasTab() {
                                         type="button"
                                         onClick={handlePrevDay}
                                         className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
-                                        title="ಹಿಂದಿನ ದಿನ (Previous Day)"
+                                        title="ಹಿಂದಿನ ದಿನ"
                                     >
                                         <ChevronLeft size={16} />
                                     </button>
@@ -416,7 +416,7 @@ export default function BookedSevasTab() {
                                             }
                                         }}
                                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer text-xs font-bold text-[var(--text-primary)] transition-all"
-                                        title="ಕ್ಯಾಲೆಂಡರ್ ತೆರೆಯಿರಿ (Click to pick date)"
+                                        title="ಕ್ಯಾಲೆಂಡರ್ ತೆರೆಯಿರಿ"
                                     >
                                         <Calendar size={14} className="text-[var(--primary)] shrink-0" />
                                         <span>
@@ -440,7 +440,7 @@ export default function BookedSevasTab() {
                                         type="button"
                                         onClick={handleNextDay}
                                         className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
-                                        title="ಮುಂದಿನ ದಿನ (Next Day)"
+                                        title="ಮುಂದಿನ ದಿನ"
                                     >
                                         <ChevronRight size={16} />
                                     </button>
@@ -496,7 +496,7 @@ export default function BookedSevasTab() {
                                                 ? 'bg-[var(--primary)] text-white shadow-sm'
                                                 : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'
                                         }`}
-                                        title="ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹಿಂತಿರುಗಿ (Jump to Today)"
+                                        title="ಇಂದಿನ ದಿನಾಂಕಕ್ಕೆ ಹಿಂತಿರುಗಿ"
                                     >
                                         ಇಂದು
                                     </button>
@@ -688,7 +688,7 @@ export default function BookedSevasTab() {
                                                 title={selectedReg.IsFulfilled ? 'ಮತ್ತೆ ಬಾಕಿ ಎಂದು ಗುರುತಿಸಿ' : 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಿ'}
                                             >
                                                 <CheckCircle2 size={16} />
-                                                <span>{selectedReg.IsFulfilled ? 'ಸೇವೆ ಪೂರ್ಣಗೊಂಡಿದೆ (Fulfilled)' : 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಿ (Mark Done)'}</span>
+                                                <span>{selectedReg.IsFulfilled ? 'ಸೇವೆ ಪೂರ್ಣಗೊಂಡಿದೆ' : 'ಸೇವೆ ಪೂರ್ಣಗೊಳಿಸಿ'}</span>
                                             </button>
                                             <button 
                                                 onClick={openModifyModal}
@@ -816,7 +816,7 @@ export default function BookedSevasTab() {
                                             }
                                         }}
                                     />
-                                    ಹಸ್ತೋದಕ / ಪ್ರಸಾದ (Hastodaka & Parcels)
+                                    ಹಸ್ತೋದಕ / ಪ್ರಸಾದ
                                 </label>
                                 
                                 {modifyOptPrasada && (

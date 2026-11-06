@@ -69,6 +69,9 @@ def get_seva_bookings_report(
     if start_dt > end_dt:
         start_dt, end_dt = end_dt, start_dt
 
+    if (end_dt - start_dt).days > 366:
+        raise HTTPException(status_code=400, detail="Date range cannot exceed 366 days.")
+
     # Generate dates map
     date_keys = {}
     curr = start_dt
@@ -234,6 +237,9 @@ def get_hastodaka_report(
     if start_dt > end_dt:
         start_dt, end_dt = end_dt, start_dt
 
+    if (end_dt - start_dt).days > 366:
+        raise HTTPException(status_code=400, detail="Date range cannot exceed 366 days.")
+
     date_keys = {}
     curr = start_dt
     while curr <= end_dt:
@@ -375,6 +381,9 @@ def get_exigency_exceptions_report(
 
     if start_dt > end_dt:
         start_dt, end_dt = end_dt, start_dt
+
+    if (end_dt - start_dt).days > 366:
+        raise HTTPException(status_code=400, detail="Date range cannot exceed 366 days.")
 
     date_keys = set()
     curr = start_dt

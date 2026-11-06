@@ -38,10 +38,10 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
     };
 
     const details = [
-        { label: 'ವಿವರಣೆ (Kannada)', value: seva.Description },
-        { label: 'Description (English)', value: seva.DescriptionEn },
-        { label: 'ಶುಲ್ಕ (Amount)', value: (seva.Amount ?? 0) > 0 ? `₹${seva.Amount.toLocaleString()}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು (To be specified at booking)' },
-        { label: '# of Hastodaka included', value: (seva.TPQty ?? 0) > 0 ? `${seva.TPQty} ಜನರಿಗೆ (${seva.TPQty} persons)` : '—' },
+        { label: 'ವಿವರಣೆ', value: seva.Description },
+        { label: 'ಇಂಗ್ಲಿಷ್ ವಿವರಣೆ', value: seva.DescriptionEn },
+        { label: 'ಶುಲ್ಕ', value: (seva.Amount ?? 0) > 0 ? `₹${seva.Amount.toLocaleString()}` : 'ಸೇವೆ ಕಾಯ್ದಿರಿಸುವಾಗ ನಮೂದಿಸಬೇಕು' },
+        { label: 'ಒಳಗೊಂಡ ಹಸ್ತೋದಕ ಸಂಖ್ಯೆ', value: (seva.TPQty ?? 0) > 0 ? `${seva.TPQty} ಜನರಿಗೆ` : '—' },
     ].filter(d => d.value !== undefined);
 
     if (seva.IsSpecialEvent) {
@@ -49,14 +49,14 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
         if (!seva.IsAllDay) {
             details.push({ label: 'ಸಮಯ', value: `${seva.StartTime || ''} - ${seva.EndTime || ''}` });
         }
-        details.push({ label: 'Recurrence', value: seva.RecurrenceRule || '—' });
+        details.push({ label: 'ಪುನರಾವರ್ತನೆ', value: seva.RecurrenceRule || '—' });
     }
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={isEditing ? 'ಸೇವೆ ಬದಲಿಸಿ (Edit Seva)' : (seva.Description || 'ಸೇವಾ ವಿವರ (Seva Details)')}
+            title={isEditing ? 'ಸೇವೆ ಬದಲಿಸಿ' : (seva.Description || 'ಸೇವಾ ವಿವರ')}
             maxWidth="max-w-2xl"
             contentBounded={true}
             isLocked={true}
@@ -109,7 +109,7 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
                             onClick={handleClose}
                             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] border border-black/10 dark:border-white/10 transition-colors"
                         >
-                            <ArrowLeft size={16} /> ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ (Back to List)
+                            <ArrowLeft size={16} /> ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ
                         </button>
 
                         <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
                                 onClick={() => setIsEditing(true)}
                                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-sm font-bold transition-all border border-blue-500/20"
                             >
-                                <Edit3 size={15} /> ಬದಲಿಸಿ (Edit)
+                                <Edit3 size={15} /> ಬದಲಿಸಿ
                             </button>
                             <button
                                 type="button"
@@ -128,14 +128,14 @@ export default function SevaDetailsModal({ isOpen, onClose, seva, onSave, onDele
                                 }}
                                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 text-sm font-bold transition-all border border-red-500/20"
                             >
-                                <Trash2 size={15} /> ಅಳಿಸಿ (Delete)
+                                <Trash2 size={15} /> ಅಳಿಸಿ
                             </button>
                             <button
                                 type="button"
                                 onClick={handleClose}
                                 className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-bold shadow-md hover:shadow-orange-500/20 transition-all"
                             >
-                                ಹಿಂದೆ (Back)
+                                ಹಿಂದೆ
                             </button>
                         </div>
                     </div>
