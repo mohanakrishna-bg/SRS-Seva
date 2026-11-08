@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import type { LayoutContextType } from '../components/Layout';
 
+export type NavLayoutMode = 'top' | 'left';
+
 export interface Tab {
     id: string;
     label: string;
@@ -46,6 +48,7 @@ export interface ModuleConfig {
     permission: string;
     tabs: Tab[];
     primaryAction?: PrimaryAction;
+    defaultNavLayout?: NavLayoutMode;
 }
 
 export const NAV_CONFIG: ModuleConfig[] = [
@@ -65,6 +68,7 @@ export const NAV_CONFIG: ModuleConfig[] = [
         path: '/app/seva',
         permission: 'seva',
         primaryAction: { label: '+ ಸೇವೆ ಬುಕ್ ಮಾಡಿ', contextKey: 'openRegModal' },
+        defaultNavLayout: 'top',
         tabs: [
             { id: 'booked',      label: 'ಸೇವೆ ನೋಂದಣಿ',   icon: ClipboardList,  path: 'booked'      },
             { id: 'fulfilment',  label: 'ಸೇವಾ ಪೂರೈಕೆ',   icon: CheckCircle2,   path: 'fulfilment'  },
@@ -78,6 +82,7 @@ export const NAV_CONFIG: ModuleConfig[] = [
         icon: BarChart3,
         path: '/app/accounting',
         permission: 'accounting',
+        defaultNavLayout: 'left',
         tabs: [
             { id: 'dashboard', label: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',  icon: LayoutDashboard, path: 'dashboard'  },
             { id: 'journal',   label: 'ಜರ್ನಲ್',          icon: BookOpen,        path: 'journal'    },
@@ -93,6 +98,7 @@ export const NAV_CONFIG: ModuleConfig[] = [
         icon: Settings,
         path: '/app/manage',
         permission: 'settings',
+        defaultNavLayout: 'left',
         tabs: [
             { id: 'devotees',  label: 'ಭಕ್ತರು',              icon: Users,          path: 'devotees', permission: 'customers' },
             { id: 'sevas',     label: 'ಸೇವೆಗಳು',            icon: HeartHandshake, path: 'sevas'     },

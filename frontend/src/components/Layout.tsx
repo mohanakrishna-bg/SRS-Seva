@@ -21,9 +21,11 @@ import { useToast } from './Toast';
 import Header from './Header';
 import TopAppBar from './shell/TopAppBar';
 import ContextualTabBar from './shell/ContextualTabBar';
+import LeftNavBar from './shell/LeftNavBar';
 import WorkspaceContainer from './shell/WorkspaceContainer';
 import CommandPalette from './ui/CommandPalette';
-import { getModuleForPath } from '../config/navConfig';
+import { getModuleForPath, NAV_CONFIG } from '../config/navConfig';
+import type { NavLayoutMode } from '../config/navConfig';
 import { useSettings } from '../context/SettingsContext';
 
 export type LayoutContextType = {
@@ -137,6 +139,40 @@ export default function Layout() {
     const activeModule = getModuleForPath(location.pathname);
     const hasTabs = (activeModule?.tabs?.length ?? 0) > 0;
 
+    // ── Navigation Layout Preference per Module (Top menu bar vs Left navigation bar) ──
+    const [navLayouts, setNavLayouts] = useState<Record<string, NavLayoutMode>>(() => {
+        try {
+            const saved = localStorage.getItem('seva_subnav_layout_prefs');
+            if (saved) return JSON.parse(saved);
+        } catch {
+            // ignore JSON error
+        }
+        return {};
+    });
+
+    const toggleModuleNavLayout = (moduleId: string) => {
+        setNavLayouts(prev => {
+            const current =
+                prev[moduleId] ||
+                NAV_CONFIG.find(m => m.id === moduleId)?.defaultNavLayout ||
+                'top';
+            const nextMode: NavLayoutMode = current === 'top' ? 'left' : 'top';
+            const updated = { ...prev, [moduleId]: nextMode };
+            try {
+                localStorage.setItem('seva_subnav_layout_prefs', JSON.stringify(updated));
+            } catch (e) {
+                console.error('Failed to save layout preference:', e);
+            }
+            return updated;
+        });
+    };
+
+    const activeModuleLayout: NavLayoutMode =
+        (activeModule ? navLayouts[activeModule.id] : undefined) ||
+        activeModule?.defaultNavLayout ||
+        'top';
+    const isLeftNavActive = Boolean(hasTabs && activeModule && activeModuleLayout === 'left');
+
     // Build primary action button if defined
     let primaryActionButton: React.ReactNode = null;
     if (activeModule?.primaryAction) {
@@ -183,13 +219,16 @@ export default function Layout() {
                 />
             </div>
 
-            {/* ── Shell: ContextualTabBar (only when module has sub-tabs) ── */}
+            {/* ── Shell: ContextualTabBar (top tab bar; on mobile, always shown if module has tabs) ── */}
             {hasTabs && activeModule && (
-                <ContextualTabBar
-                    tabs={activeModule.tabs}
-                    basePath={activeModule.path}
-                    actionButton={primaryActionButton}
-                />
+                <div className={activeModuleLayout === 'left' ? 'md:hidden' : 'block'}>
+                    <ContextualTabBar
+                        tabs={activeModule.tabs}
+                        basePath={activeModule.path}
+                        actionButton={primaryActionButton}
+                        onToggleLayout={() => toggleModuleNavLayout(activeModule.id)}
+                    />
+                </div>
             )}
 
             {/* ── Content ── */}
@@ -199,9 +238,27 @@ export default function Layout() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.18 }}
-                    className="flex-1 flex flex-col min-h-0 relative z-10"
+                    className={`flex-1 min-h-0 relative z-10 ${
+                        isLeftNavActive
+                            ? 'flex flex-col md:flex-row px-4 md:px-8 mt-2 pb-4 md:pb-6 gap-4 md:gap-5'
+                            : 'flex flex-col'
+                    }`}
                 >
-                    <WorkspaceContainer>
+                    {isLeftNavActive && activeModule && (
+                        <div className="hidden md:flex shrink-0">
+                            <LeftNavBar
+                                module={activeModule}
+                                tabs={activeModule.tabs}
+                                basePath={activeModule.path}
+                                actionButton={primaryActionButton}
+                                onToggleLayout={() => toggleModuleNavLayout(activeModule.id)}
+                            />
+                        </div>
+                    )}
+                    <WorkspaceContainer
+                        noPadding={isLeftNavActive}
+                        className={isLeftNavActive ? 'flex-1 min-w-0' : ''}
+                    >
                         <Outlet context={layoutContext} />
                     </WorkspaceContainer>
                 </motion.div>
