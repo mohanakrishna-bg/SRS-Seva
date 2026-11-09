@@ -32,6 +32,7 @@ export type LayoutContextType = {
     openRegModal: (eventName?: string, eventCode?: string) => void;
     openDonModal: () => void;
     openReceiptModal: (receiptData: any) => void;
+    navLayoutMode?: NavLayoutMode;
 };
 
 export default function Layout() {
@@ -121,20 +122,6 @@ export default function Layout() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // ── Layout Context (passed via Outlet to child routes) ───────────────────
-    const layoutContext: LayoutContextType = {
-        openRegModal: (name?: string, code?: string) => {
-            setPrefillSevaName(name);
-            setPrefillEventCode(code);
-            setRegModalOpen(true);
-        },
-        openDonModal: () => setDonModalOpen(true),
-        openReceiptModal: (data: any) => {
-            setReceiptData(data);
-            setShowReceiptGenerator(true);
-        },
-    };
-
     // ── Derive active module + tabs ──────────────────────────────────────────
     const activeModule = getModuleForPath(location.pathname);
     const hasTabs = (activeModule?.tabs?.length ?? 0) > 0;
@@ -172,6 +159,21 @@ export default function Layout() {
         activeModule?.defaultNavLayout ||
         'top';
     const isLeftNavActive = Boolean(hasTabs && activeModule && activeModuleLayout === 'left');
+
+    // ── Layout Context (passed via Outlet to child routes) ───────────────────
+    const layoutContext: LayoutContextType = {
+        openRegModal: (name?: string, code?: string) => {
+            setPrefillSevaName(name);
+            setPrefillEventCode(code);
+            setRegModalOpen(true);
+        },
+        openDonModal: () => setDonModalOpen(true),
+        openReceiptModal: (data: any) => {
+            setReceiptData(data);
+            setShowReceiptGenerator(true);
+        },
+        navLayoutMode: activeModuleLayout,
+    };
 
     // Build primary action button if defined
     let primaryActionButton: React.ReactNode = null;

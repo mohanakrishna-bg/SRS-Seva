@@ -22,10 +22,25 @@ import {
     UserCog,
     FileBarChart2,
     CheckCircle2,
+    Flame,
+    UtensilsCrossed,
+    FileSpreadsheet,
+    PieChart,
+    AlertCircle,
 } from 'lucide-react';
 import type { LayoutContextType } from '../components/Layout';
 
 export type NavLayoutMode = 'top' | 'left';
+
+export interface SubItem {
+    id: string;
+    label: string;
+    path: string;
+    group?: string;
+    icon?: LucideIcon;
+    permission?: string;
+    description?: string;
+}
 
 export interface Tab {
     id: string;
@@ -33,6 +48,7 @@ export interface Tab {
     icon?: LucideIcon;
     path: string;
     permission?: string;
+    subItems?: SubItem[];
 }
 
 export interface PrimaryAction {
@@ -72,7 +88,20 @@ export const NAV_CONFIG: ModuleConfig[] = [
         tabs: [
             { id: 'booked',      label: 'ಸೇವೆ ನೋಂದಣಿ',   icon: ClipboardList,  path: 'booked'      },
             { id: 'fulfilment',  label: 'ಸೇವಾ ಪೂರೈಕೆ',   icon: CheckCircle2,   path: 'fulfilment'  },
-            { id: 'reports',     label: 'ವರದಿಗಳು',        icon: FileBarChart2,  path: 'reports'     },
+            {
+                id: 'reports',
+                label: 'ವರದಿಗಳು',
+                icon: FileBarChart2,
+                path: 'reports',
+                subItems: [
+                    { id: 'daily_priest',           group: 'ದೈನಂದಿನ',     label: 'ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ', path: 'daily_priest',           icon: Flame,           description: 'ಮಾರನೆಯ ದಿನದ ಸೇವಾ ಸಂಕಲ್ಪ ಪಟ್ಟಿ' },
+                    { id: 'daily_kitchen',          group: 'ದೈನಂದಿನ',     label: 'ಹಸ್ತೋದಕ ಲೆಕ್ಕ',     path: 'daily_kitchen',          icon: UtensilsCrossed, description: 'ಮಾರನೆಯ ದಿನದ ಹಸ್ತೋದಕ ಲೆಕ್ಕ' },
+                    { id: 'on_demand_full',         group: 'ಆನ್-ಡಿಮಾಂಡ್', label: 'ದಿನಾಂಕವಾರು ವಿವರ',  path: 'on_demand_full',         icon: FileSpreadsheet, description: 'ದಿನಾಂಕವಾರು ಸೇವಾ ಬುಕಿಂಗ್ ಪೂರ್ಣ ವಿವರ' },
+                    { id: 'hastodaka_distribution', group: 'ಆನ್-ಡಿಮಾಂಡ್', label: 'ಹಸ್ತೋದಕ ವಿತರಣೆ',    path: 'hastodaka_distribution', icon: BarChart3,       description: 'ಅವಧಿಯ ದಿನವಾರು ಹಸ್ತೋದಕ ವಿತರಣೆ' },
+                    { id: 'exigency_exceptions',    group: 'ಆನ್-ಡಿಮಾಂಡ್', label: 'ಅಪವಾದ ವರದಿ',        path: 'exigency_exceptions',    icon: AlertCircle,     description: 'ವಿನಾಯಿತಿ / ಅಪವಾದ ವರದಿ' },
+                    { id: 'financial_summary',      group: 'ಹಣಕಾಸು',      label: 'ಹಣಕಾಸು ಸಾರಾಂಶ',     path: 'financial_summary',      icon: PieChart,        description: 'ದೈನಂದಿನ / ಅವಧಿಯ ಹಣಕಾಸು ಮತ್ತು ಪಾವತಿ ವಿವರ' },
+                ],
+            },
             { id: 'analytics',   label: 'ವಿಶ್ಲೇಷಣೆ',      icon: BarChart3,      path: 'analytics'   },
         ],
     },

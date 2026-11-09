@@ -32,7 +32,8 @@ export default function SevaPage() {
                 <Route path="" element={<Navigate to="booked" replace />} />
                 <Route path="booked" element={<BookedSevasTab />} />
                 <Route path="fulfilment" element={<SevaFulfilmentTab />} />
-                <Route path="reports" element={<SevaReportsTab />} />
+                <Route path="reports" element={<Navigate to="reports/daily_priest" replace />} />
+                <Route path="reports/:reportId" element={<SevaReportsTab />} />
                 <Route path="analytics" element={<SevaAnalyticsTab />} />
             </Routes>
         </div>

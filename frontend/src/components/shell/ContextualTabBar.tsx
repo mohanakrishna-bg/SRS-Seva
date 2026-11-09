@@ -38,6 +38,9 @@ export default function ContextualTabBar({ tabs, basePath, actionButton, onToggl
                 <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1 min-w-0">
                     {visibleTabs.map(tab => {
                         const to = `${basePath}/${tab.path}`;
+                        const targetTo = (tab.subItems?.length ?? 0) > 0
+                            ? `${to}/${tab.subItems![0].path}`
+                            : to;
                         const Icon = tab.icon;
                         const isActive =
                             location.pathname === to ||
@@ -46,7 +49,7 @@ export default function ContextualTabBar({ tabs, basePath, actionButton, onToggl
                         return (
                             <NavLink
                                 key={tab.id}
-                                to={to}
+                                to={targetTo}
                                 className={() =>
                                     `flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                                         isActive

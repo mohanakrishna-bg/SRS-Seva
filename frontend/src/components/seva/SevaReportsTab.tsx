@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { 
     Calendar, 
     Printer, 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 import { statsApi, sevaReportsApi } from '../../api';
 import { useToast } from '../Toast';
+import type { LayoutContextType } from '../Layout';
 
 // ─── Scalable Report Registry Types ───
 export type ReportCategory = 'daily' | 'on_demand' | 'financial';
@@ -369,11 +371,53 @@ function exportReportToCsv(reportId: string, data: any, startDate: string, endDa
 
 export default function SevaReportsTab() {
     const { showToast } = useToast();
+    const { reportId } = useParams<{ reportId?: string }>();
+    const navigate = useNavigate();
+
+    let outletContext: LayoutContextType | null = null;
+    try {
+        outletContext = useOutletContext<LayoutContextType>();
+    } catch {
+        // standalone test fallback
+    }
+    const isLeftNav = outletContext?.navLayoutMode === 'left';
 
     // Active report selection
-    const [activeReportId, setActiveReportId] = useState<string>('daily_priest');
+    const [activeReportId, setActiveReportId] = useState<string>(() => {
+        if (reportId && REPORTS_REGISTRY.some(r => r.id === reportId)) {
+            return reportId;
+        }
+        return 'daily_priest';
+    });
     const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
     const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+
+    // Synchronize active report when route param changes
+    useEffect(() => {
+        if (reportId && reportId !== activeReportId) {
+            const found = REPORTS_REGISTRY.find(r => r.id === reportId);
+            if (found) {
+                setActiveReportId(found.id);
+                setTableFilter('');
+                setExpandedGroups({});
+
+                if (found.defaultDateMode === 'tomorrow') {
+                    const tomorrow = getTomorrowIso();
+                    setStartDate(tomorrow);
+                    setEndDate(tomorrow);
+                } else if (found.defaultDateMode === 'today') {
+                    const today = getTodayIso();
+                    setStartDate(today);
+                    setEndDate(today);
+                } else if (found.defaultDateMode === 'range') {
+                    const today = getTodayIso();
+                    const tomorrow = getTomorrowIso();
+                    setStartDate(today);
+                    setEndDate(tomorrow);
+                }
+            }
+        }
+    }, [reportId]);
 
     // Dates and filters
     const [startDate, setStartDate] = useState<string>(getTomorrowIso());
@@ -413,6 +457,10 @@ export default function SevaReportsTab() {
             const tomorrow = getTomorrowIso();
             setStartDate(today);
             setEndDate(tomorrow);
+        }
+
+        if (reportId !== report.id) {
+            navigate(`/app/seva/reports/${report.id}`);
         }
     };
 
@@ -585,12 +633,14 @@ export default function SevaReportsTab() {
             
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* SCALABLE REPORT CATALOG / NAVIGATION (SIDEBAR)              */}
+            {/* Suppressed when LeftNavBar is active (sub-menu takes over)  */}
             {/* ═══════════════════════════════════════════════════════════ */}
-            <aside 
-                className={`print:hidden flex flex-col transition-all duration-300 border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-md rounded-2xl p-4 shrink-0 ${
-                    sidebarCollapsed ? 'w-full md:w-16 items-center' : 'w-full md:w-80'
-                }`}
-            >
+            {!isLeftNav && (
+                <aside 
+                    className={`print:hidden flex flex-col transition-all duration-300 border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-md rounded-2xl p-4 shrink-0 ${
+                        sidebarCollapsed ? 'w-full md:w-16 items-center' : 'w-full md:w-80'
+                    }`}
+                >
                 {/* Sidebar Header & Toggle */}
                 <div className="flex items-center justify-between w-full mb-3 pb-3 border-b border-[var(--glass-border)]">
                     {!sidebarCollapsed && (
@@ -696,6 +746,7 @@ export default function SevaReportsTab() {
                     )}
                 </div>
             </aside>
+            )}
 
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* MAIN REPORT VIEWER & PRINT CONTAINER                        */}

@@ -72,6 +72,14 @@ _Avoid_: Cook, Chef, Caterer
 Take-home sanctified Anna Prasada meals booked in advance by devotees during seva registration, charged at standard Hastodaka rates and packaged separately from dining hall meals.
 _Avoid_: Takeout, Parcel Food, Packed Lunch, Doggy Bag
 
+**ReportCatalog**:
+The centralized operational, ritual, kitchen forecast, and financial reporting registry providing structured access to Sankalpa lists, Hastodaka accounts, and audit ledgers.
+_Avoid_: Report Menu, Report Sidebar, Document List
+
+**SubNavigationItem**:
+A single-level secondary catalog or operational view nested directly beneath a containing module tab within the Left Navigation Bar, strictly restricted to one level of nesting to eliminate redundant multi-column sidebars.
+_Avoid_: Submenu, Sub-tab, Drill-down, Accordion Child
+
 
 
 
