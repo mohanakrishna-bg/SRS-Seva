@@ -18,7 +18,7 @@ export default function WorkspaceContainer({
     return (
         <div
             className={`
-                flex-1 w-full min-w-0 flex flex-col overflow-hidden
+                flex-1 w-full min-w-0 flex flex-col overflow-hidden relative
                 print:block print:overflow-visible print:flex-none
                 ${noPadding ? '' : 'px-4 md:px-8 py-4 md:py-5'}
                 ${className}

@@ -54,11 +54,12 @@ export default function LeftNavBar({
                 <button
                     type="button"
                     onClick={onToggleLayout}
-                    className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border-2 border-amber-500/50 hover:border-amber-500/80 shadow-sm shadow-amber-500/20 transition-all cursor-pointer group active:scale-95"
                     title="ಮೇಲಿನ ಮೆನುಗೆ ಬದಲಾಯಿಸಿ"
                     aria-label="Switch to top menu bar"
                 >
-                    <PanelTop size={15} />
+                    <PanelTop size={14} className="stroke-[2.5] text-amber-700 dark:text-amber-300" />
+                    <span className="text-[11px] font-bold">ಮೇಲಿನ ಮೆನು</span>
                 </button>
             </div>
 
@@ -187,14 +188,16 @@ export default function LeftNavBar({
                 <button
                     type="button"
                     onClick={onToggleLayout}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/8 transition-colors group cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-500/40 hover:border-amber-500/70 shadow-sm shadow-amber-500/10 transition-all group cursor-pointer active:scale-98"
                     title="ಮೇಲಿನ ಮೆನುಗೆ ಬದಲಾಯಿಸಿ"
                 >
-                    <span className="flex items-center gap-1.5 text-[11px]">
-                        <PanelTop size={13} className="text-[var(--text-secondary)] group-hover:text-[var(--primary)] transition-colors" />
-                        <span>ಮೇಲಿನ ಮೆನು</span>
+                    <span className="flex items-center gap-2 text-xs">
+                        <span className="p-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                            <PanelTop size={14} className="stroke-[2.5]" />
+                        </span>
+                        <span className="font-bold">ಮೇಲಿನ ಮೆನು</span>
                     </span>
-                    <span className="text-[10px] text-[var(--text-secondary)] opacity-70 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md">
                         ಬದಲಾಯಿಸಿ
                     </span>
                 </button>

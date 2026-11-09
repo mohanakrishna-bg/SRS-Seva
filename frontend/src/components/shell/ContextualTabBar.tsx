@@ -71,12 +71,14 @@ export default function ContextualTabBar({ tabs, basePath, actionButton, onToggl
                         <button
                             type="button"
                             onClick={onToggleLayout}
-                            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/8 transition-colors border border-transparent hover:border-[var(--glass-border)] cursor-pointer"
+                            className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 dark:text-amber-200 border-2 border-amber-500/50 hover:border-amber-500/80 shadow-sm shadow-amber-500/20 transition-all cursor-pointer group shrink-0 active:scale-95"
                             title="ಎಡ ಮೆನುಗೆ ಬದಲಾಯಿಸಿ"
                             aria-label="Switch to left navigation"
                         >
-                            <PanelLeft size={14} />
-                            <span className="text-[11px] font-medium hidden lg:inline">ಎಡ ಮೆನು</span>
+                            <span className="p-1 rounded-md bg-amber-500/20 group-hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 transition-colors">
+                                <PanelLeft size={14} className="stroke-[2.5]" />
+                            </span>
+                            <span className="text-xs font-bold whitespace-nowrap">ಎಡ ಮೆನು</span>
                         </button>
                     )}
 

@@ -23,3 +23,4 @@ We decided to establish a unified single-level hierarchical sub-menu navigation 
 4. **URL-Driven Routing and Default Landing**:
    - Child sub-items bind directly to deep URL paths (e.g., `/app/seva/reports/:reportId`).
    - Navigating to a parent tab path without a child parameter automatically redirects to the canonical default item (`/app/seva/reports` → `/app/seva/reports/daily_priest`), maintaining continuous synchronization between the highlighted sub-menu in `LeftNavBar` and the active report view.
+

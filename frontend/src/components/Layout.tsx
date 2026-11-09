@@ -247,7 +247,7 @@ export default function Layout() {
                     }`}
                 >
                     {isLeftNavActive && activeModule && (
-                        <div className="hidden md:flex shrink-0">
+                        <div className="hidden md:flex shrink-0 self-start z-20">
                             <LeftNavBar
                                 module={activeModule}
                                 tabs={activeModule.tabs}

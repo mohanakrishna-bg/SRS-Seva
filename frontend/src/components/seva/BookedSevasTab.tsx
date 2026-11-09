@@ -343,7 +343,7 @@ export default function BookedSevasTab() {
     const additionalAmount = totalDelta > 0 ? totalDelta * hastodakaRate : 0;
 
     return (
-        <div className="absolute inset-0 flex">
+        <div className="w-full h-full flex flex-col flex-1 min-h-0 relative">
             <SplitPaneLayout
                 masterContent={
                     <div className="h-full flex flex-col p-4">

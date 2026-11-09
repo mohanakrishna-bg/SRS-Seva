@@ -27,12 +27,12 @@ export default function SevaPage() {
     }
 
     return (
-        <div className="h-full flex flex-col print:h-auto print:block">
+        <div className="h-full w-full relative flex-1 min-h-0 flex flex-col print:h-auto print:block">
             <Routes>
-                <Route path="" element={<Navigate to="booked" replace />} />
+                <Route path="" element={<Navigate to="/app/seva/booked" replace />} />
                 <Route path="booked" element={<BookedSevasTab />} />
                 <Route path="fulfilment" element={<SevaFulfilmentTab />} />
-                <Route path="reports" element={<Navigate to="reports/daily_priest" replace />} />
+                <Route path="reports" element={<Navigate to="/app/seva/reports/daily_priest" replace />} />
                 <Route path="reports/:reportId" element={<SevaReportsTab />} />
                 <Route path="analytics" element={<SevaAnalyticsTab />} />
             </Routes>
